@@ -23,3 +23,15 @@ This Starter Project acts as a base for all Next JS projects @ eoss. The Starter
 - All Tailwind Classes are ordered according to specifity
 
 We provide editor settings for VS Code, please setup to auto format and fix on save if you dont use VS Code.
+
+## Folder and Project Structure
+
+## Styling and Components
+
+We use Tailwind, react-feather and shadcn as styling tools and component library. To install a new shadcn component, use the cli command:
+
+`npx shadcn@latest add button`
+
+to add a button for example.
+
+To use iconst import what ever you need from react-feather.

@@ -1,11 +1,12 @@
 {
   "extends": ["next/core-web-vitals", "next/typescript", "prettier"],
-  "plugins": ["check-file"],
+  "plugins": ["check-file", "n"],
   "rules": {
     "no-console": "warn",
     "no-unused-vars": "warn",
     "prefer-arrow-callback": "warn",
     "prefer-template": "warn",
+    "n/no-process-env": ["error"],
     "check-file/filename-naming-convention": [
       "error",
       {
