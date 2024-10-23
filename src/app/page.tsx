@@ -1,14 +1,14 @@
-import { useState } from 'react';
+import Link from 'next/link';
 
-import Header from '@/components/header';
+import { Button } from '@/components/ui/button';
 
 export default function Home() {
-  const [count] = useState(0);
   return (
     <div>
       <h1>hello world</h1>
-      <Header />
-      <p>{count}</p>
+      <Button>
+        <Link href="/">Click me</Link>
+      </Button>
     </div>
   );
 }

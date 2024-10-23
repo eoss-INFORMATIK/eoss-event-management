@@ -19,7 +19,7 @@ This Starter Project acts as a base for all Next JS projects @ eoss. The Starter
 - we prefer Arrow Functions when possible
 - we use template strings when possible
 
-- All Imports are soted automatically
+- All Imports are sorted automatically
 - All Tailwind Classes are ordered according to specifity
 
 We provide editor settings for VS Code, please setup to auto format and fix on save if you dont use VS Code.
