@@ -15,6 +15,7 @@ export const env = createEnv({
     DATABASE_URL: z.string().url(),
   },
   onValidationError: (error: ZodError) => {
+    // eslint-disable-next-line no-console
     console.error(
       '❌ Invalid environment variables:',
       JSON.stringify(error.flatten().fieldErrors)

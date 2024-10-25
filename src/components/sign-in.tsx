@@ -4,7 +4,6 @@ import { Button } from './ui/button';
 
 export default async function SignIn() {
   const session = await auth();
-  console.log(session);
   return (
     <div>
       <form
