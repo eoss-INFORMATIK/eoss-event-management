@@ -20,7 +20,7 @@ export const env = createEnv({
       '❌ Invalid environment variables:',
       JSON.stringify(error.flatten().fieldErrors)
     );
-    process.exit(1);
+    throw new Error('Invalid environment variables');
   },
   emptyStringAsUndefined: true,
   // eslint-disable-next-line n/no-process-env
