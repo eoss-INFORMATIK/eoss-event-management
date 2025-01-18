@@ -13,6 +13,9 @@ export const env = createEnv({
     DB_NAME: z.string(),
     DB_PORT: z.coerce.number(),
     DATABASE_URL: z.string().url(),
+    // Email configuration
+    EMAIL_FROM_ADDRESS: z.string().email(),
+    RESEND_API_KEY: z.string(),
   },
   onValidationError: (error: ZodError) => {
     // eslint-disable-next-line no-console
