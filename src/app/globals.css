@@ -3,99 +3,57 @@
 @tailwind utilities;
 
 @layer base {
-  h1 {
-    @apply text-lg;
-    font-family: 'Space Grotesk', sans-serif;
-    font-weight: 500;
-    color: var(--color-beige-800);
+  :root {
+    --background: 43 100% 95%;
+    --foreground: 43 5% 0%;
+    --card: 43 50% 90%;
+    --card-foreground: 43 5% 10%;
+    --popover: 43 100% 95%;
+    --popover-foreground: 43 100% 0%;
+    --primary: 43 97.5% 52.2%;
+    --primary-foreground: 0 0% 100%;
+    --secondary: 43 30% 70%;
+    --secondary-foreground: 0 0% 0%;
+    --muted: 5 30% 85%;
+    --muted-foreground: 43 5% 35%;
+    --accent: 5 30% 80%;
+    --accent-foreground: 43 5% 10%;
+    --destructive: 0 100% 30%;
+    --destructive-foreground: 43 5% 90%;
+    --border: 43 30% 50%;
+    --input: 43 30% 18%;
+    --ring: 43 97.5% 52.2%;
+    --radius: 0.3rem;
   }
-  h2 {
-    @apply text-md;
-    font-family: 'Space Grotesk', sans-serif;
-  }
-  h3 {
-    @apply text-sm;
-    font-family: 'Space Grotesk', sans-serif;
-  }
-  h4 {
-    @apply text-sm;
-    font-family: 'Space Grotesk', sans-serif;
-  }
-  h5 {
-    @apply text-sm;
-  }
-  h6 {
-    @apply text-xs;
-  }
-  p {
-    @apply text-sm;
+  .dark {
+    --background: 43 50% 5%;
+    --foreground: 43 5% 90%;
+    --card: 43 50% 0%;
+    --card-foreground: 43 5% 90%;
+    --popover: 43 50% 5%;
+    --popover-foreground: 43 5% 90%;
+    --primary: 43 97.5% 52.2%;
+    --primary-foreground: 0 0% 100%;
+    --secondary: 43 30% 10%;
+    --secondary-foreground: 0 0% 100%;
+    --muted: 5 30% 15%;
+    --muted-foreground: 43 5% 60%;
+    --accent: 5 30% 15%;
+    --accent-foreground: 43 5% 90%;
+    --destructive: 0 100% 30%;
+    --destructive-foreground: 43 5% 90%;
+    --border: 43 30% 18%;
+    --input: 43 30% 18%;
+    --ring: 43 97.5% 52.2%;
+    --radius: 0.3rem;
   }
 }
 
-:root {
-  --background: 43 100% 95%;
-  --foreground: 43 5% 0%;
-  --card: 43 50% 90%;
-  --card-foreground: 43 5% 10%;
-  --popover: 43 100% 95%;
-  --popover-foreground: 43 100% 0%;
-  --primary: 43 97.5% 52.2%;
-  --primary-foreground: 0 0% 100%;
-  --secondary: 43 30% 70%;
-  --secondary-foreground: 0 0% 0%;
-  --muted: 5 30% 85%;
-  --muted-foreground: 43 5% 35%;
-  --accent: 5 30% 80%;
-  --accent-foreground: 43 5% 10%;
-  --destructive: 0 100% 30%;
-  --destructive-foreground: 43 5% 90%;
-  --border: 43 30% 50%;
-  --input: 43 30% 18%;
-  --ring: 43 97.5% 52.2%;
-  --radius: 0.5rem;
-}
-.dark {
-  --background: 43 50% 5%;
-  --foreground: 43 5% 90%;
-  --card: 43 50% 0%;
-  --card-foreground: 43 5% 90%;
-  --popover: 43 50% 5%;
-  --popover-foreground: 43 5% 90%;
-  --primary: 43 97.5% 52.2%;
-  --primary-foreground: 0 0% 100%;
-  --secondary: 43 30% 10%;
-  --secondary-foreground: 0 0% 100%;
-  --muted: 5 30% 15%;
-  --muted-foreground: 43 5% 60%;
-  --accent: 5 30% 15%;
-  --accent-foreground: 43 5% 90%;
-  --destructive: 0 100% 30%;
-  --destructive-foreground: 43 5% 90%;
-  --border: 43 30% 18%;
-  --input: 43 30% 18%;
-  --ring: 43 97.5% 52.2%;
-  --radius: 0.5rem;
-}
-
-html {
-  font-family: 'Poppins', sans-serif;
-  font-size: 16px;
-  scroll-behavior: smooth;
-}
-code {
-  font-family: Menlo;
-}
-
-main li {
-  list-style: none;
-  margin-bottom: 1rem;
-}
-
-main li::before {
-  content: '👉';
-  padding-right: 0.5rem;
-}
-
-main a {
-  text-decoration: underline;
+@layer base {
+  * {
+    @apply border-border;
+  }
+  body {
+    @apply bg-background text-foreground font-sans antialiased;
+  }
 }

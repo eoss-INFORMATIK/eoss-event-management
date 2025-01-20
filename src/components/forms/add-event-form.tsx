@@ -7,6 +7,8 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { useForm } from 'react-hook-form';
 import { z } from 'zod';
 
+import { InsertEventSchema } from '@/db/schema/events';
+
 import { Button } from '@/components/ui/button';
 import {
   Form,
@@ -21,50 +23,41 @@ import { Textarea } from '@/components/ui/textarea';
 
 import { addEventAction } from '@/server/eventActions';
 
-const formSchema = z.object({
-  title: z.string().min(3, 'Title must be at least 3 characters'),
-  description: z.string().optional(),
-  startDate: z.string(),
-  endDate: z.string(),
-  location: z.string().optional(),
-  capacity: z.string().optional(),
-});
-
 export function AddEventForm() {
   const router = useRouter();
   const [error, setError] = useState<string>('');
 
-  const form = useForm<z.infer<typeof formSchema>>({
-    resolver: zodResolver(formSchema),
+  const form = useForm<z.infer<typeof InsertEventSchema>>({
+    resolver: zodResolver(InsertEventSchema),
     defaultValues: {
       title: '',
       description: '',
-      startDate: '',
-      endDate: '',
-      location: '',
-      capacity: '',
+      date: new Date(),
     },
   });
 
-  const handleSubmit = async (values: z.infer<typeof formSchema>) => {
-    const result = await addEventAction(values);
+  const handleSubmit = async (values: z.infer<typeof InsertEventSchema>) => {
+    try {
+      const result = await addEventAction(values); // Server action will handle adding organizer_id
 
-    if (result.error) {
-      setError(result.error);
-      return;
+      if (result.error) {
+        setError(result.error);
+        return;
+      }
+
+      router.push('/events');
+      router.refresh();
+    } catch (error) {
+      setError('An error occurred while submitting the form');
     }
-
-    router.push('/events');
-    router.refresh();
   };
 
   return (
     <Form {...form}>
       <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-6">
         {error && (
-          <div className="rounded-md bg-red-50 p-3 text-red-500">{error}</div>
+          <div className="bg-red-50 text-red-500 rounded-md p-3">{error}</div>
         )}
-
         <FormField
           control={form.control}
           name="title"
@@ -90,6 +83,7 @@ export function AddEventForm() {
                   placeholder="Enter event description"
                   className="resize-none"
                   {...field}
+                  value={field.value || ''}
                 />
               </FormControl>
               <FormMessage />
@@ -100,65 +94,26 @@ export function AddEventForm() {
         <div className="grid grid-cols-2 gap-4">
           <FormField
             control={form.control}
-            name="startDate"
+            name="date"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>Start Date</FormLabel>
+                <FormLabel>Datum</FormLabel>
                 <FormControl>
-                  <Input type="datetime-local" {...field} />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-
-          <FormField
-            control={form.control}
-            name="endDate"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>End Date</FormLabel>
-                <FormControl>
-                  <Input type="datetime-local" {...field} />
+                  <Input
+                    type="date"
+                    onChange={(e) => field.onChange(new Date(e.target.value))}
+                    value={
+                      field.value instanceof Date
+                        ? field.value.toISOString().split('T')[0]
+                        : ''
+                    }
+                  />
                 </FormControl>
                 <FormMessage />
               </FormItem>
             )}
           />
         </div>
-
-        <FormField
-          control={form.control}
-          name="location"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>Location</FormLabel>
-              <FormControl>
-                <Input placeholder="Enter event location" {...field} />
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
-
-        <FormField
-          control={form.control}
-          name="capacity"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>Capacity</FormLabel>
-              <FormControl>
-                <Input
-                  type="number"
-                  placeholder="Enter maximum capacity"
-                  {...field}
-                  onChange={(e) => field.onChange(e.target.value)}
-                />
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
 
         <Button type="submit" className="w-full">
           Create Event

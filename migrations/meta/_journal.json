@@ -8,6 +8,20 @@
       "when": 1737291015280,
       "tag": "0000_serious_naoko",
       "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "7",
+      "when": 1737379586351,
+      "tag": "0001_left_wendigo",
+      "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1737392524257,
+      "tag": "0002_absurd_living_tribunal",
+      "breakpoints": true
     }
   ]
 }

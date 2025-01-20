@@ -1,6 +1,7 @@
 'use client';
 
 import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 import { useState } from 'react';
 
 import { type Event } from '@/db/schema/events';
@@ -15,12 +16,16 @@ import {
   CardTitle,
 } from '@/components/ui/card';
 
+import { deleteEventAction } from '@/server/eventActions';
+
 interface SingleEventMetaClientProps {
   event: Event;
 }
 
 export function SingleEventMetaClient({ event }: SingleEventMetaClientProps) {
   const [isEditing, setIsEditing] = useState(false);
+
+  const router = useRouter();
 
   const formatDate = (date: Date) => {
     return new Intl.DateTimeFormat('en-US', {
@@ -52,7 +57,7 @@ export function SingleEventMetaClient({ event }: SingleEventMetaClientProps) {
   return (
     <div className="container mx-auto p-6">
       <div className="mb-6">
-        <Button variant="outline" className="mb-4" asChild>
+        <Button variant="default" className="mb-4" asChild>
           <Link href="/events">← Back to Events</Link>
         </Button>
       </div>
@@ -65,11 +70,7 @@ export function SingleEventMetaClient({ event }: SingleEventMetaClientProps) {
                 <div className="space-y-1">
                   <p className="text-base">
                     <span className="font-medium">Start:</span>{' '}
-                    {formatDate(event.startDate)}
-                  </p>
-                  <p className="text-base">
-                    <span className="font-medium">End:</span>{' '}
-                    {formatDate(event.endDate)}
+                    {formatDate(event.date)}
                   </p>
                 </div>
               </CardDescription>
@@ -78,7 +79,15 @@ export function SingleEventMetaClient({ event }: SingleEventMetaClientProps) {
               <Button variant="outline" onClick={() => setIsEditing(true)}>
                 Edit Event
               </Button>
-              <Button variant="destructive">Cancel Event</Button>
+              <Button
+                variant="destructive"
+                onClick={() => {
+                  deleteEventAction(event.id);
+                  router.push('/events');
+                }}
+              >
+                Event löschen
+              </Button>
             </div>
           </div>
         </CardHeader>
@@ -89,41 +98,9 @@ export function SingleEventMetaClient({ event }: SingleEventMetaClientProps) {
               {event.description || 'No description provided'}
             </p>
           </div>
-
-          <div className="grid gap-4 md:grid-cols-2">
-            <div>
-              <h3 className="mb-2 font-semibold">Location</h3>
-              <p className="text-gray-600">
-                {event.location || 'No location specified'}
-              </p>
-            </div>
-
-            <div>
-              <h3 className="mb-2 font-semibold">Capacity</h3>
-              <p className="text-gray-600">
-                {event.capacity ? `${event.capacity} people` : 'Unlimited'}
-              </p>
-            </div>
-          </div>
-
-          <div>
-            <h3 className="mb-2 font-semibold">Status</h3>
-            <div
-              className={`inline-flex rounded-full px-3 py-1 text-sm font-medium ${
-                event.status === 'draft'
-                  ? 'bg-yellow-100 text-yellow-800'
-                  : event.status === 'published'
-                    ? 'bg-green-100 text-green-800'
-                    : 'bg-red-100 text-red-800'
-              }`}
-            >
-              {event.status.charAt(0).toUpperCase() + event.status.slice(1)}
-            </div>
-          </div>
-
-          <div className="rounded-lg bg-gray-50 p-4">
+          <div className="bg-gray-50 rounded-lg p-4">
             <h3 className="mb-4 font-semibold">Event Timeline</h3>
-            <div className="space-y-2 text-sm text-gray-600">
+            <div className="text-gray-600 space-y-2 text-sm">
               <p>
                 <span className="font-medium">Created:</span>{' '}
                 {formatDate(event.createdAt)}

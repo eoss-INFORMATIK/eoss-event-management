@@ -1,12 +1,7 @@
 import { relations } from 'drizzle-orm';
-import {
-  integer,
-  pgTable,
-  text,
-  timestamp,
-  uuid,
-  varchar,
-} from 'drizzle-orm/pg-core';
+import { pgTable, text, timestamp, uuid, varchar } from 'drizzle-orm/pg-core';
+import { createInsertSchema } from 'drizzle-zod';
+import { z } from 'zod';
 
 import eventParticipants from './eventParticipants';
 import users from './users';
@@ -15,14 +10,10 @@ const events = pgTable('events', {
   id: uuid('id').defaultRandom().primaryKey(),
   title: varchar('title', { length: 255 }).notNull(),
   description: text('description'),
-  startDate: timestamp('start_date').notNull(),
-  endDate: timestamp('end_date').notNull(),
-  location: varchar('location', { length: 255 }),
+  date: timestamp('date').notNull(),
   organizerId: uuid('organizer_id')
     .notNull()
     .references(() => users.id),
-  capacity: integer('capacity'),
-  status: varchar('status', { length: 20 }).default('draft').notNull(), // draft, published, cancelled
   createdAt: timestamp('created_at').defaultNow().notNull(),
   updatedAt: timestamp('updated_at').defaultNow().notNull(),
 });
@@ -36,6 +27,15 @@ export const eventsRelations = relations(events, ({ many, one }) => ({
 }));
 
 export default events;
+
+export const InsertEventSchema = createInsertSchema(events, {
+  date: z.coerce.date(),
+}).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+  organizerId: true,
+});
 
 export type Event = typeof events.$inferSelect;
 export type InsertEvent = typeof events.$inferInsert;

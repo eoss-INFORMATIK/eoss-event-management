@@ -6,27 +6,28 @@ import { desc, eq } from 'drizzle-orm';
 import { z } from 'zod';
 
 import db from '@/db';
-import events, { type Event } from '@/db/schema/events';
+import events, { type Event, InsertEventSchema } from '@/db/schema/events';
 import { type User } from '@/db/schema/users';
 
 import { auth } from '@/config/auth';
-
-const eventSchema = z.object({
-  title: z.string().min(3, 'Title must be at least 3 characters'),
-  description: z.string().optional(),
-  startDate: z.string(),
-  endDate: z.string(),
-  location: z.string().optional(),
-  capacity: z.string().optional(),
-});
 
 type ActionResponse = {
   success?: boolean;
   error?: string;
 };
 
+type EventsResponse = {
+  events?: Event[];
+  error?: string;
+};
+
+type EventResponse = {
+  event?: Event;
+  error?: string;
+};
+
 export async function addEventAction(
-  formData: z.infer<typeof eventSchema>
+  formData: z.infer<typeof InsertEventSchema>
 ): Promise<ActionResponse> {
   const session = await auth();
 
@@ -35,24 +36,15 @@ export async function addEventAction(
   }
 
   try {
-    const validatedFields = eventSchema.parse(formData);
-    const capacityValue = validatedFields.capacity
-      ? parseInt(validatedFields.capacity, 10)
-      : null;
+    const validatedFields = InsertEventSchema.parse(formData);
 
-    await db.insert(events).values({
-      title: validatedFields.title,
-      description: validatedFields.description || null,
-      startDate: new Date(validatedFields.startDate),
-      endDate: new Date(validatedFields.endDate),
-      location: validatedFields.location || null,
-      capacity: capacityValue,
+    const dataToInsert = {
+      ...validatedFields,
       organizerId: (session.user as User).id,
-      status: 'draft',
       createdAt: new Date(),
       updatedAt: new Date(),
-    });
-
+    };
+    const result = await db.insert(events).values(dataToInsert);
     revalidatePath('/events');
     return { success: true };
   } catch (error) {
@@ -65,7 +57,7 @@ export async function addEventAction(
 
 export async function editEventAction(
   eventId: string,
-  formData: z.infer<typeof eventSchema>
+  formData: z.infer<typeof InsertEventSchema>
 ): Promise<ActionResponse> {
   const session = await auth();
 
@@ -89,20 +81,14 @@ export async function editEventAction(
       return { error: 'You are not authorized to edit this event' };
     }
 
-    const validatedFields = eventSchema.parse(formData);
-    const capacityValue = validatedFields.capacity
-      ? parseInt(validatedFields.capacity, 10)
-      : null;
+    const validatedFields = InsertEventSchema.parse(formData);
 
     await db
       .update(events)
       .set({
         title: validatedFields.title,
         description: validatedFields.description || null,
-        startDate: new Date(validatedFields.startDate),
-        endDate: new Date(validatedFields.endDate),
-        location: validatedFields.location || null,
-        capacity: capacityValue,
+        date: new Date(validatedFields.date),
         updatedAt: new Date(),
       })
       .where(eq(events.id, eventId));
@@ -118,10 +104,42 @@ export async function editEventAction(
   }
 }
 
-type EventsResponse = {
-  events?: Event[];
-  error?: string;
-};
+export async function deleteEventAction(
+  eventId: string
+): Promise<ActionResponse> {
+  const session = await auth();
+
+  if (!session?.user) {
+    return { error: 'You must be logged in to delete an event' };
+  }
+
+  try {
+    // First check if the event exists and belongs to the user
+    const [existingEvent] = await db
+      .select()
+      .from(events)
+      .where(eq(events.id, eventId))
+      .limit(1);
+
+    if (!existingEvent) {
+      return { error: 'Event not found' };
+    }
+
+    if (existingEvent.organizerId !== (session.user as User).id) {
+      return { error: 'You are not authorized to delete this event' };
+    }
+
+    await db.delete(events).where(eq(events.id, eventId));
+
+    // Revalidate both the events list and the specific event page
+    revalidatePath('/events');
+    revalidatePath(`/events/${eventId}`);
+
+    return { success: true };
+  } catch (error) {
+    return { error: 'Failed to delete event' };
+  }
+}
 
 export async function getUserEventsAction(): Promise<EventsResponse> {
   const session = await auth();
@@ -134,8 +152,7 @@ export async function getUserEventsAction(): Promise<EventsResponse> {
     const userEvents = await db
       .select()
       .from(events)
-      .where(eq(events.organizerId, (session.user as User).id))
-      .orderBy(desc(events.startDate));
+      .where(eq(events.organizerId, (session.user as User).id));
 
     return { events: userEvents };
   } catch (error) {
@@ -145,21 +162,13 @@ export async function getUserEventsAction(): Promise<EventsResponse> {
 
 export async function getAllEventsAction(): Promise<EventsResponse> {
   try {
-    const allEvents = await db
-      .select()
-      .from(events)
-      .orderBy(desc(events.startDate));
+    const allEvents = await db.select().from(events).orderBy(desc(events.date));
 
     return { events: allEvents };
   } catch (error) {
     return { error: 'Failed to fetch events' };
   }
 }
-
-type EventResponse = {
-  event?: Event;
-  error?: string;
-};
 
 export async function getEventAction(eventId: string): Promise<EventResponse> {
   try {

@@ -15,10 +15,11 @@ import { getUserEventsAction } from '@/server/eventActions';
 export default async function EventsPage() {
   const { events, error } = await getUserEventsAction();
 
+  console.log(events, error);
   if (error) {
     return (
       <div className="container mx-auto p-6">
-        <div className="rounded-md bg-red-50 p-4 text-red-500">{error}</div>
+        <div className="bg-red-50 text-red-500 rounded-md p-4">{error}</div>
       </div>
     );
   }
@@ -33,7 +34,7 @@ export default async function EventsPage() {
       </div>
 
       {events?.length === 0 ? (
-        <div className="text-center text-gray-500">
+        <div className="text-gray-500 text-center">
           <p>You haven&apos;t created any events yet.</p>
           <p>Click the button above to create your first event!</p>
         </div>
@@ -44,24 +45,13 @@ export default async function EventsPage() {
               <CardHeader>
                 <CardTitle>{event.title}</CardTitle>
                 <CardDescription>
-                  {event.startDate.toLocaleDateString()} -{' '}
-                  {event.endDate.toLocaleDateString()}
+                  {event.date.toLocaleDateString()}
                 </CardDescription>
               </CardHeader>
               <CardContent>
-                <p className="text-sm text-gray-600">
+                <p className="text-gray-600 text-sm">
                   {event.description || 'No description provided'}
                 </p>
-                {event.location && (
-                  <p className="mt-2 text-sm text-gray-600">
-                    📍 {event.location}
-                  </p>
-                )}
-                {event.capacity && (
-                  <p className="mt-2 text-sm text-gray-600">
-                    👥 Capacity: {event.capacity}
-                  </p>
-                )}
               </CardContent>
               <CardFooter>
                 <Button asChild variant="outline" className="w-full">

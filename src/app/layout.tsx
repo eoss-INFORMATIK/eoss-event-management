@@ -1,10 +1,25 @@
 import type { Metadata } from 'next';
+import { Poppins, Space_Grotesk } from 'next/font/google';
 
 import { SessionProvider } from 'next-auth/react';
 
 import { Header } from '@/components/header';
 
+import { cn } from '@/lib/utils';
+
 import './globals.css';
+
+const poppins = Poppins({
+  subsets: ['latin'],
+  weight: ['400', '500', '600', '700'],
+  variable: '--font-poppins',
+});
+
+const spaceGrotesk = Space_Grotesk({
+  subsets: ['latin'],
+  weight: ['400', '500', '600', '700'],
+  variable: '--font-space-grotesk-variable',
+});
 
 export const metadata: Metadata = {
   title: 'eoss Base Next App',
@@ -18,7 +33,7 @@ export default function RootLayout({
 }>) {
   return (
     <SessionProvider>
-      <html lang="de">
+      <html lang="de" className={cn(poppins.variable, spaceGrotesk.variable)}>
         <head>
           <link
             rel="icon"
@@ -27,7 +42,7 @@ export default function RootLayout({
         </head>
         <body>
           <Header />
-          <main className="mx-auto flex max-w-7xl bg-background">
+          <main className="bg-background mx-auto flex max-w-7xl">
             {children}
           </main>
         </body>
