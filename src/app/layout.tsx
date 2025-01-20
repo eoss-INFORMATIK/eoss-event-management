@@ -27,7 +27,9 @@ export default function RootLayout({
         </head>
         <body>
           <Header />
-          <main className="bg-background">{children}</main>
+          <main className="mx-auto flex max-w-7xl bg-background">
+            {children}
+          </main>
         </body>
       </html>
     </SessionProvider>

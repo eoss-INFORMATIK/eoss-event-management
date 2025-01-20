@@ -1,64 +1,67 @@
 import type { Config } from 'tailwindcss';
-import animate from 'tailwindcss-animate';
 
-const config: Config = {
-  darkMode: ['class'],
+export default {
   content: [
     './src/pages/**/*.{js,ts,jsx,tsx,mdx}',
     './src/components/**/*.{js,ts,jsx,tsx,mdx}',
     './src/app/**/*.{js,ts,jsx,tsx,mdx}',
   ],
   theme: {
-    extend: {
-      colors: {
-        background: 'hsl(var(--background))',
-        foreground: 'hsl(var(--foreground))',
-        card: {
-          DEFAULT: 'hsl(var(--card))',
-          foreground: 'hsl(var(--card-foreground))',
-        },
-        popover: {
-          DEFAULT: 'hsl(var(--popover))',
-          foreground: 'hsl(var(--popover-foreground))',
-        },
-        primary: {
-          DEFAULT: 'hsl(var(--primary))',
-          foreground: 'hsl(var(--primary-foreground))',
-        },
-        secondary: {
-          DEFAULT: 'hsl(var(--secondary))',
-          foreground: 'hsl(var(--secondary-foreground))',
-        },
-        muted: {
-          DEFAULT: 'hsl(var(--muted))',
-          foreground: 'hsl(var(--muted-foreground))',
-        },
-        accent: {
-          DEFAULT: 'hsl(var(--accent))',
-          foreground: 'hsl(var(--accent-foreground))',
-        },
-        destructive: {
-          DEFAULT: 'hsl(var(--destructive))',
-          foreground: 'hsl(var(--destructive-foreground))',
-        },
-        border: 'hsl(var(--border))',
-        input: 'hsl(var(--input))',
-        ring: 'hsl(var(--ring))',
-        chart: {
-          '1': 'hsl(var(--chart-1))',
-          '2': 'hsl(var(--chart-2))',
-          '3': 'hsl(var(--chart-3))',
-          '4': 'hsl(var(--chart-4))',
-          '5': 'hsl(var(--chart-5))',
-        },
+    container: {
+      center: true,
+      padding: {
+        DEFAULT: '0rem',
+        sm: '2rem',
+        md: '3rem',
       },
-      borderRadius: {
-        lg: 'var(--radius)',
-        md: 'calc(var(--radius) - 2px)',
-        sm: 'calc(var(--radius) - 4px)',
+    },
+    colors: {
+      black: '#050400',
+      white: '#FFFFFF',
+      gray: '#F5F4F1',
+      beige: {
+        100: '#F5F4F1',
+        200: '#E6E3DB',
+        300: '#CEC8BA',
+        400: '#B2A692',
+        500: '#8C7B66',
+        600: '#786656',
+        700: '#615047',
+        800: '#54453F',
+        900: '#4A3D39',
+      },
+      yellow: {
+        100: '#FFF2D8',
+        200: '#FFEBC5',
+        300: '#FFE5B2',
+        400: '#FFDE9E',
+        500: '#FFD88B',
+        600: '#FFD277',
+        700: '#FFCB63',
+        800: '#FFC54D',
+        900: '#FCBA0E',
+      },
+    },
+    extend: {
+      maxWidth: {
+        '3/4': '75%',
+      },
+      fontSize: {
+        xs: '1rem',
+        sm: '1.375rem',
+        md: '2rem',
+        lg: '2.75rem',
+        xl: '3.5rem',
+        xxl: '4rem',
+      },
+      fontFamily: {
+        space: ['var(--font-space-grotesk)'],
+        poppins: ['var(--font-poppins)'],
+      },
+      screens: {
+        xs: '375px',
       },
     },
   },
-  plugins: [animate],
-};
-export default config;
+  plugins: [],
+} satisfies Config;
