@@ -7,7 +7,7 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { useForm } from 'react-hook-form';
 import { z } from 'zod';
 
-import { type Event } from '@/db/schema/events';
+import { type Event, InsertEventSchema } from '@/db/schema/events';
 
 import { Button } from '@/components/ui/button';
 import {
@@ -23,15 +23,6 @@ import { Textarea } from '@/components/ui/textarea';
 
 import { editEventAction } from '@/server/eventActions';
 
-const formSchema = z.object({
-  title: z.string().min(3, 'Title must be at least 3 characters'),
-  description: z.string().optional(),
-  startDate: z.string(),
-  endDate: z.string(),
-  location: z.string().optional(),
-  capacity: z.string().optional(),
-});
-
 interface EditEventFormProps {
   event: Event;
   onCancel: () => void;
@@ -41,19 +32,16 @@ export function EditEventForm({ event, onCancel }: EditEventFormProps) {
   const router = useRouter();
   const [error, setError] = useState<string>('');
 
-  const form = useForm<z.infer<typeof formSchema>>({
-    resolver: zodResolver(formSchema),
+  const form = useForm<z.infer<typeof InsertEventSchema>>({
+    resolver: zodResolver(InsertEventSchema),
     defaultValues: {
       title: event.title,
       description: event.description || '',
-      startDate: event.startDate.toISOString().slice(0, 16),
-      endDate: event.endDate.toISOString().slice(0, 16),
-      location: event.location || '',
-      capacity: event.capacity?.toString() || '',
+      date: event.date,
     },
   });
 
-  const handleSubmit = async (values: z.infer<typeof formSchema>) => {
+  const handleSubmit = async (values: z.infer<typeof InsertEventSchema>) => {
     const result = await editEventAction(event.id, values);
 
     if (result.error) {
@@ -69,7 +57,7 @@ export function EditEventForm({ event, onCancel }: EditEventFormProps) {
     <Form {...form}>
       <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-6">
         {error && (
-          <div className="rounded-md bg-red-50 p-3 text-red-500">{error}</div>
+          <div className="bg-red-50 text-red-500 rounded-md p-3">{error}</div>
         )}
 
         <FormField
@@ -77,7 +65,7 @@ export function EditEventForm({ event, onCancel }: EditEventFormProps) {
           name="title"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>Event Title</FormLabel>
+              <FormLabel>Event Name</FormLabel>
               <FormControl>
                 <Input placeholder="Enter event title" {...field} />
               </FormControl>
@@ -85,93 +73,50 @@ export function EditEventForm({ event, onCancel }: EditEventFormProps) {
             </FormItem>
           )}
         />
-
         <FormField
           control={form.control}
           name="description"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>Description</FormLabel>
+              <FormLabel>Beschreibung</FormLabel>
               <FormControl>
                 <Textarea
                   placeholder="Enter event description"
                   className="resize-none"
                   {...field}
+                  value={field.value || ''}
                 />
               </FormControl>
               <FormMessage />
             </FormItem>
           )}
         />
-
-        <div className="grid grid-cols-2 gap-4">
-          <FormField
-            control={form.control}
-            name="startDate"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Start Date</FormLabel>
-                <FormControl>
-                  <Input type="datetime-local" {...field} />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-
-          <FormField
-            control={form.control}
-            name="endDate"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>End Date</FormLabel>
-                <FormControl>
-                  <Input type="datetime-local" {...field} />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-        </div>
-
         <FormField
           control={form.control}
-          name="location"
+          name="date"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>Location</FormLabel>
-              <FormControl>
-                <Input placeholder="Enter event location" {...field} />
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
-
-        <FormField
-          control={form.control}
-          name="capacity"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>Capacity</FormLabel>
+              <FormLabel>Datum</FormLabel>
               <FormControl>
                 <Input
-                  type="number"
-                  placeholder="Enter maximum capacity"
-                  {...field}
-                  onChange={(e) => field.onChange(e.target.value)}
+                  type="date"
+                  onChange={(e) => field.onChange(new Date(e.target.value))}
+                  value={
+                    field.value instanceof Date
+                      ? field.value.toISOString().split('T')[0]
+                      : ''
+                  }
                 />
               </FormControl>
               <FormMessage />
             </FormItem>
           )}
         />
-
         <div className="flex justify-end gap-2">
           <Button type="button" variant="outline" onClick={onCancel}>
-            Cancel
+            Abbrechen
           </Button>
-          <Button type="submit">Save Changes</Button>
+          <Button type="submit">Änderungen speichern</Button>
         </div>
       </form>
     </Form>

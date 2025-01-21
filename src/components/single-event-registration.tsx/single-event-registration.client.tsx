@@ -9,9 +9,5 @@ interface SingleEventRegistrationClientProps {
 export function SingleEventRegistrationClient({
   eventId,
 }: SingleEventRegistrationClientProps) {
-  return (
-    <div className="container mx-auto p-6">
-      <EventRegistrationForm eventId={eventId} />
-    </div>
-  );
+  return <EventRegistrationForm eventId={eventId} />;
 }

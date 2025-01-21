@@ -2,27 +2,22 @@ import Link from 'next/link';
 
 import { auth } from '@/config/auth';
 
+import SignOutButton from '../Sign-Out-Button';
+
 export const Nav = async ({ children }: { children: React.ReactNode }) => {
   const session = await auth();
 
-  const MENU_ITEMS: { label: string; href: string }[] = [
-    { label: 'Sign In', href: '/signin' },
-    { label: 'Register', href: '/register' },
-  ];
+  const MENU_ITEMS: { label: string; href: string }[] = [];
 
   if (session?.user) {
     MENU_ITEMS.push(
       {
-        label: 'Dashboard',
-        href: '/dashboard',
+        label: 'Meine Events',
+        href: '/events',
       },
       {
         label: 'Profile',
         href: '/profile',
-      },
-      {
-        label: 'Logout',
-        href: '/logout',
       }
     );
   }
@@ -34,7 +29,8 @@ export const Nav = async ({ children }: { children: React.ReactNode }) => {
           {item.label}
         </Link>
       ))}
-      {children}
+      {!session?.user && children}
+      {session?.user && <SignOutButton />}
     </nav>
   );
 };

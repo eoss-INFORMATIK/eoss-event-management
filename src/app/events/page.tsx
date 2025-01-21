@@ -1,5 +1,6 @@
 import Link from 'next/link';
 
+import { AddEventButton } from '@/components/add-event-button';
 import { Button } from '@/components/ui/button';
 import {
   Card,
@@ -25,18 +26,17 @@ export default async function EventsPage() {
   }
 
   return (
-    <div className="container mx-auto p-6">
+    <div className="container mx-auto">
       <div className="mb-6 flex items-center justify-between">
-        <h1 className="text-3xl font-bold">My Events</h1>
-        <Button asChild>
-          <Link href="/add-event">Create New Event</Link>
-        </Button>
+        <h1 className="text-3xl font-bold">Meine Events</h1>
+        <AddEventButton />
       </div>
 
       {events?.length === 0 ? (
         <div className="text-gray-500 text-center">
-          <p>You haven&apos;t created any events yet.</p>
-          <p>Click the button above to create your first event!</p>
+          <p>Bist jetzt hast du noch keine Events erstellt.</p>
+          <h2>Erstelle jetzt dein erstes Event!</h2>
+          <AddEventButton />
         </div>
       ) : (
         <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
@@ -45,7 +45,7 @@ export default async function EventsPage() {
               <CardHeader>
                 <CardTitle>{event.title}</CardTitle>
                 <CardDescription>
-                  {event.date.toLocaleDateString()}
+                  <p>Datum: {event.date.toLocaleDateString()}</p>
                 </CardDescription>
               </CardHeader>
               <CardContent>
@@ -53,9 +53,12 @@ export default async function EventsPage() {
                   {event.description || 'No description provided'}
                 </p>
               </CardContent>
-              <CardFooter>
+              <CardFooter className="flex flex-row gap-2">
                 <Button asChild variant="outline" className="w-full">
-                  <Link href={`/events/${event.id}`}>View Details</Link>
+                  <Link href={`/events/${event.id}`}>Details</Link>
+                </Button>
+                <Button asChild variant="outline" className="w-full">
+                  <Link href={`/events/${event.id}/admin`}>Teilnehmer</Link>
                 </Button>
               </CardFooter>
             </Card>

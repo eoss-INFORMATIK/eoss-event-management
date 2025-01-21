@@ -39,10 +39,7 @@ export function EventRegistrationForm({ eventId }: { eventId: string }) {
     values: z.infer<typeof InsertEventParticipantSchema>
   ) => {
     try {
-      console.log('handleSubmit called with values:', values);
       const result = await addEventParticipantAction(values, eventId);
-      console.log('Action result:', result);
-
       if (result.error) {
         setError(result.error);
         return;
@@ -51,7 +48,6 @@ export function EventRegistrationForm({ eventId }: { eventId: string }) {
       router.push(`/events/${eventId}`);
       router.refresh();
     } catch (error) {
-      console.error('Error in handleSubmit:', error);
       setError('An error occurred while submitting the form');
     }
   };
@@ -81,7 +77,7 @@ export function EventRegistrationForm({ eventId }: { eventId: string }) {
             <FormItem>
               <FormLabel>Email</FormLabel>
               <FormControl>
-                <Input placeholder="Enter email" {...field} />
+                <Input placeholder="E-Mail" {...field} />
               </FormControl>
               <FormMessage />
             </FormItem>
@@ -96,7 +92,7 @@ export function EventRegistrationForm({ eventId }: { eventId: string }) {
               <FormLabel>Name</FormLabel>
               <FormControl>
                 <Input
-                  placeholder="Enter name"
+                  placeholder="Name"
                   {...field}
                   value={field.value || ''}
                 />
@@ -107,7 +103,7 @@ export function EventRegistrationForm({ eventId }: { eventId: string }) {
         />
 
         <Button type="submit" className="w-full">
-          Register
+          Registrieren
         </Button>
       </form>
     </Form>
