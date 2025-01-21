@@ -126,7 +126,7 @@ export function AddEventForm() {
         <FormField
           control={form.control}
           name="imageUrl"
-          render={({ field: { value, onChange, ...field } }) => (
+          render={({ field: { onChange, ...field } }) => (
             <FormItem>
               <FormLabel>Add Image</FormLabel>
               <FormControl>

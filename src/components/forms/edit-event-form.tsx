@@ -33,7 +33,6 @@ interface EditEventFormProps {
 export function EditEventForm({ event, onCancel }: EditEventFormProps) {
   const router = useRouter();
   const [error, setError] = useState<string>('');
-  const [isUploading, setIsUploading] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const form = useForm<z.infer<typeof InsertEventSchema>>({
@@ -48,7 +47,6 @@ export function EditEventForm({ event, onCancel }: EditEventFormProps) {
 
   const handleSubmit = async (values: z.infer<typeof InsertEventSchema>) => {
     try {
-      setIsUploading(true);
       const file = fileInputRef.current?.files?.[0];
       let imageUrl = event.imageUrl || '';
 
@@ -83,8 +81,6 @@ export function EditEventForm({ event, onCancel }: EditEventFormProps) {
       router.refresh();
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to update event');
-    } finally {
-      setIsUploading(false);
     }
   };
 
@@ -159,7 +155,7 @@ export function EditEventForm({ event, onCancel }: EditEventFormProps) {
           <FormField
             control={form.control}
             name="imageUrl"
-            render={({ field: { value, ...field } }) => (
+            render={({ field: { ...field } }) => (
               <FormItem>
                 <FormLabel>Add Image</FormLabel>
                 <FormControl>

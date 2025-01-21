@@ -46,8 +46,9 @@ export function EventRegistrationForm({ eventId }: { eventId: string }) {
         setError(result.error);
         console.error(result.error);
         return;
+      } else {
+        setStatus('success');
       }
-      result ? setStatus('success') : setStatus('error');
     } catch (error) {
       console.error(error);
       setStatus('error');
