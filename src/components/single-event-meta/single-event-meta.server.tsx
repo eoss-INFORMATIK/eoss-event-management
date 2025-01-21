@@ -8,9 +8,10 @@ interface EventPageProps {
   params: Promise<{
     id: string;
   }>;
+  clientView: boolean;
 }
 
-export async function SingleEventMeta({ params }: EventPageProps) {
+export async function SingleEventMeta({ params, clientView }: EventPageProps) {
   const resolvedParams = await params;
   const { event, error } = await getEventAction(resolvedParams.id);
 
@@ -18,5 +19,5 @@ export async function SingleEventMeta({ params }: EventPageProps) {
     notFound();
   }
 
-  return <SingleEventMetaClient event={event} />;
+  return <SingleEventMetaClient event={event} clientView={clientView} />;
 }

@@ -1,6 +1,5 @@
 'use client';
 
-import { useRouter } from 'next/navigation';
 import { useState } from 'react';
 
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -23,8 +22,10 @@ import { Input } from '@/components/ui/input';
 import { addEventParticipantAction } from '@/server/event-participant-actions';
 
 export function EventRegistrationForm({ eventId }: { eventId: string }) {
-  const router = useRouter();
   const [error, setError] = useState<string>('');
+  const [status, setStatus] = useState<
+    'idle' | 'loading' | 'success' | 'error'
+  >('idle');
 
   const form = useForm<z.infer<typeof InsertEventParticipantSchema>>({
     resolver: zodResolver(InsertEventParticipantSchema),
@@ -38,6 +39,7 @@ export function EventRegistrationForm({ eventId }: { eventId: string }) {
   const handleSubmit = async (
     values: z.infer<typeof InsertEventParticipantSchema>
   ) => {
+    setStatus('loading');
     try {
       const result = await addEventParticipantAction(values, eventId);
       if (result.error) {
@@ -45,14 +47,25 @@ export function EventRegistrationForm({ eventId }: { eventId: string }) {
         console.error(result.error);
         return;
       }
-
-      router.push(`/events/${eventId}`);
-      router.refresh();
+      result ? setStatus('success') : setStatus('error');
     } catch (error) {
       console.error(error);
+      setStatus('error');
       setError('An error occurred while submitting the form');
     }
   };
+
+  if (status === 'loading') {
+    return <div>Loading...</div>;
+  }
+
+  if (status === 'success') {
+    return <div>Vielen Dank für deine Anmeldung!</div>;
+  }
+
+  if (status === 'error') {
+    return <div>Error! {error}</div>;
+  }
 
   return (
     <Form {...form}>

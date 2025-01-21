@@ -31,10 +31,10 @@ export const SingleEventParticipants = async ({ params }: EventPageProps) => {
       <TableCaption>Eine Liste mit allen Teilnehmern zum Event</TableCaption>
       <TableHeader>
         <TableRow key="header">
-          <TableHead className="w-full">Name</TableHead>
-          <TableHead className="w-full">E-Mail</TableHead>
-          <TableHead className="w-full">Status</TableHead>
-          <TableHead className="w-full text-right">Registriert am</TableHead>
+          <TableHead>Name</TableHead>
+          <TableHead>E-Mail</TableHead>
+          <TableHead>Status</TableHead>
+          <TableHead className="text-right">Registriert am</TableHead>
         </TableRow>
       </TableHeader>
       {!participants ? (

@@ -20,9 +20,13 @@ import { deleteEventAction } from '@/server/event-actions';
 
 interface SingleEventMetaClientProps {
   event: Event;
+  clientView: boolean;
 }
 
-export function SingleEventMetaClient({ event }: SingleEventMetaClientProps) {
+export function SingleEventMetaClient({
+  event,
+  clientView,
+}: SingleEventMetaClientProps) {
   const [isEditing, setIsEditing] = useState(false);
 
   const router = useRouter();
@@ -47,7 +51,6 @@ export function SingleEventMetaClient({ event }: SingleEventMetaClientProps) {
           <div>
             {event.imageUrl && (
               <div className="flex flex-col items-center justify-center">
-                <h1>Image</h1>
                 <Image
                   src={event.imageUrl}
                   alt={event.title}
@@ -67,20 +70,22 @@ export function SingleEventMetaClient({ event }: SingleEventMetaClientProps) {
               </div>
             </CardDescription>
           </div>
-          <div className="flex gap-2">
-            <Button variant="outline" onClick={() => setIsEditing(true)}>
-              Event bearbeiten
-            </Button>
-            <Button
-              variant="destructive"
-              onClick={() => {
-                deleteEventAction(event.id);
-                router.push('/events');
-              }}
-            >
-              Event löschen
-            </Button>
-          </div>
+          {!clientView && (
+            <div className="flex gap-2">
+              <Button variant="outline" onClick={() => setIsEditing(true)}>
+                Event bearbeiten
+              </Button>
+              <Button
+                variant="destructive"
+                onClick={() => {
+                  deleteEventAction(event.id);
+                  router.push('/events');
+                }}
+              >
+                Event löschen
+              </Button>
+            </div>
+          )}
         </div>
       </CardHeader>
       <CardContent className="space-y-6">
@@ -90,19 +95,21 @@ export function SingleEventMetaClient({ event }: SingleEventMetaClientProps) {
             {event.description || 'No description provided'}
           </p>
         </div>
-        <div className="bg-gray-50 rounded-lg p-4">
-          <h3 className="mb-4 font-semibold">Event Timeline</h3>
-          <div className="text-gray-600 space-y-2 text-sm">
-            <p>
-              <span className="font-medium">Erstellt:</span>{' '}
-              {event.createdAt.toLocaleDateString()}
-            </p>
-            <p>
-              <span className="font-medium">Zuletzt aktualisisert:</span>{' '}
-              {event.updatedAt.toLocaleDateString()}
-            </p>
+        {!clientView && (
+          <div className="bg-gray-50 rounded-lg p-4">
+            <h3 className="mb-4 font-semibold">Event Timeline</h3>
+            <div className="text-gray-600 space-y-2 text-sm">
+              <p>
+                <span className="font-medium">Erstellt:</span>{' '}
+                {event.createdAt.toLocaleDateString()}
+              </p>
+              <p>
+                <span className="font-medium">Zuletzt aktualisisert:</span>{' '}
+                {event.updatedAt.toLocaleDateString()}
+              </p>
+            </div>
           </div>
-        </div>
+        )}
       </CardContent>
     </Card>
   );
