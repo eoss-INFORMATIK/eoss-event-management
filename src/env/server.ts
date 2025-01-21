@@ -16,6 +16,7 @@ export const env = createEnv({
     // Email configuration
     EMAIL_FROM_ADDRESS: z.string().email(),
     RESEND_API_KEY: z.string(),
+    BLOB_READ_WRITE_TOKEN: z.string(),
   },
   onValidationError: (error: ZodError) => {
     // eslint-disable-next-line no-console

@@ -16,6 +16,7 @@ const events = pgTable('events', {
     .references(() => users.id),
   createdAt: timestamp('created_at').defaultNow().notNull(),
   updatedAt: timestamp('updated_at').defaultNow().notNull(),
+  imageUrl: text('image_url'),
 });
 
 export const eventsRelations = relations(events, ({ many, one }) => ({
@@ -30,6 +31,7 @@ export default events;
 
 export const InsertEventSchema = createInsertSchema(events, {
   date: z.coerce.date(),
+  imageUrl: z.string().optional(),
 }).omit({
   id: true,
   createdAt: true,

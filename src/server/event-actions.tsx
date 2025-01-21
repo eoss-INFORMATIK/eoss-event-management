@@ -90,6 +90,7 @@ export async function editEventAction(
         description: validatedFields.description || null,
         date: new Date(validatedFields.date),
         updatedAt: new Date(),
+        imageUrl: validatedFields.imageUrl || null,
       })
       .where(eq(events.id, eventId));
 

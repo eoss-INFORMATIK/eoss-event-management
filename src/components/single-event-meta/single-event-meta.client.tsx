@@ -1,5 +1,6 @@
 'use client';
 
+import Image from 'next/image';
 import { useRouter } from 'next/navigation';
 import { useState } from 'react';
 
@@ -28,16 +29,14 @@ export function SingleEventMetaClient({ event }: SingleEventMetaClientProps) {
 
   if (isEditing) {
     return (
-      <div className="container mx-auto p-6">
-        <Card className="">
-          <CardHeader>
-            <CardTitle className="text-xl">Event bearbeiten</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <EditEventForm event={event} onCancel={() => setIsEditing(false)} />
-          </CardContent>
-        </Card>
-      </div>
+      <Card>
+        <CardHeader>
+          <CardTitle className="text-xl">Event bearbeiten</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <EditEventForm event={event} onCancel={() => setIsEditing(false)} />
+        </CardContent>
+      </Card>
     );
   }
 
@@ -46,6 +45,18 @@ export function SingleEventMetaClient({ event }: SingleEventMetaClientProps) {
       <CardHeader>
         <div className="flex items-start justify-between">
           <div>
+            {event.imageUrl && (
+              <div className="flex flex-col items-center justify-center">
+                <h1>Image</h1>
+                <Image
+                  src={event.imageUrl}
+                  alt={event.title}
+                  width={500}
+                  height={500}
+                  className="h-auto w-full"
+                />
+              </div>
+            )}
             <CardTitle className="text-3xl">{event.title}</CardTitle>
             <CardDescription className="mt-2">
               <div className="space-y-1">

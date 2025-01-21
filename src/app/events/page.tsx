@@ -1,3 +1,4 @@
+import Image from 'next/image';
 import Link from 'next/link';
 
 import { AddEventButton } from '@/components/add-event-button';
@@ -40,11 +41,20 @@ export default async function EventsPage() {
       ) : (
         <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
           {events?.map((event) => (
-            <Card key={event.id}>
+            <Card key={event.id} className="flex flex-col justify-end">
               <CardHeader>
+                {event.imageUrl && (
+                  <Image
+                    src={event.imageUrl}
+                    alt={event.title}
+                    width={250}
+                    height={250}
+                    className="h-auto w-full"
+                  />
+                )}
                 <CardTitle>{event.title}</CardTitle>
                 <CardDescription>
-                  <p>Datum: {event.date.toLocaleDateString()}</p>
+                  <p>Datum: {event.date.toLocaleDateString('de-CH')}</p>
                 </CardDescription>
               </CardHeader>
               <CardContent>

@@ -1,9 +1,10 @@
 'use client';
 
 import { useRouter } from 'next/navigation';
-import { useState } from 'react';
+import { useRef, useState } from 'react';
 
 import { zodResolver } from '@hookform/resolvers/zod';
+import { PutBlobResult } from '@vercel/blob';
 import { useForm } from 'react-hook-form';
 import { z } from 'zod';
 
@@ -26,6 +27,8 @@ import { addEventAction } from '@/server/event-actions';
 export function AddEventForm() {
   const router = useRouter();
   const [error, setError] = useState<string>('');
+  const [isUploading, setIsUploading] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   const form = useForm<z.infer<typeof InsertEventSchema>>({
     resolver: zodResolver(InsertEventSchema),
@@ -33,12 +36,38 @@ export function AddEventForm() {
       title: '',
       description: '',
       date: new Date(),
+      imageUrl: '',
     },
   });
 
   const handleSubmit = async (values: z.infer<typeof InsertEventSchema>) => {
     try {
-      const result = await addEventAction(values); // Server action will handle adding organizer_id
+      setIsUploading(true);
+      let imageUrl = '';
+
+      const file = fileInputRef.current?.files?.[0];
+
+      if (file) {
+        const formData = new FormData();
+        formData.append('file', file);
+
+        const response = await fetch(`/api/event/upload`, {
+          method: 'POST',
+          body: formData,
+        });
+
+        if (!response.ok) {
+          throw new Error('Failed to upload image');
+        }
+
+        const blob = (await response.json()) as PutBlobResult;
+        imageUrl = blob.url;
+      }
+
+      const result = await addEventAction({
+        ...values,
+        imageUrl: imageUrl,
+      });
 
       if (result.error) {
         setError(result.error);
@@ -50,12 +79,15 @@ export function AddEventForm() {
     } catch (error) {
       setError('An error occurred while submitting the form');
       console.error(error);
+    } finally {
+      setIsUploading(false);
     }
   };
 
   return (
     <Form {...form}>
       <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-6">
+        {isUploading && <p>Uploading...</p>}
         {error && (
           <div className="bg-red-50 text-red-500 rounded-md p-3">{error}</div>
         )}
@@ -91,6 +123,27 @@ export function AddEventForm() {
             </FormItem>
           )}
         />
+        <FormField
+          control={form.control}
+          name="imageUrl"
+          render={({ field: { value, onChange, ...field } }) => (
+            <FormItem>
+              <FormLabel>Add Image</FormLabel>
+              <FormControl>
+                <Input
+                  type="file"
+                  accept="image/*"
+                  onChange={(e) => {
+                    const file = e.target.files?.[0];
+                    onChange(file);
+                  }}
+                  {...{ ...field, ref: fileInputRef }}
+                />
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
 
         <div className="grid grid-cols-2 gap-4">
           <FormField
@@ -116,7 +169,7 @@ export function AddEventForm() {
           />
         </div>
 
-        <Button type="submit" className="w-full">
+        <Button type="submit" className="w-full" disabled={isUploading}>
           Create Event
         </Button>
       </form>

@@ -1,9 +1,11 @@
 'use client';
 
+import Image from 'next/image';
 import { useRouter } from 'next/navigation';
-import { useState } from 'react';
+import { useRef, useState } from 'react';
 
 import { zodResolver } from '@hookform/resolvers/zod';
+import { PutBlobResult } from '@vercel/blob';
 import { useForm } from 'react-hook-form';
 import { z } from 'zod';
 
@@ -31,6 +33,8 @@ interface EditEventFormProps {
 export function EditEventForm({ event, onCancel }: EditEventFormProps) {
   const router = useRouter();
   const [error, setError] = useState<string>('');
+  const [isUploading, setIsUploading] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   const form = useForm<z.infer<typeof InsertEventSchema>>({
     resolver: zodResolver(InsertEventSchema),
@@ -38,19 +42,50 @@ export function EditEventForm({ event, onCancel }: EditEventFormProps) {
       title: event.title,
       description: event.description || '',
       date: event.date,
+      imageUrl: event.imageUrl || '',
     },
   });
 
   const handleSubmit = async (values: z.infer<typeof InsertEventSchema>) => {
-    const result = await editEventAction(event.id, values);
+    try {
+      setIsUploading(true);
+      const file = fileInputRef.current?.files?.[0];
+      let imageUrl = event.imageUrl || '';
 
-    if (result.error) {
-      setError(result.error);
-      return;
+      if (file) {
+        const formData = new FormData();
+        formData.append('file', file);
+
+        const response = await fetch(`/api/event/upload`, {
+          method: 'POST',
+          body: formData,
+        });
+
+        if (!response.ok) {
+          throw new Error('Failed to upload image');
+        }
+
+        const blob = (await response.json()) as PutBlobResult;
+        imageUrl = blob.url;
+      }
+
+      const result = await editEventAction(event.id, {
+        ...values,
+        imageUrl: imageUrl,
+      });
+
+      if (result.error) {
+        setError(result.error);
+        return;
+      }
+
+      router.push('/events');
+      router.refresh();
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Failed to update event');
+    } finally {
+      setIsUploading(false);
     }
-
-    router.refresh();
-    onCancel();
   };
 
   return (
@@ -112,6 +147,33 @@ export function EditEventForm({ event, onCancel }: EditEventFormProps) {
             </FormItem>
           )}
         />
+        <div className="flex justify-center">
+          {event.imageUrl && (
+            <Image
+              src={event.imageUrl}
+              alt="Event Image"
+              width={300}
+              height={300}
+            />
+          )}
+          <FormField
+            control={form.control}
+            name="imageUrl"
+            render={({ field: { value, ...field } }) => (
+              <FormItem>
+                <FormLabel>Add Image</FormLabel>
+                <FormControl>
+                  <Input
+                    type="file"
+                    accept="image/*"
+                    {...{ ...field, ref: fileInputRef }}
+                  />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+        </div>
         <div className="flex justify-end gap-2">
           <Button type="button" variant="outline" onClick={onCancel}>
             Abbrechen
