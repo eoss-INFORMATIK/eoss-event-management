@@ -11,12 +11,11 @@ import {
   CardTitle,
 } from '@/components/ui/card';
 
-import { getUserEventsAction } from '@/server/eventActions';
+import { getUserEventsAction } from '@/server/event-actions';
 
 export default async function EventsPage() {
   const { events, error } = await getUserEventsAction();
 
-  console.log(events, error);
   if (error) {
     return (
       <div className="container mx-auto p-6">

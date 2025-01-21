@@ -3,7 +3,7 @@ import { pgTable, text, timestamp, uuid, varchar } from 'drizzle-orm/pg-core';
 import { createInsertSchema } from 'drizzle-zod';
 import { z } from 'zod';
 
-import eventParticipants from './eventParticipants';
+import eventParticipants from './event-participants';
 import users from './users';
 
 const events = pgTable('events', {

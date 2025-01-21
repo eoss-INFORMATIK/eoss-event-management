@@ -1,6 +1,6 @@
 import { notFound } from 'next/navigation';
 
-import { getEventAction } from '@/server/eventActions';
+import { getEventAction } from '@/server/event-actions';
 
 import { SingleEventRegistrationClient } from './single-event-registration.client';
 

@@ -7,7 +7,7 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { useForm } from 'react-hook-form';
 import { z } from 'zod';
 
-import { InsertEventParticipantSchema } from '@/db/schema/eventParticipants';
+import { InsertEventParticipantSchema } from '@/db/schema/event-participants';
 
 import { Button } from '@/components/ui/button';
 import {
@@ -20,7 +20,7 @@ import {
 } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
 
-import { addEventParticipantAction } from '@/server/eventParticipantActions';
+import { addEventParticipantAction } from '@/server/event-participant-actions';
 
 export function EventRegistrationForm({ eventId }: { eventId: string }) {
   const router = useRouter();
@@ -42,12 +42,14 @@ export function EventRegistrationForm({ eventId }: { eventId: string }) {
       const result = await addEventParticipantAction(values, eventId);
       if (result.error) {
         setError(result.error);
+        console.error(result.error);
         return;
       }
 
       router.push(`/events/${eventId}`);
       router.refresh();
     } catch (error) {
+      console.error(error);
       setError('An error occurred while submitting the form');
     }
   };
@@ -57,11 +59,10 @@ export function EventRegistrationForm({ eventId }: { eventId: string }) {
       <form
         onSubmit={form.handleSubmit(
           (values) => {
-            console.log('Form submitted with values:', values);
             handleSubmit(values);
           },
           (errors) => {
-            console.log('Validation errors:', errors);
+            console.error(errors);
           }
         )}
         className="space-y-6"

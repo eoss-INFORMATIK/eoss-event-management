@@ -7,7 +7,7 @@ import { z } from 'zod';
 import db from '@/db';
 import eventParticipants, {
   InsertEventParticipantSchema,
-} from '@/db/schema/eventParticipants';
+} from '@/db/schema/event-participants';
 
 type ActionResponse = {
   success?: boolean;

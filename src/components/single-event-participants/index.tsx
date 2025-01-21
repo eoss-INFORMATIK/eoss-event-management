@@ -10,7 +10,7 @@ import {
   TableRow,
 } from '@/components/ui/table';
 
-import { getEventParticipants } from '@/queries/eventParticipantsQueries';
+import { getEventParticipants } from '@/queries/event-participants-queries';
 
 interface EventPageProps {
   params: Promise<{
@@ -30,7 +30,7 @@ export const SingleEventParticipants = async ({ params }: EventPageProps) => {
     <Table>
       <TableCaption>Eine Liste mit allen Teilnehmern zum Event</TableCaption>
       <TableHeader>
-        <TableRow>
+        <TableRow key="header">
           <TableHead className="w-full">Name</TableHead>
           <TableHead className="w-full">E-Mail</TableHead>
           <TableHead className="w-full">Status</TableHead>
@@ -40,18 +40,22 @@ export const SingleEventParticipants = async ({ params }: EventPageProps) => {
       {!participants ? (
         <p>No participants found</p>
       ) : (
-        participants.map((participant) => (
-          <TableBody>
-            <TableRow key={participant.id}>
-              <TableCell className="font-medium">{participant.name}</TableCell>
-              <TableCell>{participant.email}</TableCell>
-              <TableCell>{participant.status}</TableCell>
-              <TableCell className="text-right">
-                {participant.createdAt.toLocaleDateString()}
-              </TableCell>
-            </TableRow>
-          </TableBody>
-        ))
+        <TableBody>
+          {participants.map((participant) => {
+            return (
+              <TableRow key={participant.id}>
+                <TableCell className="font-medium">
+                  {participant.name}
+                </TableCell>
+                <TableCell>{participant.email}</TableCell>
+                <TableCell>{participant.status}</TableCell>
+                <TableCell className="text-right">
+                  {participant.createdAt.toLocaleDateString()}
+                </TableCell>
+              </TableRow>
+            );
+          })}
+        </TableBody>
       )}
     </Table>
   );

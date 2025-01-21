@@ -15,7 +15,7 @@ import {
   CardTitle,
 } from '@/components/ui/card';
 
-import { deleteEventAction } from '@/server/eventActions';
+import { deleteEventAction } from '@/server/event-actions';
 
 interface SingleEventMetaClientProps {
   event: Event;

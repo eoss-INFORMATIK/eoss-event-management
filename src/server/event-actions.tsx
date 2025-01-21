@@ -44,7 +44,7 @@ export async function addEventAction(
       createdAt: new Date(),
       updatedAt: new Date(),
     };
-    const result = await db.insert(events).values(dataToInsert);
+    await db.insert(events).values(dataToInsert);
     revalidatePath('/events');
     return { success: true };
   } catch (error) {
@@ -137,6 +137,7 @@ export async function deleteEventAction(
 
     return { success: true };
   } catch (error) {
+    console.error(error);
     return { error: 'Failed to delete event' };
   }
 }
@@ -156,6 +157,7 @@ export async function getUserEventsAction(): Promise<EventsResponse> {
 
     return { events: userEvents };
   } catch (error) {
+    console.error(error);
     return { error: 'Failed to fetch your events' };
   }
 }
@@ -166,6 +168,7 @@ export async function getAllEventsAction(): Promise<EventsResponse> {
 
     return { events: allEvents };
   } catch (error) {
+    console.error(error);
     return { error: 'Failed to fetch events' };
   }
 }
@@ -184,6 +187,7 @@ export async function getEventAction(eventId: string): Promise<EventResponse> {
 
     return { event };
   } catch (error) {
+    console.error(error);
     return { error: 'Failed to fetch event' };
   }
 }

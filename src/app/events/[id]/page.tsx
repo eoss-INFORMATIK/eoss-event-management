@@ -6,8 +6,6 @@ import { SingleEventMeta } from '@/components/single-event-meta';
 import { SingleEventRegistration } from '@/components/single-event-registration.tsx';
 import { Button } from '@/components/ui/button';
 
-import { auth } from '@/config/auth';
-
 interface EventPageProps {
   params: Promise<{
     id: string;
@@ -15,8 +13,6 @@ interface EventPageProps {
 }
 
 export default async function EventPage({ params }: EventPageProps) {
-  const session = await auth();
-
   return (
     <section className="flex w-full flex-col gap-4">
       <Button variant="default" className="mb-4 max-w-fit" asChild>

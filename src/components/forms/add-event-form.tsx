@@ -21,7 +21,7 @@ import {
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 
-import { addEventAction } from '@/server/eventActions';
+import { addEventAction } from '@/server/event-actions';
 
 export function AddEventForm() {
   const router = useRouter();
@@ -49,6 +49,7 @@ export function AddEventForm() {
       router.refresh();
     } catch (error) {
       setError('An error occurred while submitting the form');
+      console.error(error);
     }
   };
 

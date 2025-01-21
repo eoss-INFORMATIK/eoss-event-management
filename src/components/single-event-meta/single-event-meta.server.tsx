@@ -1,6 +1,6 @@
 import { notFound } from 'next/navigation';
 
-import { getEventAction } from '@/server/eventActions';
+import { getEventAction } from '@/server/event-actions';
 
 import { SingleEventMetaClient } from './single-event-meta.client';
 
