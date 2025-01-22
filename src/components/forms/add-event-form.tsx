@@ -6,6 +6,7 @@ import { useRef, useState } from 'react';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { PutBlobResult } from '@vercel/blob';
 import { useForm } from 'react-hook-form';
+import { toast } from 'sonner';
 import { z } from 'zod';
 
 import { InsertEventSchema } from '@/db/schema/events';
@@ -73,7 +74,7 @@ export function AddEventForm() {
         setError(result.error);
         return;
       }
-
+      toast.success('Event erfolgreich erstellt');
       router.push('/events');
       router.refresh();
     } catch (error) {

@@ -19,6 +19,7 @@ import {
 } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
 
+import { sendConfirmationEmailAction } from '@/server/email-actions';
 import { addEventParticipantAction } from '@/server/event-participant-actions';
 
 export function EventRegistrationForm({ eventId }: { eventId: string }) {
@@ -48,6 +49,12 @@ export function EventRegistrationForm({ eventId }: { eventId: string }) {
         return;
       } else {
         setStatus('success');
+        await sendConfirmationEmailAction(
+          values.name || '',
+          'Event Registration',
+          values.email,
+          eventId
+        );
       }
     } catch (error) {
       console.error(error);

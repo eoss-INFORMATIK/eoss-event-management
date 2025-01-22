@@ -4,6 +4,7 @@ import { Poppins, Space_Grotesk } from 'next/font/google';
 import { SessionProvider } from 'next-auth/react';
 
 import { Header } from '@/components/header';
+import { Toaster } from '@/components/ui/sonner';
 
 import { cn } from '@/lib/utils';
 
@@ -45,6 +46,7 @@ export default function RootLayout({
           <main className="bg-background mx-auto flex max-w-7xl">
             {children}
           </main>
+          <Toaster expand={true} />
         </body>
       </html>
     </SessionProvider>

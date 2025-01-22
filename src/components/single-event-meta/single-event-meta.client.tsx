@@ -38,7 +38,7 @@ export function SingleEventMetaClient({
           <CardTitle className="text-xl">Event bearbeiten</CardTitle>
         </CardHeader>
         <CardContent>
-          <EditEventForm event={event} onCancel={() => setIsEditing(false)} />
+          <EditEventForm event={event} setIsEditing={setIsEditing} />
         </CardContent>
       </Card>
     );

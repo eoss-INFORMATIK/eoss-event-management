@@ -7,6 +7,7 @@ import { useRef, useState } from 'react';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { PutBlobResult } from '@vercel/blob';
 import { useForm } from 'react-hook-form';
+import { toast } from 'sonner';
 import { z } from 'zod';
 
 import { type Event, InsertEventSchema } from '@/db/schema/events';
@@ -27,10 +28,11 @@ import { editEventAction } from '@/server/event-actions';
 
 interface EditEventFormProps {
   event: Event;
-  onCancel: () => void;
+
+  setIsEditing: (isEditing: boolean) => void;
 }
 
-export function EditEventForm({ event, onCancel }: EditEventFormProps) {
+export function EditEventForm({ event, setIsEditing }: EditEventFormProps) {
   const router = useRouter();
   const [error, setError] = useState<string>('');
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -76,9 +78,8 @@ export function EditEventForm({ event, onCancel }: EditEventFormProps) {
         setError(result.error);
         return;
       }
-
-      router.push('/events');
-      router.refresh();
+      setIsEditing(false);
+      toast.success('Event erfolgreich bearbeitet');
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to update event');
     }
@@ -163,6 +164,7 @@ export function EditEventForm({ event, onCancel }: EditEventFormProps) {
                     type="file"
                     accept="image/*"
                     {...{ ...field, ref: fileInputRef }}
+                    value={''}
                   />
                 </FormControl>
                 <FormMessage />
@@ -171,7 +173,11 @@ export function EditEventForm({ event, onCancel }: EditEventFormProps) {
           />
         </div>
         <div className="flex justify-end gap-2">
-          <Button type="button" variant="outline" onClick={onCancel}>
+          <Button
+            type="button"
+            variant="outline"
+            onClick={() => setIsEditing(false)}
+          >
             Abbrechen
           </Button>
           <Button type="submit">Änderungen speichern</Button>
