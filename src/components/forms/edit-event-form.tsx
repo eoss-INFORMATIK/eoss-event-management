@@ -1,7 +1,6 @@
 'use client';
 
 import Image from 'next/image';
-import { useRouter } from 'next/navigation';
 import { useRef, useState } from 'react';
 
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -33,7 +32,6 @@ interface EditEventFormProps {
 }
 
 export function EditEventForm({ event, setIsEditing }: EditEventFormProps) {
-  const router = useRouter();
   const [error, setError] = useState<string>('');
   const fileInputRef = useRef<HTMLInputElement>(null);
 

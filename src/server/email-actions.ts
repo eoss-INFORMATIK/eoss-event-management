@@ -5,6 +5,8 @@ import { eq } from 'drizzle-orm';
 import db from '@/db';
 import { events } from '@/db/schema';
 
+import { env } from '@/env/server';
+
 export const sendConfirmationEmailAction = async (
   firstName: string,
   subject: string,
@@ -19,7 +21,7 @@ export const sendConfirmationEmailAction = async (
 
   const { title, description, imageUrl } = event[0];
 
-  const response = await fetch(`${process.env.SITE_URL}/api/send`, {
+  const response = await fetch(`${env.SITE_URL}/api/send`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({
