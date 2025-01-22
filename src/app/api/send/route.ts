@@ -11,7 +11,7 @@ export async function POST(request: Request) {
   const { firstName, subject, toEmail, title, description, imageUrl } = body;
   try {
     const { data, error } = await resend.emails.send({
-      from: process.env.EMAIL_FROM_ADDRESS || 'hello@resend.eoss.ch',
+      from: env.EMAIL_FROM_ADDRESS || 'hello@resend.eoss.ch',
       to: [toEmail],
       subject: subject,
       react: EmailTemplate({ firstName, title, description, imageUrl }),
