@@ -2,6 +2,7 @@
 
 import { revalidatePath } from 'next/cache';
 
+import { eq } from 'drizzle-orm';
 import { z } from 'zod';
 
 import db from '@/db';
@@ -51,5 +52,36 @@ export async function addEventParticipantAction(
       return { error: error.errors[0].message };
     }
     return { error: 'Failed to register for event' };
+  }
+}
+
+export async function deleteEventParticipantAction(
+  eventParticipantId: string,
+  eventId: string
+): Promise<ActionResponse> {
+  try {
+    await db
+      .delete(eventParticipants)
+      .where(eq(eventParticipants.id, eventParticipantId));
+    revalidatePath(`/events/${eventId}/admin`);
+    return { success: true };
+  } catch (error) {
+    console.error('Fehler beim Löschen des Teilnehmers', error);
+    return { error: 'Fehler beim Löschen des Teilnehmers' };
+  }
+}
+export async function setEventParticipantsStatusAction(
+  eventParticipantId: string,
+  status: string
+): Promise<ActionResponse> {
+  try {
+    await db
+      .update(eventParticipants)
+      .set({ status })
+      .where(eq(eventParticipants.id, eventParticipantId));
+    return { success: true };
+  } catch (error) {
+    console.error('Fehler beim Ändern des Teilnehmerstatus', error);
+    return { error: 'Fehler beim Ändern des Teilnehmerstatus' };
   }
 }

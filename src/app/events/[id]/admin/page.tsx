@@ -3,6 +3,7 @@ import { redirect } from 'next/navigation';
 
 import { CircleArrowLeft } from 'lucide-react';
 
+import ParticipantsTable from '@/components/participants-table';
 import { SingleEventMeta } from '@/components/single-event-meta';
 import { SingleEventParticipants } from '@/components/single-event-participants';
 import { Button } from '@/components/ui/button';
@@ -19,7 +20,7 @@ export default async function EventAdminPage({ params }: EventPageProps) {
   const session = await auth();
 
   if (!session?.user) {
-    redirect(`/events/${params}`);
+    redirect(`/`);
   }
 
   return (
@@ -36,6 +37,9 @@ export default async function EventAdminPage({ params }: EventPageProps) {
       <div className="grid grid-cols-2 gap-12">
         <SingleEventMeta params={params} clientView={false} />
         <SingleEventParticipants params={params} />
+      </div>
+      <div className="flex flex-row gap-4">
+        <ParticipantsTable params={params} />
       </div>
     </section>
   );
