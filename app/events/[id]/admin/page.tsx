@@ -8,7 +8,7 @@ import { SingleEventMeta } from '@/components/single-event-meta';
 import { SingleEventParticipants } from '@/components/single-event-participants';
 import { Button } from '@/components/ui/button';
 
-import { auth } from '@/config/auth';
+import { createClient } from '@/server/supabase/server';
 
 interface EventPageProps {
   params: Promise<{
@@ -17,9 +17,12 @@ interface EventPageProps {
 }
 
 export default async function EventAdminPage({ params }: EventPageProps) {
-  const session = await auth();
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
 
-  if (!session?.user) {
+  if (!user) {
     redirect(`/`);
   }
 

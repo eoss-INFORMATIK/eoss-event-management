@@ -1,36 +1,56 @@
 'use server';
 
-import { eq } from 'drizzle-orm';
+import { createElement } from 'react';
 
-import db from '@/db';
-import { events } from '@/db/schema';
+import { Resend } from 'resend';
+
+import { EmailTemplate } from '@/features/email/email-template';
+
 import { env } from '@/env';
+import { createClient } from '@/server/supabase/server';
 
-export const sendConfirmationEmailAction = async (
+type ActionResponse = { success?: boolean; error?: string };
+
+const resend = new Resend(env.RESEND_API_KEY);
+
+/**
+ * Sends the registration confirmation.
+ *
+ * Calls Resend directly. The previous version POSTed to this app's own
+ * /api/send route from inside a server action -- a full HTTP round trip to
+ * reach code running in the same process.
+ */
+export const sendConfirmationEmail = async (
   firstName: string,
   subject: string,
   toEmail: string,
   eventId: string
-) => {
-  const event = await db
-    .select()
-    .from(events)
-    .where(eq(events.id, eventId))
-    .limit(1);
+): Promise<ActionResponse> => {
+  const supabase = await createClient();
 
-  const { title, description, imageUrl } = event[0];
+  const { data: event, error: eventError } = await supabase
+    .from('events')
+    .select('title, description, image_url')
+    .eq('id', eventId)
+    .maybeSingle();
 
-  const response = await fetch(`${env.SITE_URL}/api/send`, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({
+  if (eventError || !event) {
+    return { error: 'Event nicht gefunden' };
+  }
+
+  const { error } = await resend.emails.send({
+    from: env.EMAIL_FROM_ADDRESS,
+    to: [toEmail],
+    subject,
+    react: createElement(EmailTemplate, {
       firstName,
-      subject,
-      toEmail,
-      title,
-      description,
-      imageUrl,
+      title: event.title,
+      description: event.description ?? '',
+      imageUrl: event.image_url ?? undefined,
     }),
   });
-  return response.json();
+
+  if (error) return { error: 'Bestätigungsmail konnte nicht versendet werden' };
+
+  return { success: true };
 };

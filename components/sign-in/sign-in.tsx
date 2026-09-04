@@ -1,49 +1,34 @@
-import { auth, signIn, signOut } from '@/config/auth';
+import { signInWithEmail, signInWithGoogle } from '@/features/auth/actions';
+import { AUTH_ERRORS } from '@/features/auth/errors';
 
+import { createClient } from '@/server/supabase/server';
+
+import { SignOutButton } from '../sign-out-button';
 import { Button } from '../ui/button';
 
-export async function SignIn() {
-  const session = await auth();
+export const SignIn = async ({ error }: { error?: string }) => {
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
 
-  if (session?.user) {
+  if (user) {
     return (
       <div className="flex items-center gap-4">
-        <p>Signed in as {session.user.email}</p>
-        <form
-          action={async () => {
-            'use server';
-            await signOut({
-              redirectTo: '/',
-            });
-          }}
-        >
-          <Button variant="ghost">Sign out</Button>
-        </form>
+        <p>Angemeldet als {user.email}</p>
+        <SignOutButton variant="ghost">Abmelden</SignOutButton>
       </div>
     );
   }
 
   return (
     <div className="flex flex-col gap-4">
-      <form
-        action={async (formData: FormData) => {
-          'use server';
-
-          try {
-            const email = formData.get('email');
-            if (!email) return;
-
-            await signIn('resend', {
-              email: email.toString(),
-              redirect: true,
-              redirectTo: '/verify',
-            });
-          } catch (error) {
-            console.error('Sign in error:', error);
-          }
-        }}
-        className="flex gap-2"
-      >
+      {error && (
+        <p role="alert" className="rounded-md bg-red-50 p-3 text-red-500">
+          {AUTH_ERRORS[error] ?? 'Anmeldung fehlgeschlagen'}
+        </p>
+      )}
+      <form action={signInWithEmail} className="flex gap-2">
         <input
           type="email"
           name="email"
@@ -51,7 +36,7 @@ export async function SignIn() {
           required
           className="rounded-md border px-4 py-2"
         />
-        <Button type="submit">Sign in with Email</Button>
+        <Button type="submit">Mit E-Mail anmelden</Button>
       </form>
 
       <div className="relative">
@@ -60,23 +45,16 @@ export async function SignIn() {
         </div>
         <div className="relative flex justify-center text-xs uppercase">
           <span className="bg-background text-muted-foreground px-2">
-            Or continue with
+            Oder weiter mit
           </span>
         </div>
       </div>
 
-      <form
-        action={async () => {
-          'use server';
-          await signIn('google', {
-            redirectTo: '/profile',
-          });
-        }}
-      >
+      <form action={signInWithGoogle}>
         <Button type="submit" className="w-full">
-          Sign in with Google
+          Mit Google anmelden
         </Button>
       </form>
     </div>
   );
-}
+};

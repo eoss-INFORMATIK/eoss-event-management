@@ -2,86 +2,99 @@
 
 import { revalidatePath } from 'next/cache';
 
-import { eq } from 'drizzle-orm';
 import { z } from 'zod';
 
-import db from '@/db';
-import eventParticipants, {
-  InsertEventParticipantSchema,
-} from '@/db/schema/event-participants';
+import {
+  type ParticipantFormValues,
+  participantFormSchema,
+  participantStatusSchema,
+} from '@/features/participants/schema';
 
-type ActionResponse = {
-  success?: boolean;
-  error?: string;
+import { createClient } from '@/server/supabase/server';
+
+type ActionResponse = { success?: boolean; error?: string };
+
+/** Public: anyone can register for an event. */
+export const addParticipant = async (
+  formData: ParticipantFormValues,
+  eventId: string
+): Promise<ActionResponse> => {
+  const parsed = participantFormSchema.safeParse(formData);
+  if (!parsed.success) return { error: z.prettifyError(parsed.error) };
+
+  if (!z.uuid().safeParse(eventId).success) {
+    return { error: 'Ungültige Event-ID' };
+  }
+
+  const supabase = await createClient();
+
+  const { error } = await supabase.from('event_participants').insert({
+    event_id: eventId,
+    email: parsed.data.email,
+    name: parsed.data.name || null,
+  });
+
+  if (error) {
+    // 23505 = unique_violation on (event_id, lower(email))
+    if (error.code === '23505') {
+      return {
+        error: 'Für diese E-Mail-Adresse liegt bereits eine Anmeldung vor',
+      };
+    }
+    return { error: 'Anmeldung fehlgeschlagen' };
+  }
+
+  revalidatePath(`/events/${eventId}`);
+  return { success: true };
 };
 
-export async function addEventParticipantAction(
-  formData: z.infer<typeof InsertEventParticipantSchema>,
+/**
+ * Organizer only -- enforced by RLS. Previously these two actions had no auth
+ * check at all: any visitor could delete participants or change their status.
+ */
+
+export const deleteParticipant = async (
+  participantId: string,
   eventId: string
-): Promise<ActionResponse> {
-  console.log('Action started with:', { formData, eventId }); // Debug incoming data
+): Promise<ActionResponse> => {
+  const supabase = await createClient();
 
-  try {
-    const validatedFields = InsertEventParticipantSchema.parse({
-      ...formData,
-      eventId,
-    });
-    console.log('Validated fields:', validatedFields); // Debug validation
+  const { data, error } = await supabase
+    .from('event_participants')
+    .delete()
+    .eq('id', participantId)
+    .select('id');
 
-    const dataToInsert = {
-      ...validatedFields,
-      status: 'pending',
-      createdAt: new Date(),
-      updatedAt: new Date(),
-    };
-    console.log('Attempting to insert:', dataToInsert); // Debug insert data
-
-    const result = await db.insert(eventParticipants).values(dataToInsert);
-    console.log('Insert result:', result); // Debug result
-
-    revalidatePath('/events');
-    return { success: true };
-  } catch (error) {
-    console.error('Detailed error:', {
-      name: (error as Error)?.name,
-      message: (error as Error)?.message,
-      stack: (error as Error)?.stack,
-    });
-
-    if (error instanceof z.ZodError) {
-      return { error: error.issues[0].message };
-    }
-    return { error: 'Failed to register for event' };
+  if (error) return { error: 'Teilnehmer konnte nicht gelöscht werden' };
+  if (!data?.length) {
+    return { error: 'Teilnehmer nicht gefunden oder keine Berechtigung' };
   }
-}
 
-export async function deleteEventParticipantAction(
-  eventParticipantId: string,
+  revalidatePath(`/events/${eventId}/admin`);
+  return { success: true };
+};
+
+export const setParticipantStatus = async (
+  participantId: string,
+  status: string,
   eventId: string
-): Promise<ActionResponse> {
-  try {
-    await db
-      .delete(eventParticipants)
-      .where(eq(eventParticipants.id, eventParticipantId));
-    revalidatePath(`/events/${eventId}/admin`);
-    return { success: true };
-  } catch (error) {
-    console.error('Fehler beim Löschen des Teilnehmers', error);
-    return { error: 'Fehler beim Löschen des Teilnehmers' };
+): Promise<ActionResponse> => {
+  const parsed = participantStatusSchema.safeParse(status);
+  if (!parsed.success) return { error: z.prettifyError(parsed.error) };
+
+  const supabase = await createClient();
+
+  const { data, error } = await supabase
+    .from('event_participants')
+    .update({ status: parsed.data })
+    .eq('id', participantId)
+    .select('id');
+
+  if (error) return { error: 'Status konnte nicht geändert werden' };
+  if (!data?.length) {
+    return { error: 'Teilnehmer nicht gefunden oder keine Berechtigung' };
   }
-}
-export async function setEventParticipantsStatusAction(
-  eventParticipantId: string,
-  status: string
-): Promise<ActionResponse> {
-  try {
-    await db
-      .update(eventParticipants)
-      .set({ status })
-      .where(eq(eventParticipants.id, eventParticipantId));
-    return { success: true };
-  } catch (error) {
-    console.error('Fehler beim Ändern des Teilnehmerstatus', error);
-    return { error: 'Fehler beim Ändern des Teilnehmerstatus' };
-  }
-}
+
+  revalidatePath(`/events/${eventId}/admin`);
+  return { success: true };
+};

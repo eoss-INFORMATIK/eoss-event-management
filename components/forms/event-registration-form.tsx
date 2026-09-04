@@ -4,10 +4,13 @@ import { useState } from 'react';
 
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useForm } from 'react-hook-form';
-import { z } from 'zod';
 
-import { sendConfirmationEmailAction } from '@/features/email/actions';
-import { addEventParticipantAction } from '@/features/participants/actions';
+import { sendConfirmationEmail } from '@/features/email/actions';
+import { addParticipant } from '@/features/participants/actions';
+import {
+  type ParticipantFormValues,
+  participantFormSchema,
+} from '@/features/participants/schema';
 
 import { Button } from '@/components/ui/button';
 import {
@@ -20,47 +23,43 @@ import {
 } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
 
-import { InsertEventParticipantSchema } from '@/db/schema/event-participants';
-
 export function EventRegistrationForm({ eventId }: { eventId: string }) {
   const [error, setError] = useState<string>('');
   const [status, setStatus] = useState<
     'idle' | 'loading' | 'success' | 'error'
   >('idle');
 
-  const form = useForm<z.infer<typeof InsertEventParticipantSchema>>({
-    resolver: zodResolver(InsertEventParticipantSchema),
+  const form = useForm<ParticipantFormValues>({
+    resolver: zodResolver(participantFormSchema),
     defaultValues: {
       email: '',
       name: '',
-      eventId: eventId,
     },
   });
 
-  const handleSubmit = async (
-    values: z.infer<typeof InsertEventParticipantSchema>
-  ) => {
+  const handleSubmit = async (values: ParticipantFormValues) => {
     setStatus('loading');
-    try {
-      const result = await addEventParticipantAction(values, eventId);
-      if (result.error) {
-        setError(result.error);
-        console.error(result.error);
-        return;
-      } else {
-        setStatus('success');
-        await sendConfirmationEmailAction(
-          values.name || '',
-          'Event Registration',
-          values.email,
-          eventId
-        );
-      }
-    } catch (error) {
-      console.error(error);
-      setStatus('error');
-      setError('An error occurred while submitting the form');
+    setError('');
+
+    const result = await addParticipant(values, eventId);
+
+    if (result.error) {
+      // Back to 'idle', not 'error': the form stays on screen so the message
+      // is visible and the user can correct the entry.
+      setStatus('idle');
+      setError(result.error);
+      return;
     }
+
+    setStatus('success');
+
+    // A failed confirmation mail does not undo the registration.
+    await sendConfirmationEmail(
+      values.name || '',
+      'Anmeldung bestätigt',
+      values.email,
+      eventId
+    );
   };
 
   if (status === 'loading') {
@@ -77,17 +76,7 @@ export function EventRegistrationForm({ eventId }: { eventId: string }) {
 
   return (
     <Form {...form}>
-      <form
-        onSubmit={form.handleSubmit(
-          (values) => {
-            handleSubmit(values);
-          },
-          (errors) => {
-            console.error(errors);
-          }
-        )}
-        className="space-y-6"
-      >
+      <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-6">
         {error && (
           <div className="rounded-md bg-red-50 p-3 text-red-500">{error}</div>
         )}

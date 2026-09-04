@@ -1,24 +1,34 @@
-import { eq } from 'drizzle-orm';
+import { createClient } from '@/server/supabase/server';
+import type { EventParticipant } from '@/types/database';
 
-import db from '@/db';
-import { eventParticipants, events } from '@/db/schema';
+type ParticipantsResponse = {
+  participants?: (EventParticipant & { eventName: string | null })[];
+  error?: string;
+};
 
-export const getEventParticipants = async (eventId: string) => {
-  try {
-    const participants = await db.query.eventParticipants.findMany({
-      where: eq(eventParticipants.eventId, eventId),
-    });
-    const event = await db.query.events.findFirst({
-      where: eq(events.id, eventId),
-    });
-    return {
-      participants: participants.map((participant) => ({
-        ...participant,
-        eventName: event?.title,
-      })),
-    };
-  } catch (error) {
-    console.error('Error fetching event participants:', error);
-    return { error: 'Error fetching event participants' };
-  }
+/**
+ * Participants of one event, each annotated with the event title.
+ *
+ * One joined query instead of the previous two round trips. RLS returns an
+ * empty list for anyone who does not organize this event.
+ */
+export const getEventParticipants = async (
+  eventId: string
+): Promise<ParticipantsResponse> => {
+  const supabase = await createClient();
+
+  const { data, error } = await supabase
+    .from('event_participants')
+    .select('*, events (title)')
+    .eq('event_id', eventId)
+    .order('created_at', { ascending: true });
+
+  if (error) return { error: 'Teilnehmer konnten nicht geladen werden' };
+
+  const participants = data.map(({ events, ...participant }) => ({
+    ...participant,
+    eventName: events?.title ?? null,
+  }));
+
+  return { participants };
 };

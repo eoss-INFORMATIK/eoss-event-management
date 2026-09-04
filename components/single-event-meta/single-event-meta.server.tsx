@@ -1,6 +1,6 @@
 import { notFound } from 'next/navigation';
 
-import { getEventAction } from '@/features/events/actions';
+import { getEvent } from '@/features/events/actions';
 
 import { SingleEventMetaClient } from './single-event-meta.client';
 
@@ -13,7 +13,7 @@ interface EventPageProps {
 
 export async function SingleEventMeta({ params, clientView }: EventPageProps) {
   const resolvedParams = await params;
-  const { event, error } = await getEventAction(resolvedParams.id);
+  const { event, error } = await getEvent(resolvedParams.id);
 
   if (error || !event) {
     notFound();

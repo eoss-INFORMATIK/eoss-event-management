@@ -4,7 +4,7 @@ import Image from 'next/image';
 import { useRouter } from 'next/navigation';
 import { useState } from 'react';
 
-import { deleteEventAction } from '@/features/events/actions';
+import { deleteEvent } from '@/features/events/actions';
 
 import { EditEventForm } from '@/components/forms/edit-event-form';
 import { Button } from '@/components/ui/button';
@@ -16,7 +16,8 @@ import {
   CardTitle,
 } from '@/components/ui/card';
 
-import { type Event } from '@/db/schema/events';
+import { formatDate } from '@/lib/format';
+import type { Event } from '@/types/database';
 
 interface SingleEventMetaClientProps {
   event: Event;
@@ -49,10 +50,10 @@ export function SingleEventMetaClient({
       <CardHeader>
         <div className="flex items-start justify-between">
           <div>
-            {event.imageUrl && (
+            {event.image_url && (
               <div className="flex flex-col items-center justify-center">
                 <Image
-                  src={event.imageUrl}
+                  src={event.image_url}
                   alt={event.title}
                   width={500}
                   height={500}
@@ -65,7 +66,7 @@ export function SingleEventMetaClient({
               <div className="space-y-1">
                 <p className="text-base">
                   <span className="font-medium">Datum:</span>{' '}
-                  {event.date.toLocaleDateString()}
+                  {formatDate(event.date)}
                 </p>
               </div>
             </CardDescription>
@@ -78,7 +79,7 @@ export function SingleEventMetaClient({
               <Button
                 variant="destructive"
                 onClick={() => {
-                  deleteEventAction(event.id);
+                  deleteEvent(event.id);
                   router.push('/events');
                 }}
               >
@@ -101,11 +102,11 @@ export function SingleEventMetaClient({
             <div className="space-y-2 text-sm text-gray-600">
               <p>
                 <span className="font-medium">Erstellt:</span>{' '}
-                {event.createdAt.toLocaleDateString()}
+                {formatDate(event.created_at)}
               </p>
               <p>
                 <span className="font-medium">Zuletzt aktualisisert:</span>{' '}
-                {event.updatedAt.toLocaleDateString()}
+                {formatDate(event.updated_at)}
               </p>
             </div>
           </div>

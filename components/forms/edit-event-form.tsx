@@ -4,12 +4,15 @@ import Image from 'next/image';
 import { useRef, useState } from 'react';
 
 import { zodResolver } from '@hookform/resolvers/zod';
-import { PutBlobResult } from '@vercel/blob';
 import { useForm } from 'react-hook-form';
 import { toast } from 'sonner';
-import { z } from 'zod';
 
-import { editEventAction } from '@/features/events/actions';
+import { editEvent } from '@/features/events/actions';
+import {
+  type EventFormValues,
+  eventFormSchema,
+} from '@/features/events/schema';
+import { uploadEventImage } from '@/features/events/upload';
 
 import { Button } from '@/components/ui/button';
 import {
@@ -23,63 +26,55 @@ import {
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 
-import { type Event, InsertEventSchema } from '@/db/schema/events';
+import type { Event } from '@/types/database';
 
 interface EditEventFormProps {
   event: Event;
-
   setIsEditing: (isEditing: boolean) => void;
 }
 
 export function EditEventForm({ event, setIsEditing }: EditEventFormProps) {
   const [error, setError] = useState<string>('');
+  const [isSubmitting, setIsSubmitting] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
-  const form = useForm<z.infer<typeof InsertEventSchema>>({
-    resolver: zodResolver(InsertEventSchema),
+  const form = useForm<EventFormValues>({
+    resolver: zodResolver(eventFormSchema),
     defaultValues: {
       title: event.title,
-      description: event.description || '',
-      date: event.date,
-      imageUrl: event.imageUrl || '',
+      description: event.description ?? '',
+      date: new Date(event.date),
     },
   });
 
-  const handleSubmit = async (values: z.infer<typeof InsertEventSchema>) => {
+  const handleSubmit = async (values: EventFormValues) => {
+    setError('');
+    setIsSubmitting(true);
+
     try {
+      let imageUrl = event.image_url ?? '';
       const file = fileInputRef.current?.files?.[0];
-      let imageUrl = event.imageUrl || '';
 
       if (file) {
-        const formData = new FormData();
-        formData.append('file', file);
-
-        const response = await fetch(`/api/event/upload`, {
-          method: 'POST',
-          body: formData,
-        });
-
-        if (!response.ok) {
-          throw new Error('Failed to upload image');
+        const upload = await uploadEventImage(file);
+        if (upload.error) {
+          setError(upload.error);
+          return;
         }
-
-        const blob = (await response.json()) as PutBlobResult;
-        imageUrl = blob.url;
+        imageUrl = upload.url ?? '';
       }
 
-      const result = await editEventAction(event.id, {
-        ...values,
-        imageUrl: imageUrl,
-      });
+      const result = await editEvent(event.id, { ...values, imageUrl });
 
       if (result.error) {
         setError(result.error);
         return;
       }
+
       setIsEditing(false);
       toast.success('Event erfolgreich bearbeitet');
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to update event');
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
@@ -95,9 +90,9 @@ export function EditEventForm({ event, setIsEditing }: EditEventFormProps) {
           name="title"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>Event Name</FormLabel>
+              <FormLabel>Titel</FormLabel>
               <FormControl>
-                <Input placeholder="Enter event title" {...field} />
+                <Input placeholder="Titel des Events" {...field} />
               </FormControl>
               <FormMessage />
             </FormItem>
@@ -111,10 +106,10 @@ export function EditEventForm({ event, setIsEditing }: EditEventFormProps) {
               <FormLabel>Beschreibung</FormLabel>
               <FormControl>
                 <Textarea
-                  placeholder="Enter event description"
+                  placeholder="Beschreibung des Events"
                   className="resize-none"
                   {...field}
-                  value={field.value || ''}
+                  value={field.value ?? ''}
                 />
               </FormControl>
               <FormMessage />
@@ -132,7 +127,7 @@ export function EditEventForm({ event, setIsEditing }: EditEventFormProps) {
                   type="date"
                   onChange={(e) => field.onChange(new Date(e.target.value))}
                   value={
-                    field.value instanceof Date
+                    field.value instanceof Date && !isNaN(field.value.getTime())
                       ? field.value.toISOString().split('T')[0]
                       : ''
                   }
@@ -142,33 +137,27 @@ export function EditEventForm({ event, setIsEditing }: EditEventFormProps) {
             </FormItem>
           )}
         />
-        <div className="flex justify-center">
-          {event.imageUrl && (
+        <div className="flex items-start justify-center gap-4">
+          {event.image_url && (
             <Image
-              src={event.imageUrl}
-              alt="Event Image"
+              src={event.image_url}
+              alt={event.title}
               width={300}
               height={300}
             />
           )}
-          <FormField
-            control={form.control}
-            name="imageUrl"
-            render={({ field: { ...field } }) => (
-              <FormItem>
-                <FormLabel>Add Image</FormLabel>
-                <FormControl>
-                  <Input
-                    type="file"
-                    accept="image/*"
-                    {...{ ...field, ref: fileInputRef }}
-                    value={''}
-                  />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
+          {/* Outside the form state on purpose -- see add-event-form. */}
+          <div className="space-y-2">
+            <label htmlFor="event-image" className="text-sm font-medium">
+              Bild ersetzen
+            </label>
+            <Input
+              id="event-image"
+              type="file"
+              accept="image/jpeg,image/png,image/webp,image/avif"
+              ref={fileInputRef}
+            />
+          </div>
         </div>
         <div className="flex justify-end gap-2">
           <Button
@@ -178,7 +167,9 @@ export function EditEventForm({ event, setIsEditing }: EditEventFormProps) {
           >
             Abbrechen
           </Button>
-          <Button type="submit">Änderungen speichern</Button>
+          <Button type="submit" disabled={isSubmitting}>
+            {isSubmitting ? 'Wird gespeichert…' : 'Änderungen speichern'}
+          </Button>
         </div>
       </form>
     </Form>

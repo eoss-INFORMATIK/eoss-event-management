@@ -1,6 +1,6 @@
 import { notFound } from 'next/navigation';
 
-import { getEventAction } from '@/features/events/actions';
+import { getEvent } from '@/features/events/actions';
 
 import { SingleEventRegistrationClient } from './single-event-registration.client';
 
@@ -12,7 +12,7 @@ interface EventPageProps {
 
 export async function SingleEventRegistration({ params }: EventPageProps) {
   const resolvedParams = await params;
-  const { event, error } = await getEventAction(resolvedParams.id);
+  const { event, error } = await getEvent(resolvedParams.id);
 
   if (error || !event) {
     notFound();

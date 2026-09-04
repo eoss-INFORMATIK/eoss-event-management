@@ -1,26 +1,21 @@
 import Link from 'next/link';
 
-import { auth } from '@/config/auth';
+import { createClient } from '@/server/supabase/server';
 
 import SignOutButton from '../sign-out-button';
 
 export const Nav = async ({ children }: { children: React.ReactNode }) => {
-  const session = await auth();
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
 
-  const MENU_ITEMS: { label: string; href: string }[] = [];
-
-  if (session?.user) {
-    MENU_ITEMS.push(
-      {
-        label: 'Meine Events',
-        href: '/events',
-      },
-      {
-        label: 'Profile',
-        href: '/profile',
-      }
-    );
-  }
+  const MENU_ITEMS = user
+    ? [
+        { label: 'Meine Events', href: '/events' },
+        { label: 'Profil', href: '/profile' },
+      ]
+    : [];
 
   return (
     <nav className="flex items-center justify-between gap-6">
@@ -29,8 +24,8 @@ export const Nav = async ({ children }: { children: React.ReactNode }) => {
           {item.label}
         </Link>
       ))}
-      {!session?.user && children}
-      {session?.user && <SignOutButton />}
+      {!user && children}
+      {user && <SignOutButton />}
     </nav>
   );
 };

@@ -2,192 +2,158 @@
 
 import { revalidatePath } from 'next/cache';
 
-import { desc, eq } from 'drizzle-orm';
 import { z } from 'zod';
 
-import { auth } from '@/config/auth';
-import db from '@/db';
-import events, { type Event, InsertEventSchema } from '@/db/schema/events';
-import { type User } from '@/db/schema/users';
+import { type EventInput, eventInputSchema } from '@/features/events/schema';
 
-type ActionResponse = {
-  success?: boolean;
-  error?: string;
+import { createClient } from '@/server/supabase/server';
+import type { Event } from '@/types/database';
+
+type ActionResponse = { success?: boolean; error?: string };
+type EventsResponse = { events?: Event[]; error?: string };
+type EventResponse = { event?: Event; error?: string };
+
+/**
+ * Ownership is enforced by RLS, not by these checks. The `auth.getUser()` calls
+ * below exist so the user gets a readable message instead of a silent no-op --
+ * a delete that matches no row under RLS succeeds with zero rows affected.
+ */
+
+export const addEvent = async (
+  formData: EventInput
+): Promise<ActionResponse> => {
+  const supabase = await createClient();
+
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+
+  if (!user)
+    return { error: 'Du musst angemeldet sein, um ein Event zu erstellen' };
+
+  const parsed = eventInputSchema.safeParse(formData);
+  if (!parsed.success) return { error: z.prettifyError(parsed.error) };
+
+  const { error } = await supabase.from('events').insert({
+    title: parsed.data.title,
+    description: parsed.data.description || null,
+    date: parsed.data.date.toISOString(),
+    image_url: parsed.data.imageUrl || null,
+    organizer_id: user.id,
+  });
+
+  if (error) return { error: 'Event konnte nicht erstellt werden' };
+
+  revalidatePath('/events');
+  return { success: true };
 };
 
-type EventsResponse = {
-  events?: Event[];
-  error?: string;
-};
-
-type EventResponse = {
-  event?: Event;
-  error?: string;
-};
-
-export async function addEventAction(
-  formData: z.infer<typeof InsertEventSchema>
-): Promise<ActionResponse> {
-  const session = await auth();
-
-  if (!session?.user) {
-    return { error: 'You must be logged in to create an event' };
-  }
-
-  try {
-    const validatedFields = InsertEventSchema.parse(formData);
-
-    const dataToInsert = {
-      ...validatedFields,
-      organizerId: (session.user as User).id,
-      createdAt: new Date(),
-      updatedAt: new Date(),
-    };
-    await db.insert(events).values(dataToInsert);
-    revalidatePath('/events');
-    return { success: true };
-  } catch (error) {
-    if (error instanceof z.ZodError) {
-      return { error: error.issues[0].message };
-    }
-    return { error: 'Failed to create event' };
-  }
-}
-
-export async function editEventAction(
+export const editEvent = async (
   eventId: string,
-  formData: z.infer<typeof InsertEventSchema>
-): Promise<ActionResponse> {
-  const session = await auth();
+  formData: EventInput
+): Promise<ActionResponse> => {
+  const supabase = await createClient();
 
-  if (!session?.user) {
-    return { error: 'You must be logged in to edit an event' };
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+
+  if (!user)
+    return { error: 'Du musst angemeldet sein, um ein Event zu bearbeiten' };
+
+  const parsed = eventInputSchema.safeParse(formData);
+  if (!parsed.success) return { error: z.prettifyError(parsed.error) };
+
+  const { data, error } = await supabase
+    .from('events')
+    .update({
+      title: parsed.data.title,
+      description: parsed.data.description || null,
+      date: parsed.data.date.toISOString(),
+      image_url: parsed.data.imageUrl || null,
+    })
+    .eq('id', eventId)
+    .select('id');
+
+  if (error) return { error: 'Event konnte nicht gespeichert werden' };
+  if (!data?.length) {
+    return { error: 'Event nicht gefunden oder keine Berechtigung' };
   }
 
-  try {
-    // First check if the event exists and belongs to the user
-    const [existingEvent] = await db
-      .select()
-      .from(events)
-      .where(eq(events.id, eventId))
-      .limit(1);
+  revalidatePath('/events');
+  revalidatePath(`/events/${eventId}`);
+  return { success: true };
+};
 
-    if (!existingEvent) {
-      return { error: 'Event not found' };
-    }
+export const deleteEvent = async (eventId: string): Promise<ActionResponse> => {
+  const supabase = await createClient();
 
-    if (existingEvent.organizerId !== (session.user as User).id) {
-      return { error: 'You are not authorized to edit this event' };
-    }
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
 
-    const validatedFields = InsertEventSchema.parse(formData);
+  if (!user)
+    return { error: 'Du musst angemeldet sein, um ein Event zu löschen' };
 
-    await db
-      .update(events)
-      .set({
-        title: validatedFields.title,
-        description: validatedFields.description || null,
-        date: new Date(validatedFields.date),
-        updatedAt: new Date(),
-        imageUrl: validatedFields.imageUrl || null,
-      })
-      .where(eq(events.id, eventId));
+  const { data, error } = await supabase
+    .from('events')
+    .delete()
+    .eq('id', eventId)
+    .select('id');
 
-    revalidatePath(`/events/${eventId}`);
-    revalidatePath('/events');
-    return { success: true };
-  } catch (error) {
-    if (error instanceof z.ZodError) {
-      return { error: error.issues[0].message };
-    }
-    return { error: 'Failed to edit event' };
-  }
-}
-
-export async function deleteEventAction(
-  eventId: string
-): Promise<ActionResponse> {
-  const session = await auth();
-
-  if (!session?.user) {
-    return { error: 'You must be logged in to delete an event' };
+  if (error) return { error: 'Event konnte nicht gelöscht werden' };
+  if (!data?.length) {
+    return { error: 'Event nicht gefunden oder keine Berechtigung' };
   }
 
-  try {
-    // First check if the event exists and belongs to the user
-    const [existingEvent] = await db
-      .select()
-      .from(events)
-      .where(eq(events.id, eventId))
-      .limit(1);
+  revalidatePath('/events');
+  revalidatePath(`/events/${eventId}`);
+  return { success: true };
+};
 
-    if (!existingEvent) {
-      return { error: 'Event not found' };
-    }
+export const getUserEvents = async (): Promise<EventsResponse> => {
+  const supabase = await createClient();
 
-    if (existingEvent.organizerId !== (session.user as User).id) {
-      return { error: 'You are not authorized to delete this event' };
-    }
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
 
-    await db.delete(events).where(eq(events.id, eventId));
+  if (!user)
+    return { error: 'Du musst angemeldet sein, um deine Events zu sehen' };
 
-    // Revalidate both the events list and the specific event page
-    revalidatePath('/events');
-    revalidatePath(`/events/${eventId}`);
+  const { data, error } = await supabase
+    .from('events')
+    .select('*')
+    .eq('organizer_id', user.id)
+    .order('date', { ascending: false });
 
-    return { success: true };
-  } catch (error) {
-    console.error(error);
-    return { error: 'Failed to delete event' };
-  }
-}
+  if (error) return { error: 'Events konnten nicht geladen werden' };
+  return { events: data };
+};
 
-export async function getUserEventsAction(): Promise<EventsResponse> {
-  const session = await auth();
+export const getAllEvents = async (): Promise<EventsResponse> => {
+  const supabase = await createClient();
 
-  if (!session?.user) {
-    return { error: 'You must be logged in to view your events' };
-  }
+  const { data, error } = await supabase
+    .from('events')
+    .select('*')
+    .order('date', { ascending: false });
 
-  try {
-    const userEvents = await db
-      .select()
-      .from(events)
-      .where(eq(events.organizerId, (session.user as User).id));
+  if (error) return { error: 'Events konnten nicht geladen werden' };
+  return { events: data };
+};
 
-    return { events: userEvents };
-  } catch (error) {
-    console.error(error);
-    return { error: 'Failed to fetch your events' };
-  }
-}
+export const getEvent = async (eventId: string): Promise<EventResponse> => {
+  const supabase = await createClient();
 
-export async function getAllEventsAction(): Promise<EventsResponse> {
-  try {
-    const allEvents = await db.select().from(events).orderBy(desc(events.date));
+  const { data, error } = await supabase
+    .from('events')
+    .select('*')
+    .eq('id', eventId)
+    .maybeSingle();
 
-    return { events: allEvents };
-  } catch (error) {
-    console.error(error);
-    return { error: 'Failed to fetch events' };
-  }
-}
+  if (error) return { error: 'Event konnte nicht geladen werden' };
+  if (!data) return { error: 'Event nicht gefunden' };
 
-export async function getEventAction(eventId: string): Promise<EventResponse> {
-  try {
-    const [event] = await db
-      .select()
-      .from(events)
-      .where(eq(events.id, eventId))
-      .limit(1);
-
-    if (!event) {
-      return { error: 'Event not found' };
-    }
-
-    return { event };
-  } catch (error) {
-    console.error(error);
-    return { error: 'Failed to fetch event' };
-  }
-}
+  return { event: data };
+};

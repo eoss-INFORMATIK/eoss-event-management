@@ -1,7 +1,8 @@
 import Image from 'next/image';
 import Link from 'next/link';
 
-import { type Event } from '@/db/schema/events';
+import { formatDate } from '@/lib/format';
+import type { Event } from '@/types/database';
 
 import { Button } from '../ui/button';
 import {
@@ -21,9 +22,9 @@ export const SingleEventCard = ({ event }: SingleEventCardProps) => {
   return (
     <Card key={event.id} className="flex flex-col justify-end">
       <CardHeader>
-        {event.imageUrl && (
+        {event.image_url && (
           <Image
-            src={event.imageUrl}
+            src={event.image_url}
             alt={event.title}
             width={250}
             height={250}
@@ -32,12 +33,12 @@ export const SingleEventCard = ({ event }: SingleEventCardProps) => {
         )}
         <CardTitle>{event.title}</CardTitle>
         <CardDescription>
-          <p>Datum: {event.date.toLocaleDateString('de-CH')}</p>
+          <p>Datum: {formatDate(event.date)}</p>
         </CardDescription>
       </CardHeader>
       <CardContent>
         <p className="text-sm text-gray-600">
-          {event.description || 'No description provided'}
+          {event.description || 'Keine Beschreibung vorhanden'}
         </p>
       </CardContent>
       <CardFooter className="flex flex-row gap-2">

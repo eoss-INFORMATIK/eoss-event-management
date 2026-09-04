@@ -1,10 +1,10 @@
-import { getUserEventsAction } from '@/features/events/actions';
+import { getUserEvents } from '@/features/events/actions';
 
 import { AddEventButton } from '@/components/add-event-button';
 import { SingleEventCard } from '@/components/single-event-card';
 
 export default async function EventsPage() {
-  const { events, error } = await getUserEventsAction();
+  const { events, error } = await getUserEvents();
 
   if (error) {
     return (

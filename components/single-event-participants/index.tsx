@@ -11,6 +11,8 @@ import {
   TableRow,
 } from '@/components/ui/table';
 
+import { formatDate } from '@/lib/format';
+
 interface EventPageProps {
   params: Promise<{
     id: string;
@@ -28,7 +30,6 @@ export const SingleEventParticipants = async ({ params }: EventPageProps) => {
   return (
     <section className="flex flex-col gap-4">
       <h2 className="text-xl font-bold">Teilnehmer</h2>
-      <Table></Table>
       <Table>
         <TableHeader>
           <TableRow key="header">
@@ -39,7 +40,7 @@ export const SingleEventParticipants = async ({ params }: EventPageProps) => {
           </TableRow>
         </TableHeader>
         {!participants ? (
-          <p>No participants found</p>
+          <TableBody />
         ) : (
           <TableBody>
             {participants.map((participant) => {
@@ -51,7 +52,7 @@ export const SingleEventParticipants = async ({ params }: EventPageProps) => {
                   <TableCell>{participant.email}</TableCell>
                   <TableCell>{participant.status}</TableCell>
                   <TableCell className="text-right">
-                    {participant.createdAt.toLocaleDateString()}
+                    {formatDate(participant.created_at)}
                   </TableCell>
                 </TableRow>
               );

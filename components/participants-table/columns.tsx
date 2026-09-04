@@ -4,27 +4,22 @@ import { ColumnDef } from '@tanstack/react-table';
 import { MoreHorizontal } from 'lucide-react';
 import { toast } from 'sonner';
 
-import { deleteEventParticipantAction } from '@/features/participants/actions';
+import { deleteParticipant } from '@/features/participants/actions';
 
-export type EventParticipant = {
-  id: string;
-  eventId: string;
-  name: string | null;
-  email: string;
-  status: string;
-  createdAt: Date;
-  updatedAt: Date;
-  eventName: string;
+import type { EventParticipant as DbEventParticipant } from '@/types/database';
+
+export type ParticipantRow = DbEventParticipant & {
+  eventName: string | null;
 };
 
-export const columns: ColumnDef<EventParticipant>[] = [
+export const columns: ColumnDef<ParticipantRow>[] = [
   {
     accessorKey: 'name',
     header: 'Name',
   },
   {
     accessorKey: 'email',
-    header: 'Email',
+    header: 'E-Mail',
   },
   {
     accessorKey: 'status',
@@ -32,7 +27,7 @@ export const columns: ColumnDef<EventParticipant>[] = [
   },
   {
     accessorKey: 'eventName',
-    header: 'Event Name',
+    header: 'Event',
   },
   {
     header: 'Aktionen',
@@ -42,9 +37,9 @@ export const columns: ColumnDef<EventParticipant>[] = [
       return (
         <button
           onClick={async () => {
-            const result = await deleteEventParticipantAction(
+            const result = await deleteParticipant(
               participant.id,
-              participant.eventId
+              participant.event_id
             );
             if (result.success) {
               toast.success('Teilnehmer erfolgreich gelöscht');

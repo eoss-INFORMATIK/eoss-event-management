@@ -4,12 +4,9 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## ⚠️ Migration in progress
 
-This project is being migrated from Neon/Drizzle/next-auth to Supabase.
-**This file describes the TARGET state, not everything that exists yet.**
-
-Read `MIGRATION.md` before making structural changes — it holds the phase plan and
-what has already been done. If something in the codebase contradicts this file, the
-migration has not reached it yet. Do not "fix" it in isolation; check the plan first.
+Migrated from Neon/Drizzle/next-auth to Supabase. The code is done; the schema has
+not been pushed to the Supabase project yet, so nothing has run against a live
+database. Read `MIGRATION.md` for what is left.
 
 ## Project Overview
 
@@ -59,14 +56,18 @@ components/            # React components
 └── */                 # Feature components
 
 features/              # Domain modules with server actions
-├── events/
+├── auth/              # Sign-in, sign-out, error messages
+├── events/            # Actions, Zod schemas, image upload
 ├── participants/
 └── email/
 
 server/supabase/       # Supabase client factories
 ├── client.ts          # Browser client — Client Components
 ├── server.ts          # Server client — Server Components, Actions, Route Handlers
-└── middleware.ts      # Middleware client — session refresh
+└── proxy.ts           # Proxy client — session refresh
+
+env/index.ts           # Validated, typed environment variables
+proxy.ts               # Next 16 proxy (formerly middleware.ts)
 
 supabase/migrations/   # SQL migrations (Supabase CLI)
 lib/                   # Shared utilities (cn, etc.)
@@ -103,6 +104,9 @@ export const getEvents = async () => {
 
 `cookies()` must be called during a request, not at module load. Never reuse a
 client across requests.
+
+A `'use server'` module may only export async functions. Constants that belong to a
+feature go in a sibling file — see `features/auth/errors.ts`.
 
 ### RLS is the security boundary
 
@@ -183,5 +187,18 @@ EMAIL_FROM_ADDRESS=
 SITE_URL=
 ```
 
-Env vars are validated and typed in `env/server.ts` — add new ones there, and never
+Env vars are validated and typed in `env/index.ts` — add new ones there, and never
 read `process.env` directly outside that file (enforced by `n/no-process-env`).
+
+## Gotchas
+
+- **Routing entry point is `proxy.ts`, not `middleware.ts`.** Next 16 renamed the
+  convention; a file called `middleware.ts` builds with a deprecation warning and
+  will eventually stop working.
+- **Timestamps come back as ISO strings, not `Date`.** Use the helpers in
+  `lib/format.ts` rather than calling `.toLocaleDateString()` on a query result.
+- **Columns are snake_case** (`image_url`, `organizer_id`, `created_at`); form
+  fields and TypeScript stay camelCase. Server actions map between the two.
+- Auth emails (magic links) are sent by Supabase, not Resend. To send them from
+  `hello@resend.eoss.ch`, configure Resend as custom SMTP in the Supabase
+  dashboard. Resend is still used directly for the confirmation mail.
