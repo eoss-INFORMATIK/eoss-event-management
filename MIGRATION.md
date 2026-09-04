@@ -1,7 +1,8 @@
 # Migrationsplan: Neon/Drizzle/next-auth → Supabase
 
-Status: **Phasen 0–4 abgeschlossen**, Code baut. Offen: Schema auf das
-Supabase-Projekt pushen und im Dashboard konfigurieren (Phase 3/5).
+Status: **Phasen 0–5 abgeschlossen.** Schema ist auf dem Supabase-Projekt,
+RLS gegen die Live-Datenbank verifiziert, App läuft. Offen: nur noch der
+manuelle Durchlauf mit echter Anmeldung.
 Branch: `refactor/supabase`
 
 ## Entscheidungen
@@ -114,11 +115,13 @@ ausnahmslos fehlende `drizzle-orm` / `next-auth` / `@vercel/blob` / `@/db` /
       (5 MB, nur Bildformate) mit Policies, ersetzt Vercel Blob
 - [x] `types/database.ts` — von Hand geschrieben, damit Phase 4 nicht auf die
       CLI-Anmeldung warten musste
-- [ ] `supabase login` — **manuell, interaktiv**
-- [ ] `supabase link --project-ref mcztjefizxfpcfsqmlec`
-- [ ] `supabase db push`
-- [ ] `supabase gen types typescript --linked > types/database.ts` — ersetzt die
-      handgeschriebene Fassung und bestätigt, dass sie stimmt
+- [x] `supabase login` / `link` / `db push` — beide Migrationen angewendet
+- [x] `supabase gen types typescript --linked > types/database.ts` — die
+      generierte Fassung deckt sich Feld für Feld mit der handgeschriebenen.
+      Einziger Unterschied: `events.Relationships` ist leer, weil der
+      Fremdschlüssel auf `auth.users` ausserhalb von `public` liegt.
+- [x] Handgeschriebene Aliase nach `types/index.ts` verschoben, damit
+      `types/database.ts` reine generierte Ausgabe bleibt
 
 Bewusste Abweichungen vom alten Schema:
 
@@ -146,17 +149,33 @@ Bewusste Abweichungen vom alten Schema:
 
 - [x] Vercel Blob → Supabase Storage, Upload direkt aus dem Browser
 - [x] `.env` → `.env.local` mit Supabase-Variablen
-- [ ] Google-OAuth im Supabase-Dashboard hinterlegen (Credentials liegen in der
-      alten `.env`), Redirect-URI in der Google Cloud Console ergänzen:
-      `https://mcztjefizxfpcfsqmlec.supabase.co/auth/v1/callback`
-- [ ] Site URL und Redirect URLs im Supabase-Dashboard setzen
+- [x] Google-OAuth im Supabase-Dashboard hinterlegt
+- [x] Alte `.env` und die Neon-Datenbank gelöscht
+- [x] `redirectTo` durch den Anmeldefluss verdrahtet — der Proxy setzte den
+      Parameter, aber niemand las ihn aus; nach dem Login landete man immer
+      auf `/profile` statt auf der ursprünglich angefragten Seite
+- [ ] Site URL und Redirect URLs im Supabase-Dashboard prüfen
 - [ ] Optional: Resend als Custom SMTP in Supabase, damit Magic Links von
       `hello@resend.eoss.ch` kommen statt von Supabase
-- [ ] Durchklicken: Anmelden, Event anlegen, Bild hochladen, anmelden als Gast,
-      Teilnehmer verwalten
-- [ ] Alte `.env` löschen (enthält noch Neon- und Blob-Zugangsdaten)
+- [ ] Durchklicken mit echter Anmeldung: Event anlegen, Bild hochladen,
+      als Gast anmelden, Teilnehmer verwalten
 - [ ] README aktualisieren
 - [ ] `MIGRATION.md` löschen
+
+## Verifikation gegen die Live-Datenbank
+
+RLS mit dem Publishable Key als anonymer Nutzer geprüft:
+
+| Prüfung | Erwartet | Ergebnis |
+|---|---|---|
+| `SELECT events` | erlaubt | ✓ |
+| `INSERT events` | blockiert | ✓ `42501` |
+| `SELECT event_participants` | keine Daten | ✓ 0 Zeilen |
+| `LIST event-images` | erreichbar | ✓ |
+| `UPLOAD event-images` | blockiert | ✓ RLS-Verletzung |
+
+Routen im Dev-Server: `/`, `/sign-in`, `/events`, `/verify` liefern 200;
+`/add-event` und `/profile` leiten auf `/sign-in?redirectTo=…` um.
 
 ## Im Bestand gefundene Fehler
 

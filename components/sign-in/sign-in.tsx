@@ -6,7 +6,13 @@ import { createClient } from '@/server/supabase/server';
 import { SignOutButton } from '../sign-out-button';
 import { Button } from '../ui/button';
 
-export const SignIn = async ({ error }: { error?: string }) => {
+export const SignIn = async ({
+  error,
+  redirectTo,
+}: {
+  error?: string;
+  redirectTo?: string;
+}) => {
   const supabase = await createClient();
   const {
     data: { user },
@@ -29,6 +35,7 @@ export const SignIn = async ({ error }: { error?: string }) => {
         </p>
       )}
       <form action={signInWithEmail} className="flex gap-2">
+        <input type="hidden" name="redirectTo" value={redirectTo ?? ''} />
         <input
           type="email"
           name="email"
@@ -51,6 +58,7 @@ export const SignIn = async ({ error }: { error?: string }) => {
       </div>
 
       <form action={signInWithGoogle}>
+        <input type="hidden" name="redirectTo" value={redirectTo ?? ''} />
         <Button type="submit" className="w-full">
           Mit Google anmelden
         </Button>

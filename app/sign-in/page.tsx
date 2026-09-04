@@ -3,9 +3,9 @@ import { SignIn } from '@/components/sign-in';
 export default async function SignInPage({
   searchParams,
 }: {
-  searchParams: Promise<{ error?: string }>;
+  searchParams: Promise<{ error?: string; redirectTo?: string }>;
 }) {
-  const { error } = await searchParams;
+  const { error, redirectTo } = await searchParams;
 
   return (
     <div className="container flex h-screen w-screen flex-col items-center justify-center">
@@ -16,7 +16,7 @@ export default async function SignInPage({
             Melde dich bei deinem Konto an
           </p>
         </div>
-        <SignIn error={error} />
+        <SignIn error={error} redirectTo={redirectTo} />
       </div>
     </div>
   );

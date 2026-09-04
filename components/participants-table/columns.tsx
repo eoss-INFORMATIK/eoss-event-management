@@ -6,7 +6,7 @@ import { toast } from 'sonner';
 
 import { deleteParticipant } from '@/features/participants/actions';
 
-import type { EventParticipant as DbEventParticipant } from '@/types/database';
+import type { EventParticipant as DbEventParticipant } from '@/types';
 
 export type ParticipantRow = DbEventParticipant & {
   eventName: string | null;

@@ -26,7 +26,7 @@ import {
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 
-import type { Event } from '@/types/database';
+import type { Event } from '@/types';
 
 interface EditEventFormProps {
   event: Event;

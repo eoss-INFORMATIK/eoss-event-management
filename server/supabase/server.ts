@@ -3,7 +3,7 @@ import { cookies } from 'next/headers';
 import { createServerClient } from '@supabase/ssr';
 
 import { env } from '@/env';
-import type { Database } from '@/types/database';
+import type { Database } from '@/types';
 
 /**
  * Supabase client for Server Components, Server Actions and Route Handlers.

@@ -1,5 +1,5 @@
 import { createClient } from '@/server/supabase/server';
-import type { EventParticipant } from '@/types/database';
+import type { EventParticipant } from '@/types';
 
 type ParticipantsResponse = {
   participants?: (EventParticipant & { eventName: string | null })[];

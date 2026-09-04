@@ -2,7 +2,7 @@ import Image from 'next/image';
 import Link from 'next/link';
 
 import { formatDate } from '@/lib/format';
-import type { Event } from '@/types/database';
+import type { Event } from '@/types';
 
 import { Button } from '../ui/button';
 import {

@@ -7,7 +7,7 @@ import { z } from 'zod';
 import { type EventInput, eventInputSchema } from '@/features/events/schema';
 
 import { createClient } from '@/server/supabase/server';
-import type { Event } from '@/types/database';
+import type { Event } from '@/types';
 
 type ActionResponse = { success?: boolean; error?: string };
 type EventsResponse = { events?: Event[]; error?: string };
