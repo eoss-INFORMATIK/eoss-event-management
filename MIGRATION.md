@@ -1,6 +1,7 @@
 # Migrationsplan: Neon/Drizzle/next-auth → Supabase
 
-Status: **geplant**, noch nicht begonnen.
+Status: **Phasen 0–4 abgeschlossen**, Code baut. Offen: Schema auf das
+Supabase-Projekt pushen und im Dashboard konfigurieren (Phase 3/5).
 Branch: `refactor/supabase`
 
 ## Entscheidungen
@@ -46,7 +47,7 @@ DB-/Auth-Module. Das ist die Kontrollgrösse, an der sich jede Phase messen läs
 - [x] Branch `refactor/supabase` anlegen
 - [x] Offene `package.json`-Änderung committen (React-19-Pin von RC auf `^19.0.0`)
 - [x] Supabase CLI installieren (2.116.0 via Homebrew)
-- [ ] **Supabase-Projekt anlegen, Keys notieren** — offen, manuell im Dashboard
+- [x] Supabase-Projekt angelegt (`mcztjefizxfpcfsqmlec`), Keys in `.env.local`
 - [x] `CLAUDE.md` für dieses Projekt schreiben (Zielzustand, nicht Ist-Zustand)
 - [x] `.cursorrules` löschen — brauchbarer Inhalt geht in die `CLAUDE.md`
 
