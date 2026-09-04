@@ -24,19 +24,31 @@ const failWith = (code: string): never => redirect(`/sign-in?error=${code}`);
  * hidden field. Only relative paths -- an absolute one would be an open
  * redirect.
  */
-const callbackUrl = (formData: FormData) => {
+const nextPath = (formData: FormData) => {
   const target = formData.get('redirectTo');
-  const next =
-    typeof target === 'string' &&
+
+  return typeof target === 'string' &&
     target.startsWith('/') &&
     !target.startsWith('//')
-      ? target
-      : '/profile';
-
-  return `${env.SITE_URL}/auth/callback?next=${encodeURIComponent(next)}`;
+    ? target
+    : '/profile';
 };
 
-/** Magic link sign-in. Supabase sends this email, not Resend -- see README. */
+/** OAuth returns a `code` query param. */
+const callbackUrl = (formData: FormData) =>
+  `${env.SITE_URL}/auth/callback?next=${encodeURIComponent(nextPath(formData))}`;
+
+/** Magic links carry a token hash instead -- /auth/confirm handles those. */
+const confirmUrl = (formData: FormData) =>
+  `${env.SITE_URL}/auth/confirm?next=${encodeURIComponent(nextPath(formData))}`;
+
+/**
+ * Magic link sign-in. Supabase sends this email, not Resend.
+ *
+ * The link must point at /auth/confirm, not /auth/callback -- see that route
+ * for why. That means the email template in the Supabase dashboard has to be
+ * changed; the default one cannot work with a server-side session.
+ */
 export const signInWithEmail = async (formData: FormData): Promise<void> => {
   const parsed = emailSchema.safeParse(formData.get('email'));
   if (!parsed.success) failWith('invalid_email');
@@ -45,7 +57,7 @@ export const signInWithEmail = async (formData: FormData): Promise<void> => {
 
   const { error } = await supabase.auth.signInWithOtp({
     email: parsed.data!,
-    options: { emailRedirectTo: callbackUrl(formData) },
+    options: { emailRedirectTo: confirmUrl(formData) },
   });
 
   if (error) failWith('send_failed');

@@ -15,16 +15,32 @@ export const GET = async (request: NextRequest) => {
   const redirectTo =
     next.startsWith('/') && !next.startsWith('//') ? next : '/';
 
-  if (!code) {
-    return NextResponse.redirect(`${origin}/sign-in?error=missing_code`);
+  const fail = (code: string, detail?: string | null) => {
+    // eslint-disable-next-line no-console
+    console.error(
+      `[auth/callback] ${code}${detail ? `: ${detail}` : ''} — ${request.nextUrl.search || '(keine Parameter)'}`
+    );
+    return NextResponse.redirect(`${origin}/sign-in?error=${code}`);
+  };
+
+  // Supabase reports its own failures as query params, not as a missing code.
+  // Surfacing them beats reporting "link incomplete" for every cause.
+  const providerError =
+    searchParams.get('error') ?? searchParams.get('error_code');
+
+  if (providerError) {
+    return fail(
+      'auth_failed',
+      searchParams.get('error_description') ?? providerError
+    );
   }
+
+  if (!code) return fail('missing_code');
 
   const supabase = await createClient();
   const { error } = await supabase.auth.exchangeCodeForSession(code);
 
-  if (error) {
-    return NextResponse.redirect(`${origin}/sign-in?error=auth_failed`);
-  }
+  if (error) return fail('auth_failed', error.message);
 
   return NextResponse.redirect(`${origin}${redirectTo}`);
 };
