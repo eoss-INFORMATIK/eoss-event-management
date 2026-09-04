@@ -103,59 +103,85 @@ TanStack Table. Gezielt abgeschaltet für `components/forms/**` und
 ausnahmslos fehlende `drizzle-orm` / `next-auth` / `@vercel/blob` / `@/db` /
 `@/config/auth`. Kein einziger Fehler ausserhalb des DB/Auth-Layers.
 
-### Phase 3 — Supabase-Schema
+### Phase 3 — Supabase-Schema ✅ (Code) / offen (Deployment)
 
-Die 4 Drizzle-Migrationen sind zusammen 91 Zeilen — Neuschreiben als SQL ist
-sauberer als Übersetzen.
+- [x] `supabase init`
+- [x] `20260904200150_initial_schema.sql` — events + event_participants,
+      next-auth-Tabellen entfallen, `organizer_id` → `auth.users`
+- [x] RLS-Policies für beide Tabellen
+- [x] `20260904201001_event_images_storage.sql` — Bucket `event-images`
+      (5 MB, nur Bildformate) mit Policies, ersetzt Vercel Blob
+- [x] `types/database.ts` — von Hand geschrieben, damit Phase 4 nicht auf die
+      CLI-Anmeldung warten musste
+- [ ] `supabase login` — **manuell, interaktiv**
+- [ ] `supabase link --project-ref mcztjefizxfpcfsqmlec`
+- [ ] `supabase db push`
+- [ ] `supabase gen types typescript --linked > types/database.ts` — ersetzt die
+      handgeschriebene Fassung und bestätigt, dass sie stimmt
 
-- [ ] `supabase init`
-- [ ] Tabellen `user` / `account` / `session` entfallen → `auth.users`
-- [ ] `events`: `organizer_id` → `references auth.users(id)`
-- [ ] `event_participants` unverändert im Aufbau
-- [ ] RLS-Policies:
-      - `events`: SELECT öffentlich; INSERT/UPDATE/DELETE nur `organizer_id = auth.uid()`
-      - `event_participants`: INSERT öffentlich (Anmeldung); SELECT/UPDATE/DELETE nur
-        für den Organisator des zugehörigen Events
-- [ ] `supabase gen types typescript` → `types/database.ts`
+Bewusste Abweichungen vom alten Schema:
 
-Die Ownership-Prüfungen, die heute in jeder Server Action stehen, bleiben — aber
-als Nutzer-Fehlermeldung, nicht als Sicherheitsgrenze. Die Grenze ist ab jetzt RLS.
+- `timestamptz` statt `timestamp` — naive Timestamps verschieben sich für alle
+  ausserhalb der Serverzeitzone
+- `on delete cascade` auf `event_participants.event_id` — vorher schlug das
+  Löschen eines Events mit Anmeldungen an einer Foreign-Key-Verletzung fehl
+- `check`-Constraint auf `status` — vorher stand die Werteliste nur im Kommentar
+- `updated_at` per Trigger statt in der Anwendung
+- **Neu: Unique-Index auf `(event_id, lower(email))`** — eine Anmeldung pro
+  Adresse und Event. Verhaltensänderung; falls unerwünscht, ist es eine Zeile.
 
-### Phase 4 — Auth + Datenschicht
+### Phase 4 — Auth + Datenschicht ✅
 
-Zusammen, weil jede Action beides gleichzeitig braucht. Slice-weise committen.
-
-- [ ] `server/supabase/client.ts` (Browser), `server.ts` (Server), `middleware.ts`
-- [ ] `middleware.ts` an der Wurzel: Session-Refresh, Redirect-Regeln
-- [ ] `next-auth`, `@auth/drizzle-adapter` entfernen
-- [ ] Auth-Seiten auf Supabase: `sign-in`, `verify`, `register`, neu `/auth/callback`
-      (Google OAuth + Magic Link)
-- [ ] Slice **events**: `features/events/` auf `supabase-js`
-- [ ] Slice **participants**: inkl. Data-Table
-- [ ] Slice **email**: Resend bleibt, nur der Datenzugriff ändert sich
-- [ ] Löschen: `drizzle-orm`, `drizzle-zod`, `drizzle-kit`, `postgres`,
-      `migrations/`, `drizzle.config.ts`, `docker-compose.yml`, `src/db/`
-
-**Kritisch:** Supabase-Server-Client niemals auf Modulebene erzeugen, immer
-innerhalb der Funktion — sonst „cookies outside request scope". Gehört in die
-`CLAUDE.md`.
+- [x] `server/supabase/{client,server,proxy}.ts`
+- [x] `proxy.ts` an der Wurzel (Next 16 hat `middleware.ts` abgelöst)
+- [x] `next-auth`, `@auth/drizzle-adapter` entfernt
+- [x] `features/auth/` — Magic Link + Google, `app/auth/callback/route.ts`
+- [x] Events, Teilnehmer, E-Mail auf `supabase-js`
+- [x] Zod-Schemas statt `drizzle-zod`
+- [x] Drizzle, `postgres`, `migrations/`, `drizzle.config.ts`,
+      `docker-compose.yml`, `src/db/` gelöscht
 
 ### Phase 5 — Storage & Abschluss
 
-- [ ] Vercel Blob → Supabase Storage (Bucket + Policies), `@vercel/blob` entfernen
-- [ ] `.env` → `.env.local`; `env/server.ts` auf `NEXT_PUBLIC_SUPABASE_URL`,
-      `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY`, `RESEND_API_KEY`, `EMAIL_FROM_ADDRESS`,
-      `SITE_URL`
+- [x] Vercel Blob → Supabase Storage, Upload direkt aus dem Browser
+- [x] `.env` → `.env.local` mit Supabase-Variablen
+- [ ] Google-OAuth im Supabase-Dashboard hinterlegen (Credentials liegen in der
+      alten `.env`), Redirect-URI in der Google Cloud Console ergänzen:
+      `https://mcztjefizxfpcfsqmlec.supabase.co/auth/v1/callback`
+- [ ] Site URL und Redirect URLs im Supabase-Dashboard setzen
+- [ ] Optional: Resend als Custom SMTP in Supabase, damit Magic Links von
+      `hello@resend.eoss.ch` kommen statt von Supabase
+- [ ] Durchklicken: Anmelden, Event anlegen, Bild hochladen, anmelden als Gast,
+      Teilnehmer verwalten
+- [ ] Alte `.env` löschen (enthält noch Neon- und Blob-Zugangsdaten)
 - [ ] README aktualisieren
 - [ ] `MIGRATION.md` löschen
 
+## Im Bestand gefundene Fehler
+
+Beim Umbau aufgefallen und mitbehoben — keine Regressionen, sondern Dinge, die
+vorher schon falsch waren:
+
+1. **`deleteParticipant` und `setParticipantStatus` hatten keine Auth-Prüfung.**
+   Jeder Besucher konnte Teilnehmer fremder Events löschen oder deren Status
+   ändern. Jetzt durch RLS abgedeckt.
+2. **`/api/event/upload` akzeptierte Uploads ohne Session.** Route entfernt,
+   Storage-Policies verlangen eine Anmeldung.
+3. **Das Formular-Schema wies jedes Event mit Bild zurück.** `imageUrl` war als
+   `z.string()` deklariert, das Formular schrieb aber ein `File`-Objekt hinein.
+4. **Das Registrierungsformular hing bei Fehlern auf „Loading…".** `status`
+   wurde nie zurückgesetzt, die Fehlermeldung war nie sichtbar.
+5. **E-Mail-Versand lief per HTTP-Request an die eigene API-Route** — aus einer
+   Server Action heraus, also ein voller Roundtrip zu Code im selben Prozess.
+6. **Ungenutzter Code:** `components/file-upload.tsx` (Demo mit „Upload Your
+   Avatar"), `@paralleldrive/cuid2`, `bcryptjs`.
+
 ## Was erhalten bleibt
 
-Der Grund, warum umgebaut und nicht neu aufgesetzt wird:
+Der Grund, warum umgebaut und nicht neu aufgesetzt wurde:
 
 - Formulare: `add-event-form`, `edit-event-form`, `event-registration-form`
 - `participants-table` (columns + data-table, TanStack Table)
-- `header`, `nav`, `single-event-card`, `single-event-meta`, `file-upload`,
-  `email-template`
-- Domänenmodell (Events, Teilnehmer, Status-Workflow: pending/confirmed/declined/waitlisted)
+- `header`, `nav`, `single-event-card`, `single-event-meta`, `email-template`
+- Domänenmodell (Events, Teilnehmer, Status-Workflow)
 - Git-Historie ab Oktober 2024
