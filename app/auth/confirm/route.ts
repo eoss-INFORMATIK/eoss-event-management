@@ -2,6 +2,8 @@ import { type NextRequest, NextResponse } from 'next/server';
 
 import type { EmailOtpType } from '@supabase/supabase-js';
 
+import { ensureOrganization } from '@/features/auth/ensure-organization';
+
 import { createClient } from '@/server/supabase/server';
 
 /**
@@ -44,6 +46,16 @@ export const GET = async (request: NextRequest) => {
   });
 
   if (error) return fail('auth_failed', error.message);
+
+  // Siehe /auth/callback: beide Anmeldefluesse muessen das Konto fertig
+  // einrichten, sonst haengt der Zustand davon ab, wie sich jemand angemeldet
+  // hat.
+  const setup = await ensureOrganization(supabase);
+
+  if (setup.error) {
+    await supabase.auth.signOut();
+    return fail('setup_failed', setup.error);
+  }
 
   return NextResponse.redirect(`${origin}${redirectTo}`);
 };

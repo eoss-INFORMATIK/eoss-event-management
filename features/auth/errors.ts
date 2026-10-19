@@ -10,4 +10,6 @@ export const AUTH_ERRORS: Record<string, string> = {
   oauth_failed: 'Google-Anmeldung fehlgeschlagen',
   missing_code: 'Der Anmeldelink ist unvollständig',
   auth_failed: 'Der Anmeldelink ist abgelaufen oder ungültig',
+  setup_failed:
+    'Dein Konto konnte nicht fertig eingerichtet werden. Bitte melde dich erneut an.',
 };

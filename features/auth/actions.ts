@@ -9,9 +9,6 @@ import { env } from '@/env';
 import { createClient } from '@/server/supabase/server';
 import type { ActionResponse } from '@/types/actions';
 
-
-
-
 /**
  * These are used directly as `<form action={...}>`, so they must resolve to
  * void. Failures come back as a redirect with an `error` code, which the
@@ -19,11 +16,9 @@ import type { ActionResponse } from '@/types/actions';
  */
 
 const emailSchema = z.email();
-const orgNameSchema = z.string().min(1).max(255)
+const orgNameSchema = z.string().min(1).max(255);
 
 const failWith = (code: string): never => redirect(`/sign-in?error=${code}`);
-
-
 
 /**
  * Where to land after sign-in. The proxy appends `?redirectTo=` when it turns
@@ -93,14 +88,24 @@ export const signOut = async (): Promise<void> => {
   redirect('/');
 };
 
-
-export const createOrganization = async (orgName: string): Promise<ActionResponse> => {
+/**
+ * Explizites Anlegen einer Organisation. Noch ohne Aufrufer -- die Einrichtung
+ * bei der Anmeldung laeuft ueber `ensureOrganization`. Diese Action bekommt
+ * ihren Aufrufer in Schritt 2 (zweite Organisation, Umbenennen).
+ */
+export const createOrganization = async (
+  orgName: string
+): Promise<ActionResponse> => {
   const parsed = orgNameSchema.safeParse(orgName);
-  if (!parsed.success) return ({ success: false, error: "Organisation could not be parsed" });
+
+  if (!parsed.success) return { error: 'Name der Organisation ist ungültig' };
 
   const supabase = await createClient();
-  const { error } = await supabase.rpc('create_organization', { p_name: parsed.data });
+  const { error } = await supabase.rpc('create_organization', {
+    p_name: parsed.data,
+  });
 
-  if (error) return ({ success: false, error: "Organisation could not be created" });
-  return ({ success: true });
-}
+  if (error) return { error: 'Organisation konnte nicht angelegt werden' };
+
+  return { success: true };
+};

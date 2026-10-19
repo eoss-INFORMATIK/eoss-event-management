@@ -1,5 +1,7 @@
 import { type NextRequest, NextResponse } from 'next/server';
 
+import { ensureOrganization } from '@/features/auth/ensure-organization';
+
 import { createClient } from '@/server/supabase/server';
 
 /**
@@ -41,6 +43,17 @@ export const GET = async (request: NextRequest) => {
   const { error } = await supabase.auth.exchangeCodeForSession(code);
 
   if (error) return fail('auth_failed', error.message);
+
+  // Eine Session ohne Organisation ist der Zustand, den das ganze Org-Design
+  // verhindern soll -- also lieber abmelden und sauber neu versuchen lassen,
+  // als mit halb eingerichtetem Konto weiterlaufen. ensureOrganization ist
+  // idempotent, ein zweiter Versuch kostet nichts.
+  const setup = await ensureOrganization(supabase);
+
+  if (setup.error) {
+    await supabase.auth.signOut();
+    return fail('setup_failed', setup.error);
+  }
 
   return NextResponse.redirect(`${origin}${redirectTo}`);
 };
