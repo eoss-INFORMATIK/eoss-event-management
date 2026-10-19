@@ -216,6 +216,26 @@ read `process.env` directly outside that file (enforced by `n/no-process-env`).
 
 ## Gotchas
 
+- **`.env.development.local` schlaegt `.env.local`.** Next laedt
+  `.env.$(NODE_ENV).local` zuerst und bricht beim ersten Treffer ab (siehe
+  `node_modules/next/dist/docs/01-app/02-guides/environment-variables.md`). Eine
+  solche Datei fuer den lokalen Supabase-Stack kapert damit `next dev`
+  lautlos — und wenn der Stack nicht laeuft, schlaegt jeder Auth-Aufruf auf
+  Netzwerkebene fehl. Die Datei liegt deshalb geparkt als
+  `.env.localstack.local` (von Next nicht geladen, von `.gitignore` erfasst).
+  Entwickelt wird gegen das gehostete Projekt.
+- **Beweis fuer „Migration ist deployed" ist `supabase migration list`, nicht
+  `types/database.ts`.** Die Typen koennen mit `--local` generiert sein und
+  kennen dann Tabellen und Funktionen, die auf dem gehosteten Projekt fehlen.
+  Genau so blieb `create_organization` einmal lokal haengen, waehrend die Typen
+  sie auswiesen. Typen immer mit `--linked` generieren.
+- **Die `db:*`-Befehle in der `README.md` stehen nicht in `package.json`** und
+  das dort genannte `db:prod:push` ist ein `--dry-run`. Pushen geht von Hand
+  mit `supabase db push --linked`.
+- **`config.toml` gilt nur fuer den lokalen Stack.** Site URL, Redirect-URLs,
+  OAuth-Provider und Mail-Templates des gehosteten Projekts stehen im
+  Dashboard; Aenderungen an `config.toml` haben dort keine Wirkung.
+
 - **Routing entry point is `proxy.ts`, not `middleware.ts`.** Next 16 renamed the
   convention; a file called `middleware.ts` builds with a deprecation warning and
   will eventually stop working.
