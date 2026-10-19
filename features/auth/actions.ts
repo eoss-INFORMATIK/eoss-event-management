@@ -7,6 +7,10 @@ import { z } from 'zod';
 
 import { env } from '@/env';
 import { createClient } from '@/server/supabase/server';
+import type { ActionResponse } from '@/types/actions';
+
+
+
 
 /**
  * These are used directly as `<form action={...}>`, so they must resolve to
@@ -15,8 +19,11 @@ import { createClient } from '@/server/supabase/server';
  */
 
 const emailSchema = z.email();
+const orgNameSchema = z.string().min(1).max(255)
 
 const failWith = (code: string): never => redirect(`/sign-in?error=${code}`);
+
+
 
 /**
  * Where to land after sign-in. The proxy appends `?redirectTo=` when it turns
@@ -85,3 +92,15 @@ export const signOut = async (): Promise<void> => {
   revalidatePath('/', 'layout');
   redirect('/');
 };
+
+
+export const createOrganization = async (orgName: string): Promise<ActionResponse> => {
+  const parsed = orgNameSchema.safeParse(orgName);
+  if (!parsed.success) return ({ success: false, error: "Organisation could not be parsed" });
+
+  const supabase = await createClient();
+  const { error } = await supabase.rpc('create_organization', { p_name: parsed.data });
+
+  if (error) return ({ success: false, error: "Organisation could not be created" });
+  return ({ success: true });
+}

@@ -1,0 +1,18 @@
+<!--
+  Greift bei der ERSTEN Anmeldung einer Adresse; magic_link.html bei jeder
+  weiteren. Beide muessen angepasst sein -- sonst funktioniert der eigene
+  Login, und der jedes neuen Nutzers nicht.
+
+  Zur Begruendung des token_hash-Links siehe magic_link.html.
+-->
+<h2>Willkommen beim eoss Event Manager</h2>
+
+<p>Bestaetige deine E-Mail-Adresse, um loszulegen:</p>
+
+<p>
+  <a href="{{ .RedirectTo }}&token_hash={{ .TokenHash }}&type=email">
+    Anmeldung bestätigen
+  </a>
+</p>
+
+<p>Wenn du das nicht angefordert hast, kannst du diese E-Mail ignorieren.</p>

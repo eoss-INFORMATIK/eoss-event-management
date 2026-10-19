@@ -35,3 +35,10 @@ We use Tailwind, react-feather and shadcn as styling tools and component library
 to add a button for example.
 
 To use iconst import what ever you need from react-feather.
+
+
+## DB Pushes
+"db:local:reset": "supabase db reset --local",
+"db:local:types": "supabase gen types typescript --local > types/database.ts",
+"db:prod:check":  "supabase migration list",
+"db:prod:push":   "supabase db push --linked --dry-run"
