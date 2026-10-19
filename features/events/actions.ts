@@ -8,8 +8,9 @@ import { type EventInput, eventInputSchema } from '@/features/events/schema';
 
 import { createClient } from '@/server/supabase/server';
 import type { Event } from '@/types';
+import type { ActionResponse } from '@/types/actions';
 
-type ActionResponse = { success?: boolean; error?: string };
+
 type EventsResponse = { events?: Event[]; error?: string };
 type EventResponse = { event?: Event; error?: string };
 

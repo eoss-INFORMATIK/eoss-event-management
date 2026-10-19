@@ -6,7 +6,10 @@
  */
 import type { Database } from './database';
 
+
 export type { Database, Json } from './database';
+export type { ActionResponse } from './actions';
+
 
 export type Event = Database['public']['Tables']['events']['Row'];
 export type EventInsert = Database['public']['Tables']['events']['Insert'];

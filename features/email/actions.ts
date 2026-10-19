@@ -8,8 +8,8 @@ import { EmailTemplate } from '@/features/email/email-template';
 
 import { env } from '@/env';
 import { createClient } from '@/server/supabase/server';
+import type { ActionResponse } from '@/types/actions';
 
-type ActionResponse = { success?: boolean; error?: string };
 
 const resend = new Resend(env.RESEND_API_KEY);
 

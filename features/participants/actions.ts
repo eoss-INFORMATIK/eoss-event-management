@@ -11,8 +11,8 @@ import {
 } from '@/features/participants/schema';
 
 import { createClient } from '@/server/supabase/server';
+import type { ActionResponse } from '@/types/actions';
 
-type ActionResponse = { success?: boolean; error?: string };
 
 /** Public: anyone can register for an event. */
 export const addParticipant = async (
