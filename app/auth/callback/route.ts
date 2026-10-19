@@ -1,5 +1,7 @@
 import { type NextRequest, NextResponse } from 'next/server';
 
+import { isAuthRetryableFetchError } from '@supabase/supabase-js';
+
 import { ensureOrganization } from '@/features/auth/ensure-organization';
 
 import { createClient } from '@/server/supabase/server';
@@ -42,7 +44,14 @@ export const GET = async (request: NextRequest) => {
   const supabase = await createClient();
   const { error } = await supabase.auth.exchangeCodeForSession(code);
 
-  if (error) return fail('auth_failed', error.message);
+  // Ein unerreichbarer Dienst ist keine abgelaufene Einladung. Beides auf
+  // auth_failed zu legen hat schon eine Fehlersuche in die falsche Richtung
+  // geschickt -- gesucht wurde am Mail-Template, kaputt war die Verbindung.
+  if (error)
+    return fail(
+      isAuthRetryableFetchError(error) ? 'service_unavailable' : 'auth_failed',
+      error.message
+    );
 
   // Eine Session ohne Organisation ist der Zustand, den das ganze Org-Design
   // verhindern soll -- also lieber abmelden und sauber neu versuchen lassen,

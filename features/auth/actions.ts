@@ -3,6 +3,7 @@
 import { revalidatePath } from 'next/cache';
 import { redirect } from 'next/navigation';
 
+import { isAuthRetryableFetchError } from '@supabase/supabase-js';
 import { z } from 'zod';
 
 import { env } from '@/env';
@@ -18,7 +19,20 @@ import type { ActionResponse } from '@/types/actions';
 const emailSchema = z.email();
 const orgNameSchema = z.string().min(1).max(255);
 
-const failWith = (code: string): never => redirect(`/sign-in?error=${code}`);
+/**
+ * Der Code landet in der URL und wird auf der Anmeldeseite als Text gezeigt;
+ * der technische Grund gehoert ins Log und nicht vor den Nutzer. Ohne das
+ * Log blieb bei einem Fehlschlag nur die uebersetzte Meldung -- zu wenig, um
+ * eine Ursache zu finden.
+ */
+const failWith = (code: string, detail?: string): never => {
+  if (detail) {
+    // eslint-disable-next-line no-console
+    console.error(`[auth] ${code}: ${detail}`);
+  }
+
+  return redirect(`/sign-in?error=${code}`);
+};
 
 /**
  * Where to land after sign-in. The proxy appends `?redirectTo=` when it turns
@@ -62,7 +76,11 @@ export const signInWithEmail = async (formData: FormData): Promise<void> => {
     options: { emailRedirectTo: confirmUrl(formData) },
   });
 
-  if (error) failWith('send_failed');
+  if (error)
+    failWith(
+      isAuthRetryableFetchError(error) ? 'service_unavailable' : 'send_failed',
+      error.message
+    );
 
   redirect('/verify');
 };
@@ -75,7 +93,11 @@ export const signInWithGoogle = async (formData: FormData): Promise<void> => {
     options: { redirectTo: callbackUrl(formData) },
   });
 
-  if (error || !data.url) failWith('oauth_failed');
+  // signInWithOAuth baut die Authorize-URL nur zusammen, es geht dabei kein
+  // Request raus. Ein nicht erreichbares Supabase fliegt hier also NICHT auf,
+  // sondern erst im Browser nach dem Redirect.
+  if (error || !data.url)
+    failWith('oauth_failed', error?.message ?? 'keine Redirect-URL erhalten');
 
   redirect(data.url!);
 };

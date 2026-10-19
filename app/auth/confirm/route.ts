@@ -1,6 +1,9 @@
 import { type NextRequest, NextResponse } from 'next/server';
 
-import type { EmailOtpType } from '@supabase/supabase-js';
+import {
+  type EmailOtpType,
+  isAuthRetryableFetchError,
+} from '@supabase/supabase-js';
 
 import { ensureOrganization } from '@/features/auth/ensure-organization';
 
@@ -45,7 +48,12 @@ export const GET = async (request: NextRequest) => {
     token_hash: tokenHash,
   });
 
-  if (error) return fail('auth_failed', error.message);
+  // Siehe /auth/callback: unerreichbar und ungueltig sind verschiedene Dinge.
+  if (error)
+    return fail(
+      isAuthRetryableFetchError(error) ? 'service_unavailable' : 'auth_failed',
+      error.message
+    );
 
   // Siehe /auth/callback: beide Anmeldefluesse muessen das Konto fertig
   // einrichten, sonst haengt der Zustand davon ab, wie sich jemand angemeldet
