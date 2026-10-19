@@ -2,11 +2,35 @@
 
 This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
 
-## ⚠️ Migration in progress
+## Stand
 
-Migrated from Neon/Drizzle/next-auth to Supabase. The code is done; the schema has
-not been pushed to the Supabase project yet, so nothing has run against a live
-database. Read `MIGRATION.md` for what is left.
+Die Migration von Neon/Drizzle/next-auth auf Supabase ist durch (Phasen 0–5).
+Das Schema liegt auf dem Supabase-Projekt, RLS ist gegen die Live-Datenbank
+verifiziert. Offen sind nur noch der manuelle Durchlauf mit echter Anmeldung und
+die Redirect-URLs im Dashboard — siehe `MIGRATION.md`.
+
+**Laufende Arbeit:** Multi-Org nach `docs/EOS-20_Multi_Org_Setup`, Schritt 1.
+Die Tabellen `organizations`, `organization_user` und `profiles` stehen samt RLS
+und Trigger; `events`, `event_participants` und der Storage-Pfad hängen noch am
+User statt an der Organisation.
+
+## Arbeitsmodus: Liefermodus
+
+Dieses Projekt hat Kundeninteresse und läuft ab 2026-10-19 als **normales
+agentic-engineering-Projekt**: der Agent schreibt, erklärt knapp, liefert.
+Die frühere Lernvereinbarung (Sh schreibt, Agent fragt) gilt hier **nicht mehr**
+— sie ist nach `README.learn.md` ausgezogen und für neue Projekte ohne Kunden
+gedacht.
+
+Was aus dem Lernmodus bleibt, weil es Qualität ist und nicht Didaktik:
+
+- **Entscheidung vor Code.** Architekturentscheidungen stehen geschrieben,
+  bevor sie implementiert werden — Muster siehe `docs/EOS-20_Multi_Org_Setup`
+  (Problem / Entscheidung / Wirkung).
+- **Kleine Scheiben.** Eine Migration pro Belang, ein verifizierbares Ergebnis
+  pro Schritt. Nicht drei Tabellen plus Policies plus Trigger in einem Zug.
+- **Keine stillen Entscheidungen.** Wo zwei Wege vertretbar sind, nennt der
+  Agent beide und seine Empfehlung, statt einen einfach zu bauen.
 
 ## Project Overview
 
@@ -202,6 +226,7 @@ read `process.env` directly outside that file (enforced by `n/no-process-env`).
 - Auth emails (magic links) are sent by Supabase, not Resend. To send them from
   `hello@resend.eoss.ch`, configure Resend as custom SMTP in the Supabase
   dashboard. Resend is still used directly for the confirmation mail.
+- DB Triggers. Triggers on DBs always have to documented in three palces: Migration, DB Sckript and Function where the Insert / Action is expecteed.
 
 <!-- BEGIN:nextjs-agent-rules -->
 
