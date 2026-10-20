@@ -37,8 +37,55 @@ to add a button for example.
 To use iconst import what ever you need from react-feather.
 
 
-## DB Pushes
-"db:local:reset": "supabase db reset --local",
-"db:local:types": "supabase gen types typescript --local > types/database.ts",
-"db:prod:check":  "supabase migration list",
-"db:prod:push":   "supabase db push --linked --dry-run"
+## Datenbank und lokale Entwicklung
+
+Entwickelt wird gegen einen **lokalen** Supabase-Stack, nicht gegen das
+gehostete Projekt. Das gehostete Projekt ist Produktion: `supabase db push` ist
+dort nicht rueckrollbar, ein Reset gibt es nicht, und sobald echte Teilnehmer
+registriert sind, liegen dort Personendaten.
+
+### Ziel umschalten
+
+`.env.local` wird **generiert** und nicht editiert. Die Quellen sind
+`.env.hosted` und `.env.localstack` (beide von git ignoriert):
+
+```bash
+npm run env:local      # auf den lokalen Stack
+npm run env:hosted     # auf das gehostete Projekt
+npm run env:show       # welches Ziel ist aktiv?
+```
+
+Nach dem Umschalten den Dev-Server neu starten -- Next liest die Env beim
+Start, nicht pro Request.
+
+### Lokaler Stack
+
+```bash
+npm run db:start       # Docker muss laufen (Colima oder Docker Desktop)
+npm run db:reset       # Migrationen neu anwenden + supabase/seed.sql
+npm run db:stop
+```
+
+Danach: Studio auf <http://127.0.0.1:54323>, Mailcatcher auf
+<http://127.0.0.1:54324>. Magic Links gehen in den Catcher, es verlaesst keine
+Mail den Rechner. Google-Anmeldung funktioniert lokal ebenfalls -- die
+Credentials stehen in `.env.supabase`, und in der Google Cloud Console muss
+`http://127.0.0.1:54321/auth/v1/callback` als autorisierte Redirect-URI am
+bestehenden OAuth-Client eingetragen sein.
+
+Es gibt bewusst **kein** Script fuer `db reset --linked`. Dieser Befehl setzt
+das gehostete Projekt zurueck.
+
+### Migrationen und Typen
+
+```bash
+npm run db:new -- organizations    # neue Migrationsdatei
+npm run db:types                   # Typen aus dem lokalen Stack
+npm run db:check                   # welche Migration liegt wo? local vs. remote
+npm run db:push                    # auf das gehostete Projekt (nicht rueckrollbar)
+```
+
+Die Migrationsdateien sind die Wahrheit, nicht die Datenbank. `db:types`
+generiert deshalb aus dem lokalen Stack, der sie frisch abgespielt hat.
+`db:check` ist der einzige Beweis dafuer, dass eine Migration auch auf dem
+gehosteten Projekt liegt -- die generierten Typen beweisen das nicht.

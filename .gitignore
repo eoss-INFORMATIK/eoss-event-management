@@ -28,6 +28,11 @@ yarn-error.log*
 # env files
 .env*.local
 .env
+# Quellen fuer die Umschaltung (npm run env:hosted / env:local) und die
+# Secrets fuer die Supabase-CLI. .env.local wird daraus generiert.
+.env.hosted
+.env.localstack
+.env.supabase
 
 # vercel
 .vercel

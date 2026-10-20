@@ -247,6 +247,20 @@ otp_expiry = 3600
 # subject = "You have been invited"
 # content_path = "./supabase/templates/invite.html"
 
+# Die Vorlagen muessen inhaltlich mit dem Dashboard des gehosteten Projekts
+# uebereinstimmen -- lokal sind sie Code, in der Cloud Klickarbeit. Beide
+# brauchen den token_hash-Link; die Begruendung steht in den Dateien selbst.
+# confirmation greift bei der ERSTEN Anmeldung einer Adresse, magic_link bei
+# jeder weiteren. Wer nur eine anpasst, hat einen funktionierenden eigenen
+# Login und einen kaputten fuer jeden neuen Nutzer.
+[auth.email.template.magic_link]
+subject = "Anmelden beim eoss Event Manager"
+content_path = "./supabase/templates/magic_link.html"
+
+[auth.email.template.confirmation]
+subject = "Willkommen beim eoss Event Manager"
+content_path = "./supabase/templates/confirmation.html"
+
 # Uncomment to customize notification email template
 # [auth.email.notification.password_changed]
 # enabled = true
@@ -331,6 +345,26 @@ url = ""
 # If enabled, the nonce check will be skipped. Required for local sign in with Google auth.
 skip_nonce_check = false
 # If enabled, it will allow the user to successfully authenticate when the provider does not return an email address.
+email_optional = false
+
+# Google fuer den lokalen Stack. Auf dem gehosteten Projekt steht derselbe
+# Provider im Dashboard -- siehe die Gotchas in CLAUDE.md.
+#
+# Die Werte kommen aus ./.env.supabase (von git ignoriert) und werden von den
+# db:*-Scripts in die Umgebung exportiert. Es braucht KEINEN zweiten
+# OAuth-Client bei Google: in der Google Cloud Console nur
+# http://127.0.0.1:54321/auth/v1/callback als weitere autorisierte
+# Redirect-URI zum bestehenden Client ergaenzen.
+#
+# skip_nonce_check ist fuer den lokalen Google-Login erforderlich (siehe den
+# Kommentar im apple-Block oben). Auf dem gehosteten Projekt bleibt es aus.
+[auth.external.google]
+enabled = true
+client_id = "env(SUPABASE_AUTH_EXTERNAL_GOOGLE_CLIENT_ID)"
+secret = "env(SUPABASE_AUTH_EXTERNAL_GOOGLE_SECRET)"
+redirect_uri = ""
+url = ""
+skip_nonce_check = true
 email_optional = false
 
 # Allow Solana wallet holders to sign in to your project via the Sign in with Solana (SIWS, EIP-4361) standard.

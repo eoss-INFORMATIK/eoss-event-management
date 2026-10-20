@@ -8,7 +8,18 @@
     "start": "next start",
     "lint": "eslint",
     "format": "prettier . --write",
-    "email": "email dev --dir features/email"
+    "email": "email dev --dir features/email",
+    "env:hosted": "printf '# GENERIERT von: npm run env:hosted\\n# Nicht hier editieren, sondern in .env.hosted\\n\\n' > .env.local && cat .env.hosted >> .env.local && npm run -s env:show",
+    "env:local": "printf '# GENERIERT von: npm run env:local\\n# Nicht hier editieren, sondern in .env.localstack\\n\\n' > .env.local && cat .env.localstack >> .env.local && npm run -s env:show",
+    "env:show": "grep -m1 NEXT_PUBLIC_SUPABASE_URL .env.local || echo 'keine .env.local vorhanden'",
+    "db:start": "set -a && . ./.env.supabase && set +a && supabase start",
+    "db:stop": "supabase stop",
+    "db:reset": "set -a && . ./.env.supabase && set +a && supabase db reset --local",
+    "db:new": "supabase migration new",
+    "db:check": "supabase migration list",
+    "db:push": "supabase db push --linked",
+    "db:types": "supabase gen types typescript --local > types/database.ts.tmp && mv types/database.ts.tmp types/database.ts",
+    "db:types:hosted": "supabase gen types typescript --linked > types/database.ts.tmp && mv types/database.ts.tmp types/database.ts"
   },
   "dependencies": {
     "@hookform/resolvers": "^5.9.1",

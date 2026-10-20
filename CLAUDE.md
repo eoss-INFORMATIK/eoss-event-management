@@ -216,25 +216,29 @@ read `process.env` directly outside that file (enforced by `n/no-process-env`).
 
 ## Gotchas
 
-- **`.env.development.local` schlaegt `.env.local`.** Next laedt
-  `.env.$(NODE_ENV).local` zuerst und bricht beim ersten Treffer ab (siehe
-  `node_modules/next/dist/docs/01-app/02-guides/environment-variables.md`). Eine
-  solche Datei fuer den lokalen Supabase-Stack kapert damit `next dev`
-  lautlos — und wenn der Stack nicht laeuft, schlaegt jeder Auth-Aufruf auf
-  Netzwerkebene fehl. Die Datei liegt deshalb geparkt als
-  `.env.localstack.local` (von Next nicht geladen, von `.gitignore` erfasst).
-  Entwickelt wird gegen das gehostete Projekt.
-- **Beweis fuer „Migration ist deployed" ist `supabase migration list`, nicht
-  `types/database.ts`.** Die Typen koennen mit `--local` generiert sein und
-  kennen dann Tabellen und Funktionen, die auf dem gehosteten Projekt fehlen.
-  Genau so blieb `create_organization` einmal lokal haengen, waehrend die Typen
-  sie auswiesen. Typen immer mit `--linked` generieren.
-- **Die `db:*`-Befehle in der `README.md` stehen nicht in `package.json`** und
-  das dort genannte `db:prod:push` ist ein `--dry-run`. Pushen geht von Hand
-  mit `supabase db push --linked`.
-- **`config.toml` gilt nur fuer den lokalen Stack.** Site URL, Redirect-URLs,
-  OAuth-Provider und Mail-Templates des gehosteten Projekts stehen im
-  Dashboard; Aenderungen an `config.toml` haben dort keine Wirkung.
+- **`.env.local` ist generiert — nicht editieren.** Quellen sind `.env.hosted`
+  und `.env.localstack`, umgeschaltet mit `npm run env:local` /
+  `npm run env:hosted`, aktives Ziel mit `npm run env:show`. Niemals eine
+  Datei `.env.development.local` anlegen: Next laedt `.env.$(NODE_ENV).local`
+  **vor** `.env.local` und bricht beim ersten Treffer ab (siehe
+  `node_modules/next/dist/docs/01-app/02-guides/environment-variables.md`), so
+  eine Datei kapert `next dev` also lautlos. Genau das hat einmal einen ganzen
+  Nachmittag gekostet.
+- **Beweis fuer „Migration ist deployed" ist `npm run db:check`
+  (`supabase migration list`), nicht `types/database.ts`.** Die Typen werden mit
+  `db:types` aus dem lokalen Stack generiert und kennen damit alles, was in den
+  Migrationsdateien steht — auch was auf dem gehosteten Projekt fehlt. So blieb
+  `create_organization` einmal lokal haengen, waehrend die Typen sie auswiesen.
+- **Entwickelt wird lokal, nicht gegen das gehostete Projekt.** `npm run
+  db:start` / `db:reset`; Studio auf Port 54323, Mailcatcher auf 54324. Es gibt
+  bewusst kein Script fuer `db reset --linked` — das setzt Produktion zurueck.
+- **`config.toml` wirkt nur lokal, solange niemand `supabase config push`
+  aufruft.** Site URL, Redirect-URLs, OAuth-Provider und Mail-Templates des
+  gehosteten Projekts stehen im Dashboard. `config.toml` enthaelt bewusst
+  lokale Werte (`site_url = http://localhost:3000`, Google mit
+  `skip_nonce_check = true`) — ein `config push` wuerde damit die
+  Dashboard-Konfiguration ueberschreiben. Nicht aufrufen, ohne die Datei vorher
+  fuer beide Ziele tauglich zu machen.
 
 - **Routing entry point is `proxy.ts`, not `middleware.ts`.** Next 16 renamed the
   convention; a file called `middleware.ts` builds with a deprecation warning and
