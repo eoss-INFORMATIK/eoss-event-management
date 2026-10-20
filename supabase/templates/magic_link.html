@@ -1,0 +1,23 @@
+<!--
+  Muss inhaltlich mit der Vorlage "Magic Link" im Supabase-Dashboard
+  uebereinstimmen -- lokal ist sie Code, in der Cloud Klickarbeit.
+
+  Der Link zeigt bewusst NICHT auf {{ .ConfirmationURL }}: dessen Code-Tausch
+  braucht das PKCE-Cookie des anfordernden Browsers und schlaegt fehl, sobald
+  die Mail auf einem anderen Geraet geoeffnet wird. token_hash braucht kein
+  Cookie. Verarbeitet wird der Link in app/auth/confirm/route.ts.
+
+  Das & vor token_hash ist kein Tippfehler: .RedirectTo bringt bereits
+  ?next=... mit (siehe confirmUrl in features/auth/actions.ts).
+-->
+<h2>Anmelden</h2>
+
+<p>Klicke auf den Link, um dich beim eoss Event Manager anzumelden:</p>
+
+<p>
+  <a href="{{ .RedirectTo }}&token_hash={{ .TokenHash }}&type=email">
+    Jetzt anmelden
+  </a>
+</p>
+
+<p>Wenn du das nicht angefordert hast, kannst du diese E-Mail ignorieren.</p>

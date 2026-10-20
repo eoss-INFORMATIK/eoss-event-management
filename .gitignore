@@ -25,9 +25,11 @@ npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
 
-# env files
-.env*.local
-.env
+# env files. `.env*` deckt alles ab: .env.local (generiert), die Quellen
+# .env.hosted und .env.localstack fuer npm run env:hosted / env:local, sowie
+# .env.supabase mit den Secrets fuer die Supabase-CLI.
+.env*
+!.env.example
 
 # vercel
 .vercel
@@ -37,3 +39,6 @@ yarn-error.log*
 next-env.d.ts
 
 docker-data
+
+# Studio speichert hier gespeicherte SQL-Abfragen -- lokaler Notizblock
+supabase/snippets/
