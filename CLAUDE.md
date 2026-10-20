@@ -258,9 +258,17 @@ read `process.env` directly outside that file (enforced by `n/no-process-env`).
   `lib/format.ts` rather than calling `.toLocaleDateString()` on a query result.
 - **Columns are snake_case** (`image_url`, `organizer_id`, `created_at`); form
   fields and TypeScript stay camelCase. Server actions map between the two.
-- Auth emails (magic links) are sent by Supabase, not Resend. To send them from
-  `hello@resend.eoss.ch`, configure Resend as custom SMTP in the Supabase
-  dashboard. Resend is still used directly for the confirmation mail.
+- **Auth-Mails (Magic Link) verschickt Supabase, nicht Resend — und der
+  eingebaute Versand ist nach wenigen Mails pro Stunde dicht.** In Produktion
+  kam dadurch `[auth] send_failed: email rate limit exceeded`, waehrend Google
+  weiterlief (verschickt keine Mail). Resend muss deshalb als **Custom SMTP**
+  im Supabase-Dashboard hinterlegt sein (Project Settings → Authentication →
+  SMTP Settings, `smtp.resend.com`, User `resend`, Passwort = `RESEND_API_KEY`);
+  danach laesst sich unter Authentication → Rate Limits das Limit hochsetzen.
+  Das ist keine Kosmetik fuer die Absenderadresse, sondern Voraussetzung dafuer,
+  dass der Magic Link ueberhaupt funktioniert. Die Mail-Templates haengen nicht
+  am SMTP und bleiben unberuehrt. Fuer die Teilnehmer-Bestaetigungsmail wird
+  Resend ohnehin direkt benutzt.
 - DB Triggers. Triggers on DBs always have to documented in three palces: Migration, DB Sckript and Function where the Insert / Action is expecteed.
 
 <!-- BEGIN:nextjs-agent-rules -->
