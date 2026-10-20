@@ -1,41 +1,60 @@
-# Starter Project for Next JS Projects @ eoss
+# eoss Event Management
 
-This Starter Project acts as a base for all Next JS projects @ eoss. The Starter Project provides:
+Next.js-Anwendung zum Anlegen von Events und Verwalten von Anmeldungen.
+Organisatoren erstellen Events, Teilnehmer melden sich ueber ein oeffentliches
+Formular an, Organisatoren sehen und verwalten ihre Teilnehmerlisten und
+versenden E-Mails.
 
-- Linting and Formatting Rules
-- Folder Structure and Organization
-- Styling and Components Library
-- Forms
-- ORM
-- Database Setup [pending]
-- Auth Setup [pending]
-- Stripe Payments [pending]
-- Emails [pending]
-- Docker Setup [pending]
+Entstanden aus dem eoss-Next.js-Starter (Remote `upstream`), seit September 2026
+mit eigenem Stack: Supabase statt Neon/Drizzle/next-auth.
 
-## eslint and prettier Rules
+- **Framework** Next.js 16 (App Router, Server Components, Server Actions)
+- **Auth und Datenbank** Supabase, SQL-Migrationen via Supabase CLI, kein ORM
+- **Styling** Tailwind CSS v4 mit shadcn/ui
+- **Formulare** react-hook-form und Zod
+- **E-Mail** Resend fuer Transaktionsmails, Supabase fuer Anmeldelinks
+- **Storage** Supabase Storage fuer Event-Bilder
 
-- Kebap Case Files and Folders: to prevent issues with Windows OS, all files and folders should be kebap cased.
-- we prefer Arrow Functions when possible
-- we use template strings when possible
+Konventionen, Architektur und die Fallstricke dieses Projekts stehen in
+[`CLAUDE.md`](./CLAUDE.md) — die Datei ist fuer AI-Agenten geschrieben, aber die
+Gotchas lohnen sich auch fuer Menschen. Fachliche Entwuerfe liegen unter
+[`docs/`](./docs).
 
-- All Imports are sorted automatically
-- All Tailwind Classes are ordered according to specifity
+## Entwickeln
 
-We provide editor settings for VS Code, please setup to auto format and fix on save if you dont use VS Code.
+```bash
+npm run env:local     # Ziel waehlen: lokaler Stack
+npm run db:start      # Supabase lokal (Docker muss laufen)
+npm run dev
+```
 
-## Folder and Project Structure
+Details und alle Datenbankbefehle weiter unten.
 
-## Styling and Components
+## Code-Konventionen
 
-We use Tailwind, react-feather and shadcn as styling tools and component library. To install a new shadcn component, use the cli command:
+Durchgesetzt von ESLint und Prettier, nicht von Hand:
 
-`npx shadcn@latest add button`
+- **kebab-case** fuer Dateien und Ordner — verhindert Aerger unter Windows
+- Arrow Functions statt `function`-Deklarationen, wo moeglich
+- Template Strings statt Konkatenation
+- Imports werden automatisch sortiert (React/Next, Fremdpakete, `@/*`, relativ)
+- Tailwind-Klassen werden nach Spezifitaet geordnet
+- `.ts` fuer Dateien ohne JSX, `.tsx` nur mit JSX
 
-to add a button for example.
+Editor-Einstellungen fuer VS Code liegen im Repo. Wer etwas anderes benutzt:
+Format und Fix beim Speichern einschalten.
 
-To use iconst import what ever you need from react-feather.
+## Styling und Komponenten
 
+Tailwind, shadcn/ui und react-feather. Neue shadcn-Komponente hinzufuegen:
+
+```bash
+npx shadcn@latest add button
+```
+
+Komponenten unter `components/ui/` werden **nicht** von Hand editiert — sie
+kommen aus dem Generator und werden darueber aktualisiert. Icons aus
+`react-feather` importieren.
 
 ## Datenbank und lokale Entwicklung
 

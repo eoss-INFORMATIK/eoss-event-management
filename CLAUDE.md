@@ -4,15 +4,17 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Stand
 
-Die Migration von Neon/Drizzle/next-auth auf Supabase ist durch (Phasen 0–5).
-Das Schema liegt auf dem Supabase-Projekt, RLS ist gegen die Live-Datenbank
-verifiziert. Offen sind nur noch der manuelle Durchlauf mit echter Anmeldung und
-die Redirect-URLs im Dashboard — siehe `MIGRATION.md`.
+Die Migration von Neon/Drizzle/next-auth auf Supabase ist durch; `MIGRATION.md`
+wurde nach Abschluss entfernt, die Historie steht in den Commits. Schema und RLS
+liegen auf dem Supabase-Projekt, Anmeldung und Konto-Einrichtung sind gegen den
+lokalen Stack verifiziert.
 
 **Laufende Arbeit:** Multi-Org nach `docs/EOS-20_Multi_Org_Setup`, Schritt 1.
 Die Tabellen `organizations`, `organization_user` und `profiles` stehen samt RLS
-und Trigger; `events`, `event_participants` und der Storage-Pfad hängen noch am
-User statt an der Organisation.
+und Trigger, und `ensureOrganization()` richtet Profil und Organisation bei der
+Anmeldung ein. Noch offen: `events`, `event_participants` und der Storage-Pfad
+hängen am User statt an der Organisation, und `organization_user` fehlt das
+`on delete cascade` auf beiden Fremdschlüsseln.
 
 ## Arbeitsmodus: Liefermodus
 
