@@ -8,7 +8,11 @@ export const env = createEnv({
       .default('development'),
     RESEND_API_KEY: z.string().min(1),
     EMAIL_FROM_ADDRESS: z.email(),
-    SITE_URL: z.url(),
+    // Ohne den trailing slash: die Aufrufer haengen Pfade direkt an
+    // (`${env.SITE_URL}/auth/confirm`), ein Slash im Wert ergibt daraus
+    // `//auth/confirm`. z.url() akzeptiert beide Formen, also wird hier
+    // normalisiert statt sich auf die Schreibweise in Vercel zu verlassen.
+    SITE_URL: z.url().transform((url) => url.replace(/\/+$/, '')),
   },
   client: {
     NEXT_PUBLIC_SUPABASE_URL: z.url(),
