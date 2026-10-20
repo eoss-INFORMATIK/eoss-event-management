@@ -229,6 +229,15 @@ read `process.env` directly outside that file (enforced by `n/no-process-env`).
   `db:types` aus dem lokalen Stack generiert und kennen damit alles, was in den
   Migrationsdateien steht — auch was auf dem gehosteten Projekt fehlt. So blieb
   `create_organization` einmal lokal haengen, waehrend die Typen sie auswiesen.
+- **`supabase start` erzeugt keine Container neu.** Aenderungen an
+  `config.toml` landen als Environment im Container, und das wird beim
+  *Erzeugen* gesetzt, nicht beim Starten — ein `start` auf einem bestehenden
+  Container laeuft also mit der alten Config weiter. Nach jeder Aenderung an
+  `config.toml`: `npm run db:stop && npm run db:start`. Genau so galten die
+  Mail-Templates nicht, obwohl sie korrekt eingetragen waren; die Mail trug den
+  Default-Betreff und den `{{ .ConfirmationURL }}`-Link, und der Magic Link
+  endete auf `missing_code`. Pruefen mit
+  `docker inspect supabase_auth_<projekt> --format '{{range .Config.Env}}{{println .}}{{end}}' | grep MAILER`.
 - **Entwickelt wird lokal, nicht gegen das gehostete Projekt.** `npm run
   db:start` / `db:reset`; Studio auf Port 54323, Mailcatcher auf 54324. Es gibt
   bewusst kein Script fuer `db reset --linked` — das setzt Produktion zurueck.
