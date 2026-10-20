@@ -42,3 +42,6 @@ yarn-error.log*
 next-env.d.ts
 
 docker-data
+
+# Studio speichert hier gespeicherte SQL-Abfragen -- lokaler Notizblock
+supabase/snippets/
