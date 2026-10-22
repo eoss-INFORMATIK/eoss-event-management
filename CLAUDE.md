@@ -34,6 +34,39 @@ Was aus dem Lernmodus bleibt, weil es Qualität ist und nicht Didaktik:
 - **Keine stillen Entscheidungen.** Wo zwei Wege vertretbar sind, nennt der
   Agent beide und seine Empfehlung, statt einen einfach zu bauen.
 
+## Branches und Deployment
+
+**`main` ist der Production-Branch — ein Commit dorthin ist ein Release.** Vercel
+deployt jeden Push auf `main` nach Produktion. Deshalb:
+
+- **Nie direkt auf `main` committen.** Jede Änderung über einen Branch und einen
+  Pull Request, auch Einzeiler. Ein Ruleset auf GitHub erzwingt das.
+- Branchnamen `<typ>/<kurz>`: `feat/`, `fix/`, `refactor/`, `chore/`, `docs/`.
+- Gemerged wird erst, wenn **beide Checks grün** sind: der Vercel-Preview-Build
+  und `CI / verify`.
+- Keine Review-Pflicht — Sh arbeitet allein, und eine Pflicht, die man selbst
+  abnickt, ist Zeremonie.
+
+### Was welcher Check abdeckt
+
+| | Vercel | `CI / verify` |
+|---|---|---|
+| Build | ✓ | — (nicht doppelt) |
+| TypeScript | ✓ | ✓ (`npm run typecheck`) |
+| ESLint | **nein** | ✓ (`npm run lint`) |
+| Tests | nein | hier, sobald es welche gibt |
+
+`next build` lintet seit Next 15 nicht mehr mit — ein Lint-Fehler würde ohne den
+CI-Workflow unbemerkt nach Produktion gehen.
+
+### Pre-commit-Hook
+
+`husky` + `lint-staged` formatieren und linten **nur die gestageten Dateien**.
+Bewusst keine Tests und kein Typecheck im Hook: der Hook muss unter zwei
+Sekunden bleiben, sonst wird er mit `--no-verify` umgangen und ist Theater. Und
+er schützt ohnehin nur den lokalen Rechner — die Grenze, die wirklich hält, ist
+der Status-Check am Pull Request, weil der serverseitig erzwungen wird.
+
 ## Project Overview
 
 EOSS Event Management — a Next.js application for creating events and managing

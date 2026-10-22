@@ -1,0 +1,32 @@
+# Was hier laeuft und was NICHT:
+#
+# Der Vercel-Check auf dem Pull Request baut die App und prueft dabei die Typen.
+# Was er NICHT tut: ESLint laufen lassen -- `next build` lintet seit Next 15
+# nicht mehr mit. Genau diese Luecke schliesst dieser Workflow, plus spaeter die
+# Tests. Der Build wird hier absichtlich nicht wiederholt: Vercel macht ihn
+# ohnehin, und er braeuchte hier die fuenf validierten Env-Variablen.
+name: CI
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - run: npm ci
+
+      - name: Lint
+        run: npm run lint
+
+      - name: Typecheck
+        run: npm run typecheck
