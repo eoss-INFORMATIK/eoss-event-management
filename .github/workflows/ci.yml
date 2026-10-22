@@ -36,3 +36,11 @@ jobs:
 
       - name: Typecheck
         run: npm run typecheck
+        env:
+          # `next typegen` laedt next.config.ts, und die Datei bricht
+          # absichtlich ab, wenn NEXT_PUBLIC_SUPABASE_URL fehlt -- sonst waere
+          # images.remotePatterns leer und jedes Remote-Bild in Produktion
+          # kaputt. Hier wird nur die Config geladen, nicht gebaut, deshalb
+          # genuegt ein Platzhalter. Er muss eine gueltige absolute URL sein,
+          # weil daraus `new URL(...)` entsteht.
+          NEXT_PUBLIC_SUPABASE_URL: https://platzhalter.supabase.co
