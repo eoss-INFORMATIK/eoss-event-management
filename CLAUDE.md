@@ -290,10 +290,22 @@ read `process.env` directly outside that file (enforced by `n/no-process-env`).
   eine Datei kapert `next dev` also lautlos. Genau das hat einmal einen ganzen
   Nachmittag gekostet.
 - **Beweis fuer „Migration ist deployed" ist `npm run db:check`
-  (`supabase migration list`), nicht `types/database.ts`.** Die Typen werden mit
-  `db:types` aus dem lokalen Stack generiert und kennen damit alles, was in den
-  Migrationsdateien steht — auch was auf dem gehosteten Projekt fehlt. So blieb
+  (`supabase migration list`), nicht `types/database.ts`.** So blieb
   `create_organization` einmal lokal haengen, waehrend die Typen sie auswiesen.
+- **Committet wird, was `npm run db:types:hosted` (`--linked`) erzeugt.**
+  `npm run db:types` (lokal) ist fuer die Entwicklung einer noch nicht
+  gepushten Migration da und gehoert nicht in einen Commit. Zwei Gruende:
+  1. Lokal ist *Migrationen plus Seed*. Alles im Schema `public` landet in den
+     Typen — eine Hilfsfunktion aus `seed.sql` wuerde dort behaupten, sie gaebe
+     es auch in Produktion. Deshalb liegt der Seed-Helfer im Schema `seed`,
+     das `[api] schemas` nicht exponiert.
+  2. Der lokale Generator laesst `__InternalSupabase.PostgrestVersion` weg, das
+     der gehostete setzt. Mit der lokalen Fassung zu committen verliert diese
+     Angabe.
+
+  Reihenfolge bei einer Schemaaenderung: Migration schreiben → lokal anwenden →
+  `db:types` zum Entwickeln → `db:push` → `db:types:hosted` → **die** Fassung
+  committen.
 - **`supabase start` erzeugt keine Container neu.** Aenderungen an
   `config.toml` landen als Environment im Container, und das wird beim
   *Erzeugen* gesetzt, nicht beim Starten — ein `start` auf einem bestehenden
