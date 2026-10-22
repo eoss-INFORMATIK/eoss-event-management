@@ -5,6 +5,7 @@ import { revalidatePath } from 'next/cache';
 import { z } from 'zod';
 
 import { type EventInput, eventInputSchema } from '@/features/events/schema';
+import { getMyOrganizationId } from '@/features/organizations/queries';
 
 import { createClient } from '@/server/supabase/server';
 import type { Event } from '@/types';
@@ -34,11 +35,24 @@ export const addEvent = async (
   const parsed = eventInputSchema.safeParse(formData);
   if (!parsed.success) return { error: z.prettifyError(parsed.error) };
 
+  // Das Event gehoert der Organisation, nicht der Person. `ensureOrganization`
+  // legt bei jeder Anmeldung eine an, hier darf also keine fehlen -- wenn doch,
+  // ist der Zustand inkonsistent und eine lesbare Meldung besser als ein Insert
+  // mit null.
+  const organizationId = await getMyOrganizationId(supabase, user.id);
+
+  if (!organizationId)
+    return { error: 'Zu deinem Konto gehört keine Organisation' };
+
   const { error } = await supabase.from('events').insert({
     title: parsed.data.title,
     description: parsed.data.description || null,
     date: parsed.data.date.toISOString(),
     image_url: parsed.data.imageUrl || null,
+    organization_id: organizationId,
+    created_by: user.id,
+    // organizer_id ist noch `not null` und wird erst entfernt, wenn kein Code
+    // sie mehr liest.
     organizer_id: user.id,
   });
 
@@ -71,6 +85,7 @@ export const editEvent = async (
       description: parsed.data.description || null,
       date: parsed.data.date.toISOString(),
       image_url: parsed.data.imageUrl || null,
+      updated_by: user.id,
     })
     .eq('id', eventId)
     .select('id');
@@ -121,10 +136,19 @@ export const getUserEvents = async (): Promise<EventsResponse> => {
   if (!user)
     return { error: 'Du musst angemeldet sein, um deine Events zu sehen' };
 
+  // Ab hier ist die Organisation der Besitzer, nicht der Nutzer. Solange ein
+  // Nutzer in genau einer Organisation ist (Schritt 1), liefert das dieselbe
+  // Menge wie der alte Filter auf organizer_id -- der Unterschied entsteht erst
+  // mit Einladungen, wenn mehrere Personen dieselbe Organisation teilen.
+  const organizationId = await getMyOrganizationId(supabase, user.id);
+
+  if (!organizationId)
+    return { error: 'Zu deinem Konto gehört keine Organisation' };
+
   const { data, error } = await supabase
     .from('events')
     .select('*')
-    .eq('organizer_id', user.id)
+    .eq('organization_id', organizationId)
     .order('date', { ascending: false });
 
   if (error) return { error: 'Events konnten nicht geladen werden' };
