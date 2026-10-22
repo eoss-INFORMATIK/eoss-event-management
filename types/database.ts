@@ -80,35 +80,52 @@ export type Database = {
       events: {
         Row: {
           created_at: string
+          created_by: string | null
           date: string
           description: string | null
           id: string
           image_url: string | null
+          organization_id: string | null
           organizer_id: string
           title: string
           updated_at: string
+          updated_by: string | null
         }
         Insert: {
           created_at?: string
+          created_by?: string | null
           date: string
           description?: string | null
           id?: string
           image_url?: string | null
+          organization_id?: string | null
           organizer_id: string
           title: string
           updated_at?: string
+          updated_by?: string | null
         }
         Update: {
           created_at?: string
+          created_by?: string | null
           date?: string
           description?: string | null
           id?: string
           image_url?: string | null
+          organization_id?: string | null
           organizer_id?: string
           title?: string
           updated_at?: string
+          updated_by?: string | null
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "events_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       organization_user: {
         Row: {
