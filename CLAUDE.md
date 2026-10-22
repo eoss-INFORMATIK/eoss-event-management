@@ -218,6 +218,23 @@ read `process.env` directly outside that file (enforced by `n/no-process-env`).
 
 ## Gotchas
 
+- **`next/image`: `images.remotePatterns`, nicht `domains`.** `domains` ist seit
+  Next 14 deprecated, weil es Protokoll, Port und Pfad nicht einschraenken kann.
+  Das Muster wird in `next.config.ts` aus `NEXT_PUBLIC_SUPABASE_URL` abgeleitet
+  und auf den Bucket-Pfad begrenzt — ein Muster auf Hostebene machte den
+  Bild-Optimizer zum offenen Proxy fuer die REST-API und alle anderen Buckets.
+  Zwei Fallen dabei: der Schluessel heisst `images` (ein Tippfehler wie `image`
+  faellt **nicht** auf, weil `NextConfig` eine Index-Signatur hat und TypeScript
+  deshalb schweigt), und `remotePatterns` wird beim **Build** eingebacken — eine
+  geaenderte Variable wirkt erst nach neuem Build, nicht nach Neustart. Was
+  tatsaechlich gilt, steht in `.next/required-server-files.json` unter
+  `config.images`.
+- **Next 16 lehnt Remote-Bilder auf privaten IPs ab (SSRF-Schutz)** und meldet
+  dem Client dafuer `"url" parameter is not allowed` — genau dieselbe Zeile wie
+  bei einem nicht erlaubten Muster. Der echte Grund steht **nur im Server-Log**
+  („hostname resolved to private IP"). Der lokale Supabase-Stack laeuft auf
+  127.0.0.1, deshalb setzt `next.config.ts` dort `dangerouslyAllowLocalIP` —
+  abgeleitet aus dem Host, ein Prod-Build setzt es nie.
 - **`.env.local` ist generiert — nicht editieren.** Quellen sind `.env.hosted`
   und `.env.localstack`, umgeschaltet mit `npm run env:local` /
   `npm run env:hosted`, aktives Ziel mit `npm run env:show`. Niemals eine
