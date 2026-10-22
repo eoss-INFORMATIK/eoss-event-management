@@ -77,14 +77,16 @@ app/                   # Next.js App Router pages
 ├── events/            # Event list, detail, admin
 └── profile/
 
-components/            # React components
-├── ui/                # shadcn/ui — do not hand-edit, re-add via `shadcn add`
-└── */                 # Feature components
+components/            # NUR bereichsuebergreifende Komponenten
+├── ui/                # shadcn/ui — nicht von Hand editieren, via `shadcn add` neu holen
+├── surface/           # eigene Flaeche (Rahmen, Radius, Hintergrund) — Ersatz fuer shadcns Card
+├── header/            # laeuft auf allen Seiten
+└── nav/
 
-features/              # Domain modules with server actions
-├── auth/              # Sign-in, sign-out, error messages
-├── events/            # Actions, Zod schemas, image upload
-├── participants/
+features/              # Domaenenmodule: Actions, Schemas UND Komponenten
+├── auth/              # + components/ (sign-in, sign-out-button)
+├── events/            # + components/ (event-card, event-meta, Formulare, add-event-button)
+├── participants/      # + components/ (participants-table, registration)
 └── email/
 
 server/supabase/       # Supabase client factories
@@ -99,6 +101,17 @@ supabase/migrations/   # SQL migrations (Supabase CLI)
 lib/                   # Shared utilities (cn, etc.)
 types/                 # Shared types, incl. generated database.ts
 ```
+
+**Wo eine Komponente hingehoert:** `features/<domain>/components/`, sobald sie nur
+in dieser Domaene Sinn hat. In `components/` bleibt ausschliesslich, was
+bereichsuebergreifend ist — `ui/`, `surface/`, `header/`, `nav/`. Ein Ordner, der
+nach technischer Art benennt (fruehere `components/forms/`), gruppiert Dinge, die
+sich aus verschiedenen Gruenden aendern, und ist deshalb aufgeloest.
+
+Wenn Komponenten verschoben werden: **auch `eslint.config.mjs` pruefen.** Die
+Regel-Overrides dort adressieren Dateipfade; nach einem Umzug greifen sie
+stillschweigend nicht mehr, und eine absichtliche Unterdrueckung wird wieder zur
+Warnung.
 
 Path alias `@/*` maps to the project root. There is no `src/` directory.
 

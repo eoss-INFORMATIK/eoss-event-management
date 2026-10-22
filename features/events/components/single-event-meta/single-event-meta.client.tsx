@@ -7,8 +7,8 @@ import { useState } from 'react';
 import { Pencil, Trash } from 'lucide-react';
 
 import { deleteEvent } from '@/features/events/actions';
+import { EditEventForm } from '@/features/events/components/edit-event-form';
 
-import { EditEventForm } from '@/components/forms/edit-event-form';
 import { Surface } from '@/components/surface';
 import { Button } from '@/components/ui/button';
 

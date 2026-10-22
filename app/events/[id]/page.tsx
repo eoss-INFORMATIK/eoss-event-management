@@ -1,5 +1,5 @@
-import { SingleEventMeta } from '@/components/single-event-meta';
-import { SingleEventRegistration } from '@/components/single-event-registration';
+import { SingleEventMeta } from '@/features/events/components/single-event-meta';
+import { SingleEventRegistration } from '@/features/participants/components/single-event-registration';
 
 interface EventPageProps {
   params: Promise<{

@@ -1,4 +1,4 @@
-import { SignIn } from '@/components/sign-in';
+import { SignIn } from '@/features/auth/components/sign-in';
 
 export default function RegisterPage() {
   return (

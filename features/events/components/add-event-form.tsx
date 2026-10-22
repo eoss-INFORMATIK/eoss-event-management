@@ -1,19 +1,20 @@
 'use client';
 
-import Image from 'next/image';
+import { useRouter } from 'next/navigation';
 import { useRef, useState } from 'react';
 
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useForm } from 'react-hook-form';
 import { toast } from 'sonner';
 
-import { editEvent } from '@/features/events/actions';
+import { addEvent } from '@/features/events/actions';
 import {
   type EventFormValues,
   eventFormSchema,
 } from '@/features/events/schema';
 import { uploadEventImage } from '@/features/events/upload';
 
+import { ErrorMessage } from '@/components/error-message';
 import { Button } from '@/components/ui/button';
 import {
   Form,
@@ -26,14 +27,8 @@ import {
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 
-import type { Event } from '@/types';
-
-interface EditEventFormProps {
-  event: Event;
-  setIsEditing: (isEditing: boolean) => void;
-}
-
-export function EditEventForm({ event, setIsEditing }: EditEventFormProps) {
+export function AddEventForm() {
+  const router = useRouter();
   const [error, setError] = useState<string>('');
   const [isSubmitting, setIsSubmitting] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -41,9 +36,9 @@ export function EditEventForm({ event, setIsEditing }: EditEventFormProps) {
   const form = useForm<EventFormValues>({
     resolver: zodResolver(eventFormSchema),
     defaultValues: {
-      title: event.title,
-      description: event.description ?? '',
-      date: new Date(event.date),
+      title: '',
+      description: '',
+      date: new Date(),
     },
   });
 
@@ -52,7 +47,7 @@ export function EditEventForm({ event, setIsEditing }: EditEventFormProps) {
     setIsSubmitting(true);
 
     try {
-      let imageUrl = event.image_url ?? '';
+      let imageUrl = '';
       const file = fileInputRef.current?.files?.[0];
 
       if (file) {
@@ -64,15 +59,16 @@ export function EditEventForm({ event, setIsEditing }: EditEventFormProps) {
         imageUrl = upload.url ?? '';
       }
 
-      const result = await editEvent(event.id, { ...values, imageUrl });
+      const result = await addEvent({ ...values, imageUrl });
 
       if (result.error) {
         setError(result.error);
         return;
       }
 
-      setIsEditing(false);
-      toast.success('Event erfolgreich bearbeitet');
+      toast.success('Event erfolgreich erstellt');
+      router.push('/events');
+      router.refresh();
     } finally {
       setIsSubmitting(false);
     }
@@ -81,10 +77,7 @@ export function EditEventForm({ event, setIsEditing }: EditEventFormProps) {
   return (
     <Form {...form}>
       <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-6">
-        {error && (
-          <div className="rounded-md bg-red-50 p-3 text-red-500">{error}</div>
-        )}
-
+        {error && <ErrorMessage>{error}</ErrorMessage>}
         <FormField
           control={form.control}
           name="title"
@@ -98,6 +91,7 @@ export function EditEventForm({ event, setIsEditing }: EditEventFormProps) {
             </FormItem>
           )}
         />
+
         <FormField
           control={form.control}
           name="description"
@@ -116,6 +110,24 @@ export function EditEventForm({ event, setIsEditing }: EditEventFormProps) {
             </FormItem>
           )}
         />
+
+        {/*
+          The image is deliberately outside the form state: it is a File here
+          and a URL after upload. Keeping it in the schema is what made the old
+          form reject every event that had an image attached.
+        */}
+        <div className="space-y-2">
+          <label htmlFor="event-image" className="text-sm font-medium">
+            Bild
+          </label>
+          <Input
+            id="event-image"
+            type="file"
+            accept="image/jpeg,image/png,image/webp,image/avif"
+            ref={fileInputRef}
+          />
+        </div>
+
         <FormField
           control={form.control}
           name="date"
@@ -137,40 +149,10 @@ export function EditEventForm({ event, setIsEditing }: EditEventFormProps) {
             </FormItem>
           )}
         />
-        <div className="flex items-start justify-center gap-4">
-          {event.image_url && (
-            <Image
-              src={event.image_url}
-              alt={event.title}
-              width={300}
-              height={300}
-            />
-          )}
-          {/* Outside the form state on purpose -- see add-event-form. */}
-          <div className="space-y-2">
-            <label htmlFor="event-image" className="text-sm font-medium">
-              Bild ersetzen
-            </label>
-            <Input
-              id="event-image"
-              type="file"
-              accept="image/jpeg,image/png,image/webp,image/avif"
-              ref={fileInputRef}
-            />
-          </div>
-        </div>
-        <div className="flex justify-end gap-2">
-          <Button
-            type="button"
-            variant="outline"
-            onClick={() => setIsEditing(false)}
-          >
-            Abbrechen
-          </Button>
-          <Button type="submit" disabled={isSubmitting}>
-            {isSubmitting ? 'Wird gespeichert…' : 'Änderungen speichern'}
-          </Button>
-        </div>
+
+        <Button type="submit" className="w-full" disabled={isSubmitting}>
+          {isSubmitting ? 'Wird erstellt…' : 'Event erstellen'}
+        </Button>
       </form>
     </Form>
   );

@@ -1,11 +1,11 @@
 import Image from 'next/image';
 import Link from 'next/link';
 
+import { Surface } from '@/components/surface';
+import { Button } from '@/components/ui/button';
+
 import { formatDate } from '@/lib/format';
 import type { Event } from '@/types';
-
-import { Surface } from '../surface';
-import { Button } from '../ui/button';
 
 interface SingleEventCardProps {
   event: Event;

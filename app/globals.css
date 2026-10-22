@@ -3,52 +3,125 @@
 
 @custom-variant dark (&:is(.dark *));
 
-:root {
-  --radius: 0.3rem;
+/* ---------------------------------------------------------------------------
+   Farben -- zwei Ebenen
+   ---------------------------------------------------------------------------
+   EBENE 1 "Marke": die Gestaltungsentscheidungen. Jeder Markenwert existiert
+   hier genau einmal. Hier wird gestaltet.
 
-  --background: hsl(43 100% 95%);
-  --foreground: hsl(43 5% 0%);
-  --card: hsl(43 50% 90%);
-  --card-foreground: hsl(43 5% 10%);
-  --popover: hsl(43 100% 95%);
-  --popover-foreground: hsl(43 100% 0%);
-  --primary: hsl(43 97.5% 52.2%);
-  --primary-foreground: hsl(0 0% 100%);
-  --secondary: hsl(43 30% 70%);
+   EBENE 2 "Rollen": `--primary`, `--ring`, `--border` usw. Hier wird nur noch
+   zugewiesen, nicht gestaltet. Das ist die Ebene, die shadcn kennt und
+   erwartet -- deshalb ist Ebene 1 darunter frei erfindbar.
+
+   EBENE 3 `@theme inline`: rein mechanisch. Tailwind loest `@theme`-Werte zur
+   Build-Zeit auf, man kann sie in `.dark` nicht ueberschreiben; durch `inline`
+   kompiliert `bg-card` zu `background-color: var(--card)`, und damit greift der
+   Tausch im Dark Mode. Umweg, aber tragend.
+
+   Faustregel: Markenfarbe aendern -> Ebene 1. Eine Rolle anders belegen ->
+   Ebene 2. `@theme inline` nie anfassen.
+
+   Die Kommentare sagen, wo ein Token tatsaechlich wirkt -- aus dem Code
+   gezaehlt, nicht aus der shadcn-Doku.
+   --------------------------------------------------------------------------- */
+
+/* === EBENE 1: Marke ====================================================== */
+:root {
+  /* Der Farbton der Marke. Alle Flaechen, Rahmen und Texte leiten sich davon
+     ab -- genau das verhindert, dass sich versehentlich fremde Shades
+     einschleichen. */
+  /* Amber/Gold -- der EINE Farbton. Alles leitet sich davon ab. */
+  --hue-brand: 43;
+
+  --brand: hsl(var(--hue-brand) 97.5% 52.2%);
+  /* Text auf der Markenfarbe */
+  --brand-contrast: hsl(0 0% 100%);
+  /* Danger in zwei Rollen: als FLAECHE (Loeschen-Button, weisser Text darauf)
+     traegt dunkles Rot in beiden Modi. Als TEXT auf dunklem Grund ist 30%
+     Helligkeit unlesbar -- dafuer der zweite Wert. */
+  --danger: hsl(0 100% 30%);
+  --danger-on-dark: hsl(0 85% 65%);
+
+  --radius: 0.3rem;
+}
+
+/* === EBENE 2: Rollen ===================================================== */
+
+/* Modusunabhaengig -- in light und dark identisch, steht deshalb nur hier. */
+:root {
+  /* Button-Default, Textauswahl in Eingabefeldern */
+  --primary: var(--brand);
+  --primary-foreground: var(--brand-contrast);
+  /* Fokusringe: Button, Input, Textarea */
+  --ring: var(--brand);
+  /* FLAECHE: Loeschen-Button, alle aria-invalid-Zustaende in Input, Textarea,
+     Form. In beiden Modi gleich, weil darauf immer weisser Text steht. */
+  --destructive: var(--danger);
+}
+
+:root {
+  /* Flaechen */
+  /* body (via @layer base), Header, halbtransparente Overlays auf Bildern */
+  --background: hsl(var(--hue-brand) 100% 95%);
+  /* Standard-Textfarbe, wird ueberall geerbt */
+  --foreground: hsl(var(--hue-brand) 5% 0%);
+  /* nur Flaechen: components/surface + ui/card */
+  --card: hsl(var(--hue-brand) 50% 90%);
+  --card-foreground: hsl(var(--hue-brand) 5% 10%);
+  /* KEINE Utility nutzt das -- nur ui/sonner.tsx liest var(--popover) direkt */
+  --popover: hsl(var(--hue-brand) 100% 95%);
+  /* dito. 100% Saettigung bei Lightness 0 wirkt nicht */
+  --popover-foreground: hsl(var(--hue-brand) 100% 0%);
+
+  /* Interaktion */
+  /* nur die secondary-Variante des Buttons */
+  --secondary: hsl(var(--hue-brand) 30% 70%);
   --secondary-foreground: hsl(0 0% 0%);
-  --muted: hsl(5 30% 85%);
-  --muted-foreground: hsl(43 5% 35%);
-  --accent: hsl(5 30% 80%);
-  --accent-foreground: hsl(43 5% 10%);
-  --destructive: hsl(0 100% 30%);
-  --destructive-foreground: hsl(43 5% 90%);
-  --border: hsl(43 30% 50%);
-  --input: hsl(43 30% 18%);
-  --ring: hsl(43 97.5% 52.2%);
+  /* nur Hover von ghost/outline-Buttons */
+  --accent: hsl(var(--hue-brand) 30% 80%);
+  --accent-foreground: hsl(var(--hue-brand) 5% 10%);
+  /* meistgenutztes Token: ruhige Flaechen und ruhiger Text in Tabelle, Formularen, Karten */
+  --muted: hsl(var(--hue-brand) 30% 85%);
+  --muted-foreground: hsl(var(--hue-brand) 5% 35%);
+
+  /* ZUSTAND ALS TEXT auf der Seitenflaeche -- components/error-message */
+  --destructive-text: var(--danger);
+
+  /* Rahmenwerk */
+  /* keine einzelne Utility -- wirkt global ueber `@layer base * { @apply border-border }` auf JEDES Element */
+  --border: hsl(var(--hue-brand) 30% 50%);
+  /* Rahmen von Input und Textarea, dunkle Button-outline-Variante */
+  --input: hsl(var(--hue-brand) 30% 18%);
 }
 
 .dark {
-  --background: hsl(43 50% 5%);
-  --foreground: hsl(43 5% 90%);
-  --card: hsl(43 50% 0%);
-  --card-foreground: hsl(43 5% 90%);
-  --popover: hsl(43 50% 5%);
-  --popover-foreground: hsl(43 5% 90%);
-  --primary: hsl(43 97.5% 52.2%);
-  --primary-foreground: hsl(0 0% 100%);
-  --secondary: hsl(43 30% 10%);
+  /* Flaechen */
+  --background: hsl(var(--hue-brand) 50% 5%);
+  --foreground: hsl(var(--hue-brand) 5% 90%);
+  /* Lightness 0 = reines Schwarz, die 50% Saettigung wirken nicht */
+  --card: hsl(var(--hue-brand) 50% 0%);
+  --card-foreground: hsl(var(--hue-brand) 5% 90%);
+  --popover: hsl(var(--hue-brand) 50% 5%);
+  --popover-foreground: hsl(var(--hue-brand) 5% 90%);
+
+  /* Interaktion */
+  --secondary: hsl(var(--hue-brand) 30% 10%);
   --secondary-foreground: hsl(0 0% 100%);
-  --muted: hsl(5 30% 15%);
-  --muted-foreground: hsl(43 5% 60%);
-  --accent: hsl(5 30% 15%);
-  --accent-foreground: hsl(43 5% 90%);
-  --destructive: hsl(0 100% 30%);
-  --destructive-foreground: hsl(43 5% 90%);
-  --border: hsl(43 30% 18%);
-  --input: hsl(43 30% 18%);
-  --ring: hsl(43 97.5% 52.2%);
+  --accent: hsl(var(--hue-brand) 30% 15%);
+  --accent-foreground: hsl(var(--hue-brand) 5% 90%);
+  --muted: hsl(var(--hue-brand) 30% 15%);
+  --muted-foreground: hsl(var(--hue-brand) 5% 60%);
+
+  /* dito, aber heller: der Grund ist dunkel */
+  --destructive-text: var(--danger-on-dark);
+
+  /* Rahmenwerk */
+  --border: hsl(var(--hue-brand) 30% 18%);
+  --input: hsl(var(--hue-brand) 30% 18%);
 }
 
+/* Mechanische Abbildung auf die Tailwind-Utilities. Hier nichts aendern --
+   die Werte stehen oben. */
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
@@ -65,7 +138,7 @@
   --color-accent: var(--accent);
   --color-accent-foreground: var(--accent-foreground);
   --color-destructive: var(--destructive);
-  --color-destructive-foreground: var(--destructive-foreground);
+  --color-destructive-text: var(--destructive-text);
   --color-border: var(--border);
   --color-input: var(--input);
   --color-ring: var(--ring);
@@ -83,11 +156,12 @@
   * {
     @apply border-border outline-ring/50;
   }
+
   body {
     @apply bg-background text-foreground font-sans antialiased;
   }
 
   h1 {
-    @apply text-4xl font-bold
+    @apply text-4xl font-bold;
   }
 }

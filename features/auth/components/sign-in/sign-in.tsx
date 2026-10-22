@@ -1,10 +1,11 @@
 import { signInWithEmail, signInWithGoogle } from '@/features/auth/actions';
+import { SignOutButton } from '@/features/auth/components/sign-out-button';
 import { AUTH_ERRORS } from '@/features/auth/errors';
 
-import { createClient } from '@/server/supabase/server';
+import { ErrorMessage } from '@/components/error-message';
+import { Button } from '@/components/ui/button';
 
-import { SignOutButton } from '../sign-out-button';
-import { Button } from '../ui/button';
+import { createClient } from '@/server/supabase/server';
 
 export const SignIn = async ({
   error,
@@ -30,9 +31,9 @@ export const SignIn = async ({
   return (
     <div className="flex flex-col gap-4">
       {error && (
-        <p role="alert" className="rounded-md bg-red-50 p-3 text-red-500">
+        <ErrorMessage>
           {AUTH_ERRORS[error] ?? 'Anmeldung fehlgeschlagen'}
-        </p>
+        </ErrorMessage>
       )}
       <form action={signInWithEmail} className="flex gap-2">
         <input type="hidden" name="redirectTo" value={redirectTo ?? ''} />

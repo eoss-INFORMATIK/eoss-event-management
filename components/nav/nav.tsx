@@ -1,8 +1,8 @@
 import Link from 'next/link';
 
-import { createClient } from '@/server/supabase/server';
+import SignOutButton from '@/features/auth/components/sign-out-button';
 
-import SignOutButton from '../sign-out-button';
+import { createClient } from '@/server/supabase/server';
 
 export const Nav = async ({ children }: { children: React.ReactNode }) => {
   const supabase = await createClient();

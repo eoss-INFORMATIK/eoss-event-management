@@ -1,6 +1,6 @@
 import { redirect } from 'next/navigation';
 
-import { AddEventForm } from '@/components/forms/add-event-form';
+import { AddEventForm } from '@/features/events/components/add-event-form';
 
 import { createClient } from '@/server/supabase/server';
 

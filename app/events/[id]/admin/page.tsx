@@ -3,8 +3,9 @@ import { redirect } from 'next/navigation';
 
 import { CircleArrowLeft } from 'lucide-react';
 
-import ParticipantsTable from '@/components/participants-table';
-import { SingleEventMeta } from '@/components/single-event-meta';
+import { SingleEventMeta } from '@/features/events/components/single-event-meta';
+import ParticipantsTable from '@/features/participants/components/participants-table';
+
 import { Button } from '@/components/ui/button';
 
 import { createClient } from '@/server/supabase/server';

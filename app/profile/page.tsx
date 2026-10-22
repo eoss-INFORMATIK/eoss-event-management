@@ -1,6 +1,6 @@
 import { redirect } from 'next/navigation';
 
-import SignOutButton from '@/components/sign-out-button';
+import SignOutButton from '@/features/auth/components/sign-out-button';
 
 import { createClient } from '@/server/supabase/server';
 

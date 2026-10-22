@@ -12,6 +12,7 @@ import {
   participantFormSchema,
 } from '@/features/participants/schema';
 
+import { ErrorMessage } from '@/components/error-message';
 import { Button } from '@/components/ui/button';
 import {
   Form,
@@ -77,9 +78,7 @@ export function EventRegistrationForm({ eventId }: { eventId: string }) {
   return (
     <Form {...form}>
       <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-6">
-        {error && (
-          <div className="rounded-md bg-red-50 p-3 text-red-500">{error}</div>
-        )}
+        {error && <ErrorMessage>{error}</ErrorMessage>}
 
         <FormField
           control={form.control}

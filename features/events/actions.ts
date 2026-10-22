@@ -10,7 +10,6 @@ import { createClient } from '@/server/supabase/server';
 import type { Event } from '@/types';
 import type { ActionResponse } from '@/types/actions';
 
-
 type EventsResponse = { events?: Event[]; error?: string };
 type EventResponse = { event?: Event; error?: string };
 

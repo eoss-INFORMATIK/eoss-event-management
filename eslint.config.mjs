@@ -38,7 +38,10 @@ const eslintConfig = defineConfig([
     // react-hook-form and TanStack Table keep state in refs by design. The
     // React Compiler lint rules flag that as a render-time ref access, which is
     // a false positive here — not something to "fix" in our code.
-    files: ['components/forms/**', 'components/participants-table/**'],
+    files: [
+      'features/*/components/*-form.tsx',
+      'features/participants/components/participants-table/**',
+    ],
     rules: {
       'react-hooks/refs': 'off',
       'react-hooks/incompatible-library': 'off',

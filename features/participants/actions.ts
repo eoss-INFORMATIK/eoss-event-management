@@ -13,7 +13,6 @@ import {
 import { createClient } from '@/server/supabase/server';
 import type { ActionResponse } from '@/types/actions';
 
-
 /** Public: anyone can register for an event. */
 export const addParticipant = async (
   formData: ParticipantFormValues,

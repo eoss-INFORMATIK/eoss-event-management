@@ -1,6 +1,6 @@
 'use client';
 
-import { EventRegistrationForm } from '@/components/forms/event-registration-form';
+import { EventRegistrationForm } from '@/features/participants/components/event-registration-form';
 
 interface SingleEventRegistrationClientProps {
   eventId: string;
