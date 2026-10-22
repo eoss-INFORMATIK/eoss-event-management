@@ -7,7 +7,7 @@
     "build": "next build",
     "start": "next start",
     "lint": "eslint",
-    "typecheck": "tsc --noEmit",
+    "typecheck": "next typegen && tsc --noEmit",
     "format": "prettier . --write",
     "email": "email dev --dir features/email",
     "env:hosted": "printf '# GENERIERT von: npm run env:hosted\\n# Nicht hier editieren, sondern in .env.hosted\\n\\n' > .env.local && cat .env.hosted >> .env.local && npm run -s env:show",

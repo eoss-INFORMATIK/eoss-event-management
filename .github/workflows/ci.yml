@@ -1,5 +1,11 @@
 # Was hier laeuft und was NICHT:
 #
+# `npm run typecheck` ruft zuerst `next typegen`. Das ist nicht Zierde: Next
+# generiert `next-env.d.ts` (und die Routen-Typen), und diese Datei ist laut
+# Next-Docs bewusst gitignored. In einem frischen Checkout fehlt sie also, und
+# `tsc` kennt dann die Bildmodul-Typen nicht -- `import heroImage from
+# '@/assets/heroImage.png'` schlug genau daran fehl, lokal aber nicht.
+#
 # Der Vercel-Check auf dem Pull Request baut die App und prueft dabei die Typen.
 # Was er NICHT tut: ESLint laufen lassen -- `next build` lintet seit Next 15
 # nicht mehr mit. Genau diese Luecke schliesst dieser Workflow, plus spaeter die
