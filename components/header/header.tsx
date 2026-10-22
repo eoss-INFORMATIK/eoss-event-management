@@ -17,7 +17,7 @@ export const Header = () => {
             width={100}
             height={100}
           />
-          <span className="text-xl font-bold">eoss Events App</span>
+          <span className="text-xl font-bold">dabei</span>
         </Link>
 
         <Nav>
@@ -25,7 +25,7 @@ export const Header = () => {
             <Link href="/sign-in">Login</Link>
           </Button>
           <Button variant="default" size="sm" className="text-xs">
-            <Link href="/register">Register</Link>
+            <Link href="/register">Registrieren</Link>
           </Button>
         </Nav>
       </div>

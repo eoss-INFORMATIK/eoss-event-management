@@ -4,51 +4,70 @@ import Link from 'next/link';
 import { formatDate } from '@/lib/format';
 import type { Event } from '@/types';
 
+import { Surface } from '../surface';
 import { Button } from '../ui/button';
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardFooter,
-  CardHeader,
-  CardTitle,
-} from '../ui/card';
 
 interface SingleEventCardProps {
   event: Event;
 }
 
 export const SingleEventCard = ({ event }: SingleEventCardProps) => {
+  const actions = [
+    { href: `/events/${event.id}`, label: 'Ansicht' },
+    { href: `/events/${event.id}/admin`, label: 'Event Admin' },
+  ];
+
   return (
-    <Card key={event.id} className="flex flex-col justify-end">
-      <CardHeader>
+    <Surface className="flex flex-col gap-6 p-6">
+      <div className="flex flex-col gap-3">
         {event.image_url && (
-          <Image
-            src={event.image_url}
-            alt={event.title}
-            width={250}
-            height={250}
-            className="h-auto w-full"
-          />
+          <div className="relative">
+            <Image
+              src={event.image_url}
+              alt={event.title}
+              width={250}
+              height={250}
+              className="h-auto w-full rounded-lg"
+            />
+            {/* Halbtransparent plus backdrop-blur, weil darunter ein beliebiges
+                Foto liegt -- ohne das sind die Beschriftungen auf hellen
+                Bildern nicht lesbar. */}
+            <div className="absolute top-2 right-2 z-10 flex gap-2">
+              {actions.map(({ href, label }) => (
+                <Button
+                  key={href}
+                  asChild
+                  size="sm"
+                  variant="outline"
+                  className="bg-background/80 backdrop-blur-sm"
+                >
+                  <Link href={href}>{label}</Link>
+                </Button>
+              ))}
+            </div>
+          </div>
         )}
-        <CardTitle>{event.title}</CardTitle>
-        <CardDescription>
-          <p>Datum: {formatDate(event.date)}</p>
-        </CardDescription>
-      </CardHeader>
-      <CardContent>
-        <p className="text-sm text-gray-600">
-          {event.description || 'Keine Beschreibung vorhanden'}
+        <h2 className="leading-none font-semibold">{event.title}</h2>
+        <p className="text-muted-foreground text-sm">
+          Datum: {formatDate(event.date)}
         </p>
-      </CardContent>
-      <CardFooter className="flex flex-row gap-2">
-        <Button asChild variant="outline" className="w-full">
-          <Link href={`/events/${event.id}`}>Ansicht</Link>
-        </Button>
-        <Button asChild variant="outline" className="w-full">
-          <Link href={`/events/${event.id}/admin`}>Event Admin</Link>
-        </Button>
-      </CardFooter>
-    </Card>
+      </div>
+
+      <p className="text-muted-foreground text-sm">
+        {event.description || 'Keine Beschreibung vorhanden'}
+      </p>
+
+      {/* Ohne Bild gibt es nichts, worueber die Buttons schweben koennten --
+          dann stehen sie unten, aber als Reihe statt als Spalte. */}
+      {!event.image_url && (
+        <div className="flex gap-2">
+          {actions.map(({ href, label }) => (
+            <Button key={href} asChild variant="outline" className="flex-1">
+              <Link href={href}>{label}</Link>
+            </Button>
+          ))}
+        </div>
+      )}
+    </Surface>
   );
 };
