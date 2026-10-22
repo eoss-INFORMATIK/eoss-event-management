@@ -1,0 +1,8 @@
+# Teilweise maschinell gepflegt: `next dev` schreibt den Block "This is NOT the
+# Next.js you know" selbst und wuerde eine Formatierung durch Prettier jedes Mal
+# wieder zerschiessen.
+CLAUDE.md
+
+# Generiert
+types/database.ts
+.next/

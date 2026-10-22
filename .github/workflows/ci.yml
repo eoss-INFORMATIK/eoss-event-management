@@ -1,0 +1,46 @@
+# Was hier laeuft und was NICHT:
+#
+# `npm run typecheck` ruft zuerst `next typegen`. Das ist nicht Zierde: Next
+# generiert `next-env.d.ts` (und die Routen-Typen), und diese Datei ist laut
+# Next-Docs bewusst gitignored. In einem frischen Checkout fehlt sie also, und
+# `tsc` kennt dann die Bildmodul-Typen nicht -- `import heroImage from
+# '@/assets/heroImage.png'` schlug genau daran fehl, lokal aber nicht.
+#
+# Der Vercel-Check auf dem Pull Request baut die App und prueft dabei die Typen.
+# Was er NICHT tut: ESLint laufen lassen -- `next build` lintet seit Next 15
+# nicht mehr mit. Genau diese Luecke schliesst dieser Workflow, plus spaeter die
+# Tests. Der Build wird hier absichtlich nicht wiederholt: Vercel macht ihn
+# ohnehin, und er braeuchte hier die fuenf validierten Env-Variablen.
+name: CI
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - run: npm ci
+
+      - name: Lint
+        run: npm run lint
+
+      - name: Typecheck
+        run: npm run typecheck
+        env:
+          # `next typegen` laedt next.config.ts, und die Datei bricht
+          # absichtlich ab, wenn NEXT_PUBLIC_SUPABASE_URL fehlt -- sonst waere
+          # images.remotePatterns leer und jedes Remote-Bild in Produktion
+          # kaputt. Hier wird nur die Config geladen, nicht gebaut, deshalb
+          # genuegt ein Platzhalter. Er muss eine gueltige absolute URL sein,
+          # weil daraus `new URL(...)` entsteht.
+          NEXT_PUBLIC_SUPABASE_URL: https://platzhalter.supabase.co
