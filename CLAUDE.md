@@ -49,15 +49,31 @@ deployt jeden Push auf `main` nach Produktion. Deshalb:
 
 ### Was welcher Check abdeckt
 
-| | Vercel | `CI / verify` |
-|---|---|---|
-| Build | ✓ | — (nicht doppelt) |
-| TypeScript | ✓ | ✓ (`npm run typecheck`) |
-| ESLint | **nein** | ✓ (`npm run lint`) |
-| Tests | nein | hier, sobald es welche gibt |
+| | Vercel | `verify` | `rls` |
+|---|---|---|---|
+| Build | ✓ | — (nicht doppelt) | — |
+| TypeScript | ✓ | ✓ (`npm run typecheck`) | — |
+| ESLint | **nein** | ✓ (`npm run lint`) | — |
+| RLS-Policies | nein | nein | ✓ (`npm test`) |
+
+Alle drei sind im Ruleset **erforderlich**. `rls` faehrt den Supabase-Stack in
+Docker hoch und braucht ein paar Minuten; das ist der Preis dafuer, dass eine
+kaputte Policy nicht nach Produktion kommt -- die einzige Fehlerklasse hier, die
+im UI unsichtbar bleibt, bis sie jemand ausnutzt.
 
 `next build` lintet seit Next 15 nicht mehr mit — ein Lint-Fehler würde ohne den
 CI-Workflow unbemerkt nach Produktion gehen.
+
+### Einen Check erforderlich machen: vorher offene PRs schliessen
+
+Ein erforderlicher Status-Check wirkt **sofort auf alle offenen Pull Requests**.
+Branches, die aelter sind als der Workflow, definieren den Job nicht -- der
+Check meldet dort also nie etwas, und der PR wartet dauerhaft auf einen Status,
+der nicht kommt. Das ist kein Fehler, sondern das erwartete Verhalten, und es
+sieht wie ein kaputter PR aus.
+
+Beim Einfuehren von `rls` war genau ein PR betroffen. Reihenfolge deshalb immer:
+erst offene PRs mergen oder schliessen, dann den Check im Ruleset ergaenzen.
 
 ### Pre-commit-Hook
 
