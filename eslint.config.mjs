@@ -52,8 +52,8 @@ const eslintConfig = defineConfig([
     // SERVICE_ROLE_KEY) direkt aus der Umgebung. Sie gehoeren bewusst NICHT in
     // env/index.ts -- sonst braeuchte die App sie zum Starten, obwohl sie nur
     // in einer lokalen Entwickler-Shell existieren.
-    files: ['tests/**'],
-    rules: { 'n/no-process-env': 'off' },
+    files: ['tests/**', 'scripts/**'],
+    rules: { 'n/no-process-env': 'off', 'no-console': 'off' },
   },
   globalIgnores([
     '.next/**',

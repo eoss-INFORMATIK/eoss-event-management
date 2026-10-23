@@ -1,3 +1,5 @@
+import { getMyOrganizationId } from '@/features/organizations/queries';
+
 import { createClient } from '@/server/supabase/client';
 
 export const EVENT_IMAGES_BUCKET = 'event-images';
@@ -18,8 +20,13 @@ type UploadResult = { url?: string; error?: string };
  * The file never passes through the Next.js server -- the previous Vercel Blob
  * route proxied every upload through a serverless function for no reason.
  *
- * Files land under `<user-id>/`, which is what the storage policies key on.
- * The checks here are for fast feedback; the bucket enforces them too.
+ * Dateien liegen unter `<organization_id>/` -- darauf prueft die
+ * Storage-Policy. Nicht unter `<user-id>/`: das Bild gehoert zum Event, und
+ * das gehoert der Organisation. Sonst waere ein Bild nach dem Ausscheiden
+ * der Person in einem Ordner, auf den niemand mehr Rechte hat.
+ *
+ * Die Pruefungen hier sind fuer schnelle Rueckmeldung; der Bucket erzwingt
+ * sie ohnehin.
  */
 export const uploadEventImage = async (file: File): Promise<UploadResult> => {
   if (!ALLOWED_TYPES.includes(file.type as (typeof ALLOWED_TYPES)[number])) {
@@ -39,8 +46,13 @@ export const uploadEventImage = async (file: File): Promise<UploadResult> => {
   if (!user)
     return { error: 'Du musst angemeldet sein, um ein Bild hochzuladen' };
 
+  const organizationId = await getMyOrganizationId(supabase, user.id);
+
+  if (!organizationId)
+    return { error: 'Zu deinem Konto gehört keine Organisation' };
+
   const extension = file.name.split('.').pop()?.toLowerCase() ?? 'jpg';
-  const path = `${user.id}/${crypto.randomUUID()}.${extension}`;
+  const path = `${organizationId}/${crypto.randomUUID()}.${extension}`;
 
   const { error } = await supabase.storage
     .from(EVENT_IMAGES_BUCKET)

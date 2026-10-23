@@ -387,6 +387,19 @@ read `process.env` directly outside that file (enforced by `n/no-process-env`).
   dass der Magic Link ueberhaupt funktioniert. Die Mail-Templates haengen nicht
   am SMTP und bleiben unberuehrt. Fuer die Teilnehmer-Bestaetigungsmail wird
   Resend ohnehin direkt benutzt.
+- **Storage-Objekte lassen sich nicht per SQL verschieben.** `update
+  storage.objects set name = ...` benennt nur die Metadatenzeile um, nicht die
+  abgelegte Datei — nachgemessen: danach antwortet der neue Pfad mit 500 und der
+  alte mit 400, das Objekt ist kaputt. Verschieben geht nur ueber die
+  Storage-API (`POST /storage/v1/object/move`). Darum ist der Umzug nach
+  `<organization_id>/` ein Skript und keine Migration:
+  `npm run storage:migrate` (Dry-Run), mit `-- --apply` ausfuehren.
+- **Event-Bilder liegen unter `<organization_id>/`**, nicht unter `<user-id>/`.
+  Das Bild gehoert zum Event und das der Organisation; im Nutzerordner waere es
+  nach dem Ausscheiden der Person in einem Verzeichnis, auf das niemand mehr
+  Rechte hat. Die Storage-Policy akzeptiert derzeit **beides** — ein
+  Uebergangszustand, weil alte Policy und neuer Code sich sonst gegenseitig
+  ausschliessen. Eine Folge-Migration laesst die Nutzer-ID-Variante fallen.
 - **`event_participants.organization_id` setzt ein Trigger, nicht der Code.**
   `event_participants_set_organization` (BEFORE INSERT **OR UPDATE**) liest die
   Organisation aus dem Eltern-Event und **ueberschreibt** jeden mitgelieferten
