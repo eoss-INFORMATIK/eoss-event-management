@@ -46,6 +46,7 @@ export type Database = {
           event_id: string
           id: string
           name: string | null
+          organization_id: string
           status: string
           updated_at: string
         }
@@ -55,6 +56,7 @@ export type Database = {
           event_id: string
           id?: string
           name?: string | null
+          organization_id: string
           status?: string
           updated_at?: string
         }
@@ -64,16 +66,17 @@ export type Database = {
           event_id?: string
           id?: string
           name?: string | null
+          organization_id?: string
           status?: string
           updated_at?: string
         }
         Relationships: [
           {
-            foreignKeyName: "event_participants_event_id_fkey"
-            columns: ["event_id"]
+            foreignKeyName: "event_participants_event_id_organization_id_fkey"
+            columns: ["event_id", "organization_id"]
             isOneToOne: false
             referencedRelation: "events"
-            referencedColumns: ["id"]
+            referencedColumns: ["id", "organization_id"]
           },
         ]
       }

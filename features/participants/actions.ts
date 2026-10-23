@@ -27,10 +27,26 @@ export const addParticipant = async (
 
   const supabase = await createClient();
 
+  // Die Organisation kommt aus dem Event, nie vom Client -- die Anmeldung ist
+  // oeffentlich. Der Trigger `event_participants_set_organization` setzt sie
+  // beim Insert ohnehin unbedingt neu und ueberschreibt jeden mitgelieferten
+  // Wert; dieser Lookup existiert aus zwei anderen Gruenden: die generierten
+  // Typen verlangen die Spalte (sie ist `not null` ohne Default), und ein
+  // unbekanntes Event bekommt damit eine lesbare Meldung statt eines
+  // Fremdschluesselfehlers.
+  const { data: event } = await supabase
+    .from('events')
+    .select('organization_id')
+    .eq('id', eventId)
+    .maybeSingle();
+
+  if (!event) return { error: 'Event nicht gefunden' };
+
   const { error } = await supabase.from('event_participants').insert({
     event_id: eventId,
     email: parsed.data.email,
     name: parsed.data.name || null,
+    organization_id: event.organization_id,
   });
 
   if (error) {
