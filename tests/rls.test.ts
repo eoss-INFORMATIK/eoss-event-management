@@ -281,6 +281,19 @@ describe('Storage: Bilder gehoeren der Organisation', () => {
     await admin().storage.from(BUCKET).remove([path]);
   });
 
+  it('A laedt nichts in einen Ordner mit der eigenen Nutzer-ID', async () => {
+    // Bis zum Zusammenziehen der Uebergangs-Policy war das erlaubt. Der Test
+    // haelt fest, dass der Pfad jetzt ausschliesslich an der Organisation
+    // haengt -- sonst waechst wieder ein zweiter Ablageort heran.
+    const { error } = await a.client.storage
+      .from(BUCKET)
+      .upload(`${a.userId}/nutzerordner.png`, png(), {
+        contentType: 'image/png',
+      });
+
+    expect(error).toBeTruthy();
+  });
+
   it('A loescht keine Datei im Ordner von B', async () => {
     // Datei mit Besitzerrechten anlegen, damit sie sicher existiert.
     const path = `${b.organizationId}/von-b-${Date.now()}.png`;
