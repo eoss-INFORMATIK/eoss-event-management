@@ -8,7 +8,7 @@ Was hier **nicht** steht: Produktentscheidungen, Roadmap, Aufgaben — die liege
 in Notion. Konventionen und Fallstricke der Codebasis stehen in
 [`CLAUDE.md`](../CLAUDE.md).
 
-Stand: 2026-10-23, nach zwölf Migrationen.
+Stand: 2026-10-23, nach dreizehn Migrationen.
 
 ## Das Besitzmodell in einem Satz
 
@@ -34,6 +34,13 @@ weg. Zwei Dinge hängen daran und müssen dann mitgeändert werden —
 `getMyOrganizationId()` (es gibt dann eine _aktive_ Organisation, die gewählt
 werden muss) und jeder Backfill, der aus `user_id` auf eine Organisation
 schliesst.
+
+**Die Reihenfolge ist hier umgekehrt zur Faustregel.** Die Constraint zu
+entfernen ist ein Erweitern, also scheinbar Migration zuerst. Aber
+`getMyOrganizationId()` benutzt `.maybeSingle()` und _wirft_ bei zwei
+Mitgliedschaften, statt eine zu wählen. Gefährlich ist nicht die Migration,
+sondern die erste zweite Mitgliedschaft. Also: erst Code, der mit mehreren
+umgehen kann, dann die Constraint fallen lassen.
 
 ## Löschverhalten
 
@@ -78,6 +85,12 @@ Zwei Feinheiten, die man den Policies nicht ansieht:
 ein eigenes Event per Update in eine fremde Organisation verschieben. Eigener
 Test dafür.
 
+Das gilt heute für `events` und `event_participants`. **Auf `profiles`,
+`organizations` und den Storage-UPDATE-Policies fehlt es noch** — sie haben nur
+ein `using`. Solange niemand diese Tabellen aus dem UI heraus ändert, ist das
+unauffällig; sobald eine Seite schreibt, gehört das `with check` dazu. Wer als
+Erster auf eine dieser Tabellen schreibt, zieht es mit.
+
 **Keine Rekursion, und darum noch keine Definer-Funktion.** Eine Policy auf
 `events` liest `organization_user`, dort greift `user_id = auth.uid()` — ein
 Spaltenvergleich ohne Tabellenzugriff. `my_organization_ids()` aus EOS-20 wird
@@ -121,10 +134,13 @@ Die Funktion heisst `public.set_participant_organization()`, der Trigger
 Bucket `event-images`, öffentlich lesbar, Dateien unter
 `<organization_id>/<uuid>.<ext>`.
 
-**Übergangszustand:** die Schreib-Policy akzeptiert derzeit _auch_ den eigenen
-Nutzerordner. Grund: alte Policy und neuer Code schliessen sich gegenseitig aus,
-es gibt keine Reihenfolge ohne Übergang. Eine Folge-Migration lässt die
-Nutzer-ID-Variante fallen.
+**Der Übergangszustand ist aufgelöst.** Eine Zeit lang akzeptierte die
+Schreib-Policy _auch_ den eigenen Nutzerordner, weil alte Policy und neuer Code
+sich gegenseitig ausschlossen und es keine Reihenfolge ohne Übergang gab. Seit
+`20261023083008_storage_policy_org_only` zählt nur noch die Organisation.
+Voraussetzung war, dass keine Datei mehr in einem Nutzerordner liegt: eine solche
+Datei bliebe öffentlich lesbar, wäre aber für niemanden mehr änderbar oder
+löschbar — nur noch mit Service-Role.
 
 **Objekte lassen sich nicht per SQL verschieben** — `update storage.objects set
 name` benennt nur die Metadatenzeile um, die Datei bleibt liegen und das Objekt
@@ -135,8 +151,11 @@ ist kaputt. Dafür gibt es `scripts/move-images-to-organization.mjs`.
 - **Einladungen** und mehrere Organisationen pro Nutzer — erst damit wird der
   ganze Umbau sichtbar, weil dann zwei Personen dieselbe Organisation teilen
 - **Rollen innerhalb einer Organisation** — jedes Mitglied darf alles
-- **Profilseite** mit Organisation
 - **Warteliste mit Kapazität** — bewusst als Lernaufgabe aufgespart, weil sie
   eine echte Nebenläufigkeitsentscheidung erzwingt
 - **Aufräumen leerer Organisationen**
-- **Storage-Policy zusammenziehen** (Nutzerordner entfernen)
+- **`with check` auf `profiles`, `organizations` und Storage-UPDATE** — siehe
+  oben
+
+Die **Profilseite** ist nicht mehr auf dieser Liste: sie ist gerade in Arbeit
+(Profil Rebuild, Schritt 1).

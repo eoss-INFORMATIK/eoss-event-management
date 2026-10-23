@@ -29,12 +29,28 @@ wurde nach Abschluss entfernt, die Historie steht in den Commits. Schema und RLS
 liegen auf dem Supabase-Projekt, Anmeldung und Konto-Einrichtung sind gegen den
 lokalen Stack verifiziert.
 
-**Laufende Arbeit:** Multi-Org nach `docs/eos-20-multi-org-setup.md`, Schritt 1.
-Die Tabellen `organizations`, `organization_user` und `profiles` stehen samt RLS
-und Trigger, und `ensureOrganization()` richtet Profil und Organisation bei der
-Anmeldung ein. Noch offen: `events`, `event_participants` und der Storage-Pfad
-hängen am User statt an der Organisation, und `organization_user` fehlt das
-`on delete cascade` auf beiden Fremdschlüsseln.
+**EOS-20 ist durch.** Der Besitz liegt bei der Organisation: `events` und
+`event_participants` tragen `organization_id`, `organizer_id` ist entfernt, der
+Storage-Pfad ist gezogen und seine Übergangs-Policy zusammengelaufen,
+`organization_user` kaskadiert auf beiden Fremdschlüsseln.
+
+**Laufende Arbeit:** Profil Rebuild, Schritt 1 — Profil- und Organisationsseite
+auf dem heutigen Datenmodell, und das heisst: **eine Organisation hat genau einen
+Nutzer, jeder Nutzer genau eine Organisation.** Einladungen, Rollen und mehrere
+Organisationen pro Nutzer sind bewusst ein eigener Task.
+
+Drei Leitplanken, damit dieser Zwischenschritt den späteren Umbau nicht
+verteuert — sie gelten für jede Zeile, die jetzt entsteht:
+
+1. **Die Route trägt die Organisations-Id** (`/organizations/[id]/…`), auch
+   solange es nur eine gibt. Eine URL später umzubauen heisst kaputte Lesezeichen
+   und eine Umbenennung quer durch den Code.
+2. **Jede Liste ist eine Liste**, auch mit einem Eintrag. „Meine Organisation" im
+   Singular durch Komponenten, Props und Typen zu ziehen heisst, `unique(user_id)`
+   in den Code zu schreiben — dort muss man es später suchen.
+3. **`getMyOrganizationId()` bleibt die einzige Stelle**, die die Organisation
+   auflöst; Seiten bekommen die Id als Prop. Dann ist „aktive Organisation"
+   später eine Funktion und kein Refactoring.
 
 ## Arbeitsmodus: Liefermodus
 
