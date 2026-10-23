@@ -51,9 +51,6 @@ export const addEvent = async (
     image_url: parsed.data.imageUrl || null,
     organization_id: organizationId,
     created_by: user.id,
-    // organizer_id ist noch `not null` und wird erst entfernt, wenn kein Code
-    // sie mehr liest.
-    organizer_id: user.id,
   });
 
   if (error) return { error: 'Event konnte nicht erstellt werden' };
