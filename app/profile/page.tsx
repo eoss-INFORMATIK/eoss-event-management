@@ -1,6 +1,8 @@
 import { redirect } from 'next/navigation';
 
 import SignOutButton from '@/features/auth/components/sign-out-button';
+import { ProfileForm } from '@/features/profile/components/profile-form';
+import { getMyProfile } from '@/features/profile/queries';
 
 import { createClient } from '@/server/supabase/server';
 
@@ -12,23 +14,20 @@ const Profile = async () => {
 
   if (!user) redirect('/sign-in');
 
-  // Google fills these; a magic-link sign-in leaves them empty.
-  const name = user.user_metadata.full_name ?? user.user_metadata.name ?? '';
-  const avatarUrl = user.user_metadata.avatar_url ?? user.user_metadata.picture;
+  // Der Name kommt jetzt aus `profiles`, nicht mehr aus `user_metadata`.
+  // Die Metadaten gehoeren dem Anmeldeanbieter: Google ueberschreibt sie bei
+  // jeder Anmeldung, und ein Magic Link liefert gar nichts.
+  const profile = await getMyProfile(supabase, user.id);
 
   return (
-    <section className="flex flex-col gap-4">
+    <section className="flex flex-col gap-6">
       <h1 className="text-2xl font-bold">Profil</h1>
-      {name && <p>Name: {name}</p>}
-      <p>E-Mail: {user.email}</p>
-      {avatarUrl && (
-        // eslint-disable-next-line @next/next/no-img-element
-        <img
-          src={avatarUrl}
-          alt="Profilbild"
-          className="h-16 w-16 rounded-full"
-        />
-      )}
+
+      <ProfileForm
+        name={profile?.name ?? ''}
+        email={profile?.email ?? user.email ?? ''}
+      />
+
       <SignOutButton />
     </section>
   );
