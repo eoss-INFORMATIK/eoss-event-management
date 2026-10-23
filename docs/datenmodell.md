@@ -85,11 +85,18 @@ Zwei Feinheiten, die man den Policies nicht ansieht:
 ein eigenes Event per Update in eine fremde Organisation verschieben. Eigener
 Test dafür.
 
-Das gilt heute für `events` und `event_participants`. **Auf `profiles`,
-`organizations` und den Storage-UPDATE-Policies fehlt es noch** — sie haben nur
-ein `using`. Solange niemand diese Tabellen aus dem UI heraus ändert, ist das
-unauffällig; sobald eine Seite schreibt, gehört das `with check` dazu. Wer als
-Erster auf eine dieser Tabellen schreibt, zieht es mit.
+Nur: **weglassen heisst nicht fehlen.** Fehlt `with check` ganz, wendet Postgres
+das `using` auch auf die neue Zeile an. Auf `profiles`, `organizations` und den
+Storage-UPDATE-Policies steht deshalb nur ein `using` — und sie sind trotzdem
+dicht. Gemessen: der Versuch, die eigene Profilzeile auf eine fremde `id` zu
+schreiben, scheitert mit `42501 new row violates row-level security policy`,
+obwohl dort nie ein `with check` stand. Festgehalten im Test „A schreibt die
+eigene Zeile nicht auf eine fremde id".
+
+Ausgeschrieben gehört es trotzdem überall dorthin, wo es **anders** lauten muss
+als das `using` daneben — bei `events` etwa, damit lesbar bleibt, dass auch die
+Ziel-Organisation geprüft wird. Der gefährliche Fall ist nicht das Weglassen,
+sondern ein `with check`, das schwächer ist als sein `using`.
 
 **Keine Rekursion, und darum noch keine Definer-Funktion.** Eine Policy auf
 `events` liest `organization_user`, dort greift `user_id = auth.uid()` — ein
@@ -154,8 +161,6 @@ ist kaputt. Dafür gibt es `scripts/move-images-to-organization.mjs`.
 - **Warteliste mit Kapazität** — bewusst als Lernaufgabe aufgespart, weil sie
   eine echte Nebenläufigkeitsentscheidung erzwingt
 - **Aufräumen leerer Organisationen**
-- **`with check` auf `profiles`, `organizations` und Storage-UPDATE** — siehe
-  oben
 
 Die **Profilseite** ist nicht mehr auf dieser Liste: sie ist gerade in Arbeit
 (Profil Rebuild, Schritt 1).
