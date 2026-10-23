@@ -244,3 +244,62 @@ describe('Loeschen eines Nutzers nimmt keine Events mit', () => {
     await admin().from('organizations').delete().eq('id', c.organizationId);
   });
 });
+
+describe('Storage: Bilder gehoeren der Organisation', () => {
+  const BUCKET = 'event-images';
+  // Kleinstes gueltiges PNG -- der Bucket laesst nur Bild-Mimetypes zu.
+  const png = () =>
+    new Blob(
+      [
+        Buffer.from(
+          'iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8/x8AAwMCAO+ip1sAAAAASUVORK5CYII=',
+          'base64'
+        ),
+      ],
+      { type: 'image/png' }
+    );
+
+  it('A laedt nichts in den Ordner von B', async () => {
+    const { error } = await a.client.storage
+      .from(BUCKET)
+      .upload(`${b.organizationId}/fremd.png`, png(), {
+        contentType: 'image/png',
+      });
+
+    expect(error).toBeTruthy();
+  });
+
+  it('A laedt in den eigenen Organisationsordner', async () => {
+    const path = `${a.organizationId}/eigen-${Date.now()}.png`;
+
+    const { error } = await a.client.storage
+      .from(BUCKET)
+      .upload(path, png(), { contentType: 'image/png' });
+
+    expect(error).toBeNull();
+
+    await admin().storage.from(BUCKET).remove([path]);
+  });
+
+  it('A loescht keine Datei im Ordner von B', async () => {
+    // Datei mit Besitzerrechten anlegen, damit sie sicher existiert.
+    const path = `${b.organizationId}/von-b-${Date.now()}.png`;
+    await admin()
+      .storage.from(BUCKET)
+      .upload(path, png(), { contentType: 'image/png' });
+
+    const { data } = await a.client.storage.from(BUCKET).remove([path]);
+
+    // Die Storage-API meldet hier keinen Fehler, sie loescht nur nichts --
+    // dieselbe Stille wie bei einem UPDATE ohne Treffer unter RLS.
+    expect(data).toEqual([]);
+
+    const { data: still } = await admin()
+      .storage.from(BUCKET)
+      .list(b.organizationId);
+
+    expect(still?.some((f) => path.endsWith(f.name))).toBe(true);
+
+    await admin().storage.from(BUCKET).remove([path]);
+  });
+});

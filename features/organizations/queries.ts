@@ -1,6 +1,6 @@
-import type { createClient } from '@/server/supabase/server';
+import type { SupabaseClient } from '@supabase/supabase-js';
 
-type SupabaseServerClient = Awaited<ReturnType<typeof createClient>>;
+import type { Database } from '@/types';
 
 /**
  * Die Organisation des angemeldeten Nutzers.
@@ -11,12 +11,15 @@ type SupabaseServerClient = Awaited<ReturnType<typeof createClient>>;
  * Einschraenkung weg und es braucht eine Auswahl (aktive Organisation). Diese
  * Funktion ist dann die Stelle, an der sie hinkommt.
  *
+ * Nimmt bewusst `SupabaseClient<Database>` statt des Server-Client-Typs: der
+ * Bild-Upload laeuft im Browser und braucht dieselbe Auskunft.
+ *
  * Die RLS-Policy auf `organization_user` laesst ohnehin nur die eigenen Zeilen
  * durch; der Filter steht trotzdem da, damit die Absicht im Code lesbar ist und
  * nicht nur in der Policy.
  */
 export const getMyOrganizationId = async (
-  supabase: SupabaseServerClient,
+  supabase: SupabaseClient<Database>,
   userId: string
 ): Promise<string | null> => {
   const { data } = await supabase
