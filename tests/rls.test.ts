@@ -134,6 +134,11 @@ describe('event_participants: nur die Organisation des Events sieht sie', () => 
       event_id: eventOfB,
       email: 'gast@example.com',
       name: 'Gast',
+      // Die Spalte ist `not null` ohne Default, die generierten Typen verlangen
+      // sie also auf jedem Insert-Pfad -- auch wenn der Trigger sie danach
+      // unbedingt neu setzt. Hier der korrekte Wert; der Fall "Client luegt"
+      // steht in einem eigenen Test.
+      organization_id: b.organizationId,
     });
 
     expect(error).toBeNull();
@@ -179,6 +184,30 @@ describe('event_participants: nur die Organisation des Events sieht sie', () => 
 
     expect(error).toBeNull();
     expect(data).toHaveLength(1);
+  });
+
+  it('eine Anmeldung bekommt die Organisation des Events, auch wenn der Client luegt', async () => {
+    // Der oeffentliche Client liefert absichtlich die FREMDE Organisation mit.
+    // Der Trigger muss sie unbedingt ueberschreiben -- niemand darf die
+    // Organisation eines Teilnehmers bestimmen.
+    const { error } = await anonClient().from('event_participants').insert({
+      event_id: eventOfB,
+      email: 'luegner@example.com',
+      name: 'Luegner',
+      organization_id: a.organizationId,
+    });
+
+    expect(error).toBeNull();
+
+    const { data } = await admin()
+      .from('event_participants')
+      .select('organization_id')
+      .eq('event_id', eventOfB)
+      .eq('email', 'luegner@example.com')
+      .single();
+
+    expect(data?.organization_id).toBe(b.organizationId);
+    expect(data?.organization_id).not.toBe(a.organizationId);
   });
 
   it('ohne Anmeldung sind Teilnehmer unsichtbar', async () => {
