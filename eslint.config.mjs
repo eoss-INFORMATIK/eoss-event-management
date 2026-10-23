@@ -47,6 +47,14 @@ const eslintConfig = defineConfig([
       'react-hooks/incompatible-library': 'off',
     },
   },
+  {
+    // Tests lesen die Variablen des lokalen Supabase-Stacks (API_URL,
+    // SERVICE_ROLE_KEY) direkt aus der Umgebung. Sie gehoeren bewusst NICHT in
+    // env/index.ts -- sonst braeuchte die App sie zum Starten, obwohl sie nur
+    // in einer lokalen Entwickler-Shell existieren.
+    files: ['tests/**'],
+    rules: { 'n/no-process-env': 'off' },
+  },
   globalIgnores([
     '.next/**',
     'out/**',
