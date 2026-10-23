@@ -1,0 +1,29 @@
+-- ---------------------------------------------------------------------------
+-- events.organizer_id: not null fallen lassen
+-- ---------------------------------------------------------------------------
+-- Erster von zwei Schritten, um organizer_id loszuwerden. Die Spalte ist
+-- inhaltlich ueberfluessig: Besitz liegt bei organization_id, Autorschaft bei
+-- created_by, und seit 2c-2 referenziert sie keine Policy mehr.
+--
+-- WARUM NICHT EINFACH `drop column`:
+-- Die ausgelieferte Version setzt organizer_id beim Insert. Ein `drop column`
+-- waehrend dieser Code laeuft bricht jedes Anlegen ("column does not exist").
+-- Und das Schreiben aus dem Code zu entfernen, solange die Spalte `not null`
+-- ist, bricht es genauso.
+--
+-- Deshalb ein Zwischenzustand, der BEIDE Codeversionen vertraegt:
+--   jetzt      organizer_id nullable  -- alte Version setzt sie, neue laesst sie weg
+--   dann       Code setzt sie nicht mehr, Deployment
+--   danach     drop column + organization_id not null
+--
+-- Das ist die Zusammenziehen-Richtung von erweitern-dann-zusammenziehen: beim
+-- Erweitern laeuft die Migration zuerst, beim Entfernen muss sie den Code
+-- ueberleben, der noch laeuft.
+--
+-- Nebenwirkung, die erst der zweite Schritt aufloest: solange organizer_id
+-- existiert, kaskadiert sie von auth.users und nimmt Events beim Loeschen eines
+-- Nutzers mit -- entgegen der Entscheidung aus 2b, wo created_by auf
+-- `set null` steht, damit das Event der Organisation erhalten bleibt.
+-- ---------------------------------------------------------------------------
+
+alter table public.events alter column organizer_id drop not null;
