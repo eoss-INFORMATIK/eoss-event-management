@@ -46,7 +46,7 @@ const displayNameFrom = (user: User): string | null => {
 
 /**
  * Platzhaltername. Schritt 1 hat bewusst keine Seite zum Bearbeiten der
- * Organisation (siehe docs/EOS-20_Multi_Org_Setup, Abgrenzung), also muss der
+ * Organisation (siehe docs/eos-20-multi-org-setup.md, Abgrenzung), also muss der
  * Name ohne Zutun des Nutzers entstehen.
  */
 const organizationNameFrom = (user: User): string =>
