@@ -192,6 +192,33 @@ Server Actions still check ownership, but **only to return a readable error mess
 to the user. Never treat an action-level check as the thing that protects the data —
 if a policy is missing, add the policy. A new table without RLS enabled is a bug.
 
+## Tests
+
+```bash
+npm test          # RLS-Tests gegen den laufenden lokalen Stack
+npm run test:watch
+```
+
+**Die Tests laufen gegen eine echte Postgres-Instanz, nicht gegen Mocks.**
+Geprüft werden RLS-Policies — eine gemockte Policy beweist nichts. Der lokale
+Stack muss laufen (`npm run db:start`); die Keys holt das npm-Script selbst aus
+`supabase status -o env`, es braucht keine eigene Konfigurationsdatei.
+
+Was getestet wird und warum gerade das: RLS ist die Sicherheitsgrenze dieses
+Projekts, und **eine kaputte Policy ist im UI unsichtbar**, bis sie jemand
+ausnutzt. Das ist die einzige Fehlerklasse hier, die man beim Durchklicken nicht
+findet. Komponententests kommen später und sind weniger wert.
+
+Die Tests legen eigene Nutzer mit Passwort an (über die Admin-API) — die App
+benutzt Magic Link und Google, aber für `auth.uid()` ist die Anmeldeart
+unerheblich, und Passwort ist der kürzeste Weg zu einem echten JWT. Aufgeräumt
+wird explizit: beim Löschen eines Nutzers verschwindet nur seine Mitgliedschaft,
+die Organisation bleibt zurück (dokumentiert in der Migration
+`organization_user_cascade`).
+
+In CI läuft das als eigener Job `rls`, der den ganzen Stack in Docker hochfährt.
+`verify` bleibt davon getrennt und schnell.
+
 ## Server Actions Pattern
 
 Server Actions live in `features/<domain>/` and use the `'use server'` directive.

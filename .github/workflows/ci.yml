@@ -44,3 +44,29 @@ jobs:
           # genuegt ein Platzhalter. Er muss eine gueltige absolute URL sein,
           # weil daraus `new URL(...)` entsteht.
           NEXT_PUBLIC_SUPABASE_URL: https://platzhalter.supabase.co
+
+  # Eigener Job, damit `verify` schnell bleibt: dieser hier faehrt den ganzen
+  # Supabase-Stack in Docker hoch und braucht ein paar Minuten. Er prueft die
+  # RLS-Policies gegen eine echte Postgres-Instanz -- gemockt waere die Aussage
+  # wertlos.
+  rls:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - uses: supabase/setup-cli@v1
+        with:
+          version: latest
+
+      - run: npm ci
+
+      - name: Supabase-Stack starten
+        run: supabase start
+
+      - name: RLS-Tests
+        run: npm test
