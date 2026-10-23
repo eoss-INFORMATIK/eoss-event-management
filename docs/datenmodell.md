@@ -100,6 +100,22 @@ Der Trigger feuert auch bei UPDATE, weil ein Fremdschlüssel mit einer
 null-Spalte unter `MATCH SIMPLE` nicht geprüft wird — ohne das wäre die Lücke
 offen geblieben.
 
+Die Funktion heisst `public.set_participant_organization()`, der Trigger
+`event_participants_set_organization`.
+
+- **`event_participants.organization_id` setzt ein Trigger, nicht der Code.**
+  `event_participants_set_organization` (BEFORE INSERT **OR UPDATE**) liest die
+  Organisation aus dem Eltern-Event und **ueberschreibt** jeden mitgelieferten
+  Wert — die Anmeldung ist oeffentlich, ein Client darf die Organisation nicht
+  bestimmen. Dazu ein zusammengesetzter Fremdschluessel
+  `(event_id, organization_id)` auf `events(id, organization_id)`, der ein
+  nicht zusammengehoerendes Paar auch auf Wegen unmoeglich macht, die den
+  Trigger nicht nehmen. Die Spalte ist `not null` ohne Default, **die
+  generierten Typen verlangen sie deshalb auf jedem Insert-Pfad** — auch wenn
+  der Trigger sie danach neu setzt. `addParticipant` liest sie dafuer aus dem
+  Event; das liefert zugleich eine lesbare Meldung bei unbekanntem Event statt
+  eines Fremdschluesselfehlers.
+
 ## Storage
 
 Bucket `event-images`, öffentlich lesbar, Dateien unter
