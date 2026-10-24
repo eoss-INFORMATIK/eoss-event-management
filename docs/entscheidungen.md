@@ -16,6 +16,13 @@ die auf die alte verweist.
 
 ## 2026-10
 
+- **Profil Rebuild: drei Figma-Elemente fallen weg.** „Passwort ändern"
+  ersatzlos — die App kennt kein Passwort, Anmeldung läuft über Magic Link und
+  Google. Das Rollen-Label („Admin") erst mit den Rollen: ein Label mit genau
+  einem möglichen Wert ist Dekoration. Konto- und Datenlöschung wird eine eigene
+  Epic **Datenschutz**, nicht MVP — sie hängt an Aufbewahrungsfristen und an den
+  Teilnehmerdaten, nicht am Profilformular. Die User Story in TASK-34 sagte
+  „löschen", das Design zeigte es nirgends. _Keine Codeänderung._
 - **Profil Rebuild in zwei Schritten** — Schritt 1 baut Profil- und
   Organisationsseite auf dem heutigen Modell (eine Organisation, ein Nutzer);
   Einladungen, Rollen und mehrere Organisationen pro Nutzer werden ein eigener
