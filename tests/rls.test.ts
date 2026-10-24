@@ -374,6 +374,82 @@ describe('profiles: nur das eigene', () => {
   });
 });
 
+describe('organizations: nur Mitglieder', () => {
+  it('A benennt die eigene Organisation um', async () => {
+    const { data, error } = await a.client
+      .from('organizations')
+      .update({ name: 'Org A, neu' })
+      .eq('id', a.organizationId)
+      .select('name');
+
+    expect(error).toBeNull();
+    expect(data).toEqual([{ name: 'Org A, neu' }]);
+  });
+
+  it('A sieht die Organisation von B nicht', async () => {
+    const { data, error } = await a.client
+      .from('organizations')
+      .select('id')
+      .eq('id', b.organizationId);
+
+    // Genau darauf stuetzt sich die Settings-Seite: sie unterscheidet nicht
+    // zwischen "gibt es nicht" und "du bist nicht Mitglied", weil die Policy es
+    // auch nicht tut. Beides ist notFound().
+    expect(error).toBeNull();
+    expect(data).toEqual([]);
+  });
+
+  it('A benennt die Organisation von B nicht um', async () => {
+    const { data, error } = await a.client
+      .from('organizations')
+      .update({ name: 'gekapert' })
+      .eq('id', b.organizationId)
+      .select('id');
+
+    expect(error).toBeNull();
+    expect(data).toEqual([]);
+
+    const { data: orgOfB } = await admin()
+      .from('organizations')
+      .select('name')
+      .eq('id', b.organizationId)
+      .single();
+
+    expect(orgOfB?.name).toBe('Org b');
+  });
+
+  it('A loescht die Organisation von B nicht', async () => {
+    const { data, error } = await a.client
+      .from('organizations')
+      .delete()
+      .eq('id', b.organizationId)
+      .select('id');
+
+    expect(error).toBeNull();
+    expect(data).toEqual([]);
+  });
+
+  /**
+   * Die Liste auf der Profilseite laeuft ueber `organization_user` und joint
+   * `organizations`. Beide Policies muessen greifen -- waere nur eine davon
+   * offen, zeigte die Liste fremde Organisationen oder gar nichts.
+   */
+  it('die Liste von A enthaelt genau die eigene Organisation', async () => {
+    // Bewusst OHNE Filter auf user_id: nur so haengt der Test an der Policy
+    // und nicht an der where-Klausel. Mit Filter blieb er gruen, auch als RLS
+    // auf organizations abgeschaltet war -- er bewies dann gar nichts. Der
+    // Produktionscode filtert trotzdem, damit die Absicht im Code lesbar ist.
+    const { data, error } = await a.client
+      .from('organization_user')
+      .select('organizations (id)');
+
+    expect(error).toBeNull();
+    expect(data?.map((row) => row.organizations?.id)).toEqual([
+      a.organizationId,
+    ]);
+  });
+});
+
 describe('Storage: Bilder gehoeren der Organisation', () => {
   const BUCKET = 'event-images';
   // Kleinstes gueltiges PNG -- der Bucket laesst nur Bild-Mimetypes zu.
