@@ -8,7 +8,7 @@ Was hier **nicht** steht: Produktentscheidungen, Roadmap, Aufgaben — die liege
 in Notion. Konventionen und Fallstricke der Codebasis stehen in
 [`CLAUDE.md`](../CLAUDE.md).
 
-Stand: 2026-10-23, nach zwölf Migrationen.
+Stand: 2026-10-23, nach dreizehn Migrationen.
 
 ## Das Besitzmodell in einem Satz
 
@@ -121,10 +121,25 @@ Die Funktion heisst `public.set_participant_organization()`, der Trigger
 Bucket `event-images`, öffentlich lesbar, Dateien unter
 `<organization_id>/<uuid>.<ext>`.
 
-**Übergangszustand:** die Schreib-Policy akzeptiert derzeit _auch_ den eigenen
-Nutzerordner. Grund: alte Policy und neuer Code schliessen sich gegenseitig aus,
-es gibt keine Reihenfolge ohne Übergang. Eine Folge-Migration lässt die
-Nutzer-ID-Variante fallen.
+Die Schreib-Policy prüft **ausschliesslich** die Mitgliedschaft in der
+Organisation, deren ID der erste Pfadbestandteil ist. Lesen bleibt öffentlich.
+
+Es gab dabei einen Übergangszustand, der zusätzlich den eigenen Nutzerordner
+zuliess — nötig, weil alte Policy und neuer Code sich gegenseitig ausschlossen
+und **keine** Reihenfolge ohne Übergang funktionierte. Das ist die Ergänzung zur
+Regel „erweitern = Migration zuerst, verschärfen = Code zuerst": manchmal greift
+keine der beiden Richtungen, und dann muss ein Zustand gebaut werden, der beide
+Codeversionen verträgt.
+
+Voraussetzung für das Zusammenziehen war, dass keine Datei mehr in einem
+Nutzerordner liegt — danach wäre sie weiter öffentlich lesbar, aber für niemanden
+mehr änderbar. Prüfung:
+
+```sql
+select count(*) from storage.objects
+ where bucket_id = 'event-images'
+   and split_part(name, '/', 1) not in (select id::text from public.organizations);
+```
 
 **Objekte lassen sich nicht per SQL verschieben** — `update storage.objects set
 name` benennt nur die Metadatenzeile um, die Datei bleibt liegen und das Objekt
@@ -139,4 +154,3 @@ ist kaputt. Dafür gibt es `scripts/move-images-to-organization.mjs`.
 - **Warteliste mit Kapazität** — bewusst als Lernaufgabe aufgespart, weil sie
   eine echte Nebenläufigkeitsentscheidung erzwingt
 - **Aufräumen leerer Organisationen**
-- **Storage-Policy zusammenziehen** (Nutzerordner entfernen)
