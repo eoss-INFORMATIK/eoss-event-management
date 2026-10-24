@@ -40,7 +40,9 @@ export default function RootLayout({
       </head>
       <body>
         <Header />
-        <main className="bg-background mx-auto flex max-w-7xl">{children}</main>
+        <main className="bg-background mx-auto flex max-w-7xl px-4 py-10">
+          {children}
+        </main>
         <Toaster expand={true} />
       </body>
     </html>

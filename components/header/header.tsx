@@ -2,33 +2,29 @@ import Image from 'next/image';
 import Link from 'next/link';
 
 import { Nav } from '../nav';
-import { Button } from '../ui/button';
 import logo from './logo.svg';
 
-export const Header = () => {
-  return (
-    <header className="bg-background py-4">
-      <div className="mx-auto flex max-w-7xl items-center justify-between">
-        <Link href="/" className="flex items-center">
-          <Image
-            unoptimized={true}
-            src={logo}
-            alt="eoss Events App"
-            width={100}
-            height={100}
-          />
-          <span className="text-xl font-bold">dabei</span>
-        </Link>
+/**
+ * Die Navleiste liegt als angehobene Flaeche ueber der Seite: weiss auf dem
+ * cremefarbenen Grund, abgesetzt durch den 2px-Rahmen. Dafuer gibt es seit
+ * dieser Scheibe die Rolle `--popover` (siehe app/globals.css).
+ */
+export const Header = () => (
+  <header className="bg-popover border-muted border-b-2">
+    <div className="mx-auto flex h-24 max-w-7xl items-center gap-18 px-4">
+      <Link href="/" className="flex shrink-0 items-center">
+        <Image
+          unoptimized={true}
+          src={logo}
+          alt=""
+          width={102}
+          height={102}
+          className="-mr-3"
+        />
+        <span className="text-2xl font-bold">däbie</span>
+      </Link>
 
-        <Nav>
-          <Button variant="outline" size="sm" className="text-xs">
-            <Link href="/sign-in">Login</Link>
-          </Button>
-          <Button variant="default" size="sm" className="text-xs">
-            <Link href="/register">Registrieren</Link>
-          </Button>
-        </Nav>
-      </div>
-    </header>
-  );
-};
+      <Nav />
+    </div>
+  </header>
+);

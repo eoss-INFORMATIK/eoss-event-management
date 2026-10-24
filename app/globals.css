@@ -41,6 +41,11 @@
      Helligkeit unlesbar -- dafuer der zweite Wert. */
   --danger: hsl(0 100% 30%);
   --danger-on-dark: hsl(0 85% 65%);
+  /* Angehobene Flaeche: liegt sichtbar UEBER der Seite. Im Design sind das die
+     Navleiste und das Konto-Dropdown -- beide weiss auf dem cremefarbenen
+     Grund. Ohne diesen Wert gaebe es keine Rolle dafuer, und `bg-white` stuende
+     an zwei Stellen hart im Markup. */
+  --surface-raised: hsl(0 0% 100%);
 
   --radius: 0.3rem;
 }
@@ -68,8 +73,10 @@
   /* nur Flaechen: components/surface + ui/card */
   --card: hsl(var(--hue-brand) 50% 90%);
   --card-foreground: hsl(var(--hue-brand) 5% 10%);
-  /* KEINE Utility nutzt das -- nur ui/sonner.tsx liest var(--popover) direkt */
-  --popover: hsl(var(--hue-brand) 100% 95%);
+  /* Die angehobene Flaeche: Navleiste, Konto-Dropdown (ui/dropdown-menu nutzt
+     `bg-popover`), und ui/sonner.tsx liest var(--popover) direkt. War vorher
+     cremefarben wie der Seitengrund und damit nicht als eigene Ebene erkennbar. */
+  --popover: var(--surface-raised);
   /* dito. 100% Saettigung bei Lightness 0 wirkt nicht */
   --popover-foreground: hsl(var(--hue-brand) 100% 0%);
 
