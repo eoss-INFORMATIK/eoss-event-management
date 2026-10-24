@@ -35,6 +35,13 @@ weg. Zwei Dinge hängen daran und müssen dann mitgeändert werden —
 werden muss) und jeder Backfill, der aus `user_id` auf eine Organisation
 schliesst.
 
+**Die Reihenfolge ist hier umgekehrt zur Faustregel.** Die Constraint zu
+entfernen ist ein Erweitern, also scheinbar Migration zuerst. Aber
+`getMyOrganizationId()` benutzt `.maybeSingle()` und _wirft_ bei zwei
+Mitgliedschaften, statt eine zu wählen. Gefährlich ist nicht die Migration,
+sondern die erste zweite Mitgliedschaft. Also: erst Code, der mit mehreren
+umgehen kann, dann die Constraint fallen lassen.
+
 ## Löschverhalten
 
 Der subtilste Teil des Modells. Pro Fremdschlüssel bewusst entschieden:
@@ -77,6 +84,19 @@ Zwei Feinheiten, die man den Policies nicht ansieht:
 **Beim UPDATE gehört ein `with check`, nicht nur ein `using`.** Ohne das kann man
 ein eigenes Event per Update in eine fremde Organisation verschieben. Eigener
 Test dafür.
+
+Nur: **weglassen heisst nicht fehlen.** Fehlt `with check` ganz, wendet Postgres
+das `using` auch auf die neue Zeile an. Auf `profiles`, `organizations` und den
+Storage-UPDATE-Policies steht deshalb nur ein `using` — und sie sind trotzdem
+dicht. Gemessen: der Versuch, die eigene Profilzeile auf eine fremde `id` zu
+schreiben, scheitert mit `42501 new row violates row-level security policy`,
+obwohl dort nie ein `with check` stand. Festgehalten im Test „A schreibt die
+eigene Zeile nicht auf eine fremde id".
+
+Ausgeschrieben gehört es trotzdem überall dorthin, wo es **anders** lauten muss
+als das `using` daneben — bei `events` etwa, damit lesbar bleibt, dass auch die
+Ziel-Organisation geprüft wird. Der gefährliche Fall ist nicht das Weglassen,
+sondern ein `with check`, das schwächer ist als sein `using`.
 
 **Keine Rekursion, und darum noch keine Definer-Funktion.** Eine Policy auf
 `events` liest `organization_user`, dort greift `user_id = auth.uid()` — ein
@@ -121,6 +141,13 @@ Die Funktion heisst `public.set_participant_organization()`, der Trigger
 Bucket `event-images`, öffentlich lesbar, Dateien unter
 `<organization_id>/<uuid>.<ext>`.
 
+**Der Übergangszustand ist aufgelöst.** Eine Zeit lang akzeptierte die
+Schreib-Policy _auch_ den eigenen Nutzerordner, weil alte Policy und neuer Code
+sich gegenseitig ausschlossen und es keine Reihenfolge ohne Übergang gab. Seit
+`20261023083008_storage_policy_org_only` zählt nur noch die Organisation.
+Voraussetzung war, dass keine Datei mehr in einem Nutzerordner liegt: eine solche
+Datei bliebe öffentlich lesbar, wäre aber für niemanden mehr änderbar oder
+löschbar — nur noch mit Service-Role.
 Die Schreib-Policy prüft **ausschliesslich** die Mitgliedschaft in der
 Organisation, deren ID der erste Pfadbestandteil ist. Lesen bleibt öffentlich.
 
@@ -150,7 +177,9 @@ ist kaputt. Dafür gibt es `scripts/move-images-to-organization.mjs`.
 - **Einladungen** und mehrere Organisationen pro Nutzer — erst damit wird der
   ganze Umbau sichtbar, weil dann zwei Personen dieselbe Organisation teilen
 - **Rollen innerhalb einer Organisation** — jedes Mitglied darf alles
-- **Profilseite** mit Organisation
 - **Warteliste mit Kapazität** — bewusst als Lernaufgabe aufgespart, weil sie
   eine echte Nebenläufigkeitsentscheidung erzwingt
 - **Aufräumen leerer Organisationen**
+
+Die **Profilseite** ist nicht mehr auf dieser Liste: sie ist gerade in Arbeit
+(Profil Rebuild, Schritt 1).

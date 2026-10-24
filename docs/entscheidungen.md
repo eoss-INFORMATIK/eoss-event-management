@@ -16,6 +16,20 @@ die auf die alte verweist.
 
 ## 2026-10
 
+- **Profil Rebuild in zwei Schritten** — Schritt 1 baut Profil- und
+  Organisationsseite auf dem heutigen Modell (eine Organisation, ein Nutzer);
+  Einladungen, Rollen und mehrere Organisationen pro Nutzer werden ein eigener
+  Task. Grund: ohne mehrere Nutzer pro Organisation ist „die Organisation
+  abonniert" eine Zusage, die niemand einlösen kann — aber mehrere
+  _Organisationen pro Nutzer_ bedienen den seltensten Fall zum höchsten Preis.
+  Drei Leitplanken halten den Zwischenschritt billig: Route mit Organisations-Id,
+  jede Liste als Liste, `getMyOrganizationId()` als einzige Auflösung. Ausführlich
+  in [`CLAUDE.md`](../CLAUDE.md).
+- **`unique(user_id)` fällt mit Code zuerst**, nicht Migration zuerst — die
+  Ausnahme zur Faustregel. Das Entfernen der Constraint ist ein Erweitern, aber
+  `getMyOrganizationId()` wirft bei zwei Mitgliedschaften. Nicht die Migration
+  ist gefährlich, sondern die erste zweite Mitgliedschaft.
+  [`datenmodell.md`](./datenmodell.md)
 - **Doku-Struktur** — `CLAUDE.md` enthält nur, was vor dem Handeln bekannt sein
   muss; Details in `docs/`. Notion trägt Produkt und Aufgaben, Figma das UI, das
   Repo alles, was Code bindet. Was nur in Notion steht, existiert für einen
