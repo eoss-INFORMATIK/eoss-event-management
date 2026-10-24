@@ -148,6 +148,25 @@ sich gegenseitig ausschlossen und es keine Reihenfolge ohne Übergang gab. Seit
 Voraussetzung war, dass keine Datei mehr in einem Nutzerordner liegt: eine solche
 Datei bliebe öffentlich lesbar, wäre aber für niemanden mehr änderbar oder
 löschbar — nur noch mit Service-Role.
+Die Schreib-Policy prüft **ausschliesslich** die Mitgliedschaft in der
+Organisation, deren ID der erste Pfadbestandteil ist. Lesen bleibt öffentlich.
+
+Es gab dabei einen Übergangszustand, der zusätzlich den eigenen Nutzerordner
+zuliess — nötig, weil alte Policy und neuer Code sich gegenseitig ausschlossen
+und **keine** Reihenfolge ohne Übergang funktionierte. Das ist die Ergänzung zur
+Regel „erweitern = Migration zuerst, verschärfen = Code zuerst": manchmal greift
+keine der beiden Richtungen, und dann muss ein Zustand gebaut werden, der beide
+Codeversionen verträgt.
+
+Voraussetzung für das Zusammenziehen war, dass keine Datei mehr in einem
+Nutzerordner liegt — danach wäre sie weiter öffentlich lesbar, aber für niemanden
+mehr änderbar. Prüfung:
+
+```sql
+select count(*) from storage.objects
+ where bucket_id = 'event-images'
+   and split_part(name, '/', 1) not in (select id::text from public.organizations);
+```
 
 **Objekte lassen sich nicht per SQL verschieben** — `update storage.objects set
 name` benennt nur die Metadatenzeile um, die Datei bleibt liegen und das Objekt
