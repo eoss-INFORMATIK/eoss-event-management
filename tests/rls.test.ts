@@ -1,5 +1,7 @@
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
 
+import { ensureOrganization } from '@/features/auth/ensure-organization';
+
 import {
   type TestAccount,
   admin,
@@ -242,6 +244,133 @@ describe('Loeschen eines Nutzers nimmt keine Events mit', () => {
     expect(data?.created_by).toBeNull();
 
     await admin().from('organizations').delete().eq('id', c.organizationId);
+  });
+});
+
+describe('profiles: nur das eigene', () => {
+  /**
+   * `createTestAccount` legt keine Profilzeile an -- das macht in der App
+   * `ensureOrganization()`, also Anwendungscode, nicht die Datenbank. Hier
+   * schreibt sie jedes Konto selbst, und genau das prueft schon die
+   * INSERT-Policy mit.
+   */
+  /** Ziel fuer den Uebernahme-Versuch: ein Konto, das bewusst KEIN Profil hat. */
+  let c: TestAccount;
+
+  beforeAll(async () => {
+    c = await createTestAccount('c');
+
+    for (const account of [a, b]) {
+      const { error } = await account.client
+        .from('profiles')
+        .insert({ id: account.userId, email: account.email, name: 'vorher' });
+
+      if (error) throw new Error(`Profil ${account.email}: ${error.message}`);
+    }
+  });
+
+  afterAll(async () => {
+    await cleanup([c]);
+  });
+
+  it('A aendert den eigenen Namen', async () => {
+    const { data, error } = await a.client
+      .from('profiles')
+      .update({ name: 'A neu' })
+      .eq('id', a.userId)
+      .select('name');
+
+    expect(error).toBeNull();
+    expect(data).toEqual([{ name: 'A neu' }]);
+  });
+
+  /**
+   * Die eigentliche Behauptung der Profil-Scheibe.
+   *
+   * `ensureOrganization()` laeuft bei JEDER Anmeldung ueber `profiles`, nicht
+   * nur bei der ersten -- aus /auth/callback und /auth/confirm. Dass es den
+   * selbst gesetzten Namen nicht mit Provider-Metadaten ueberschreibt, steht
+   * als Absicht im Code (`upsert` mit `ignoreDuplicates`). Hier laeuft die
+   * echte Funktion gegen die echte Datenbank, damit es nicht bei der Absicht
+   * bleibt.
+   *
+   * Der Cast ist noetig, weil die Funktion den Server-Client-Typ erwartet (der
+   * `cookies()` liest). Zur Laufzeit braucht sie nur `auth.getUser`, `from` und
+   * `rpc` -- das kann der Testclient auch, und er hat ein echtes JWT.
+   */
+  it('die erneute Anmeldung macht den geaenderten Namen nicht platt', async () => {
+    await a.client
+      .from('profiles')
+      .update({ name: 'selbst gesetzt' })
+      .eq('id', a.userId);
+
+    const result = await ensureOrganization(
+      a.client as unknown as Parameters<typeof ensureOrganization>[0]
+    );
+
+    expect(result.error).toBeUndefined();
+
+    const { data } = await a.client
+      .from('profiles')
+      .select('name')
+      .eq('id', a.userId)
+      .single();
+
+    expect(data?.name).toBe('selbst gesetzt');
+  });
+
+  it('A sieht das Profil von B nicht', async () => {
+    const { data, error } = await a.client
+      .from('profiles')
+      .select('id')
+      .eq('id', b.userId);
+
+    expect(error).toBeNull();
+    expect(data).toEqual([]);
+  });
+
+  it('A aendert das Profil von B nicht', async () => {
+    const { data, error } = await a.client
+      .from('profiles')
+      .update({ name: 'gekapert' })
+      .eq('id', b.userId)
+      .select('id');
+
+    expect(error).toBeNull();
+    expect(data).toEqual([]);
+  });
+
+  /**
+   * Der Test, fuer den `profiles_update_with_check` da ist.
+   *
+   * `using` sagt, WELCHE Zeile man anfassen darf -- nicht, wie sie danach
+   * aussehen muss. Ohne `with check` darf A die eigene Zeile auf eine fremde
+   * `id` schreiben und legt damit ein Profil fuer jemand anderen an: fremder
+   * Name, fremde E-Mail. Unauffaellig, solange niemand fremde Profile liest --
+   * mit der Mitgliederliste waere es ein gefaelschter Eintrag in einer fremden
+   * Liste.
+   *
+   * Das Ziel braucht dafuer ein Konto OHNE Profilzeile. Der erste Anlauf nahm
+   * B, und der Test war gruen, bevor die Migration existierte: das Update
+   * scheiterte am Primaerschluessel, weil B schon ein Profil hatte. Das haette
+   * ueber die Policy nichts bewiesen.
+   */
+  it('A schreibt die eigene Zeile nicht auf eine fremde id', async () => {
+    const { error } = await a.client
+      .from('profiles')
+      .update({ id: c.userId, name: 'uebernommen' })
+      .eq('id', a.userId)
+      .select('id');
+
+    expect(error).not.toBeNull();
+
+    // Und fuer C ist nichts entstanden.
+    const { data: profileOfC } = await admin()
+      .from('profiles')
+      .select('id')
+      .eq('id', c.userId);
+
+    expect(profileOfC).toEqual([]);
   });
 });
 
