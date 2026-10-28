@@ -8,6 +8,7 @@ import { useForm } from 'react-hook-form';
 import { toast } from 'sonner';
 
 import { addEvent } from '@/features/events/actions';
+import { SponsorFields } from '@/features/events/components/sponsor-fields';
 import {
   type EventFormValues,
   eventFormSchema,
@@ -32,6 +33,7 @@ export function AddEventForm() {
   const [error, setError] = useState<string>('');
   const [isSubmitting, setIsSubmitting] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const sponsorFileInputRef = useRef<HTMLInputElement>(null);
 
   const form = useForm<EventFormValues>({
     resolver: zodResolver(eventFormSchema),
@@ -39,6 +41,9 @@ export function AddEventForm() {
       title: '',
       description: '',
       date: new Date(),
+      sponsorEnabled: false,
+      sponsorName: '',
+      sponsorText: '',
     },
   });
 
@@ -59,7 +64,19 @@ export function AddEventForm() {
         imageUrl = upload.url ?? '';
       }
 
-      const result = await addEvent({ ...values, imageUrl });
+      let sponsorImageUrl = '';
+      const sponsorFile = sponsorFileInputRef.current?.files?.[0];
+
+      if (values.sponsorEnabled && sponsorFile) {
+        const upload = await uploadEventImage(sponsorFile);
+        if (upload.error) {
+          setError(upload.error);
+          return;
+        }
+        sponsorImageUrl = upload.url ?? '';
+      }
+
+      const result = await addEvent({ ...values, imageUrl, sponsorImageUrl });
 
       if (result.error) {
         setError(result.error);
@@ -149,6 +166,8 @@ export function AddEventForm() {
             </FormItem>
           )}
         />
+
+        <SponsorFields form={form} fileInputRef={sponsorFileInputRef} />
 
         <Button type="submit" className="w-full" disabled={isSubmitting}>
           {isSubmitting ? 'Wird erstellt…' : 'Event erstellen'}
