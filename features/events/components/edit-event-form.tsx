@@ -8,6 +8,8 @@ import { useForm } from 'react-hook-form';
 import { toast } from 'sonner';
 
 import { editEvent } from '@/features/events/actions';
+import type { EventCategory } from '@/features/events/categories';
+import { CategoryFields } from '@/features/events/components/category-fields';
 import { SponsorFields } from '@/features/events/components/sponsor-fields';
 import {
   type EventFormValues,
@@ -32,10 +34,15 @@ import type { Event } from '@/types';
 
 interface EditEventFormProps {
   event: Event;
+  categories: EventCategory[];
   setIsEditing: (isEditing: boolean) => void;
 }
 
-export function EditEventForm({ event, setIsEditing }: EditEventFormProps) {
+export function EditEventForm({
+  event,
+  categories,
+  setIsEditing,
+}: EditEventFormProps) {
   const [error, setError] = useState<string>('');
   const [isSubmitting, setIsSubmitting] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -52,6 +59,12 @@ export function EditEventForm({ event, setIsEditing }: EditEventFormProps) {
       sponsorEnabled: Boolean(event.sponsor_name),
       sponsorName: event.sponsor_name ?? '',
       sponsorText: event.sponsor_text ?? '',
+      // Gleiche Ableitung wie beim Sponsor: eingeschaltet heisst, es gibt
+      // Werte. Keine eigene Spalte, die dem widersprechen koennte.
+      categoriesEnabled: categories.length > 0,
+      categoryLabel: event.category_label ?? '',
+      categoryRequired: event.category_required,
+      categories: categories.map(({ id, label }) => ({ id, label })),
     },
   });
 
@@ -182,6 +195,8 @@ export function EditEventForm({ event, setIsEditing }: EditEventFormProps) {
           </div>
         </div>
         <SponsorFields form={form} fileInputRef={sponsorFileInputRef} />
+
+        <CategoryFields form={form} />
 
         <div className="flex justify-end gap-2">
           <Button

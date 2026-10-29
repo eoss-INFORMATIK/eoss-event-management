@@ -40,6 +40,33 @@ const eventFieldsSchema = z.object({
     .trim()
     .max(2000, 'Zusatztext darf höchstens 2000 Zeichen lang sein')
     .optional(),
+
+  // Kategorien im Anmeldeformular. `categoriesEnabled` ist wie
+  // `sponsorEnabled` reiner Transportwert -- eingeschaltet heisst in der
+  // Datenbank schlicht "es gibt mindestens eine Kategorie".
+  categoriesEnabled: z.boolean(),
+  // Der Organisator benennt das Feld selbst. Fuer "Einzelperson / mit
+  // Begleitung / Firma" ist "Kategorie" die falsche Ueberschrift.
+  categoryLabel: z
+    .string()
+    .trim()
+    .max(120, 'Die Beschriftung darf höchstens 120 Zeichen lang sein')
+    .optional(),
+  categoryRequired: z.boolean(),
+  // `id` fehlt bei neu hinzugefuegten Zeilen. Vorhandene behalten ihre Id,
+  // damit Umbenennen ein Update bleibt und bestehende Anmeldungen mitziehen,
+  // statt dass Loeschen plus Neuanlegen sie entwertet.
+  categories: z
+    .array(
+      z.object({
+        id: z.uuid().optional(),
+        label: z
+          .string()
+          .trim()
+          .max(120, 'Ein Wert darf höchstens 120 Zeichen lang sein'),
+      })
+    )
+    .max(50, 'Höchstens 50 Werte'),
 });
 
 /**
@@ -65,7 +92,31 @@ const requireSponsorName = (
   });
 };
 
-export const eventFormSchema = eventFieldsSchema.check(requireSponsorName);
+/**
+ * Eingeschaltet heisst: mindestens ein nicht leerer Wert. Ein Select ohne
+ * Optionen waere ein Pflichtfeld, das sich nicht ausfuellen laesst.
+ */
+const requireCategoryValues = (
+  ctx: z.core.ParsePayload<{
+    categoriesEnabled: boolean;
+    categories: { label: string }[];
+  }>
+) => {
+  if (!ctx.value.categoriesEnabled) return;
+  if (ctx.value.categories.some((category) => category.label.trim())) return;
+
+  ctx.issues.push({
+    code: 'custom',
+    input: ctx.value.categories,
+    path: ['categories'],
+    message:
+      'Bitte mindestens einen Wert angeben oder die Kategorien ausschalten',
+  });
+};
+
+export const eventFormSchema = eventFieldsSchema
+  .check(requireSponsorName)
+  .check(requireCategoryValues);
 
 /** What the server action accepts: form fields plus the uploaded image URLs. */
 export const eventInputSchema = eventFieldsSchema
@@ -73,7 +124,8 @@ export const eventInputSchema = eventFieldsSchema
     imageUrl: z.url('Ungültige Bild-URL').optional().or(z.literal('')),
     sponsorImageUrl: z.url('Ungültige Bild-URL').optional().or(z.literal('')),
   })
-  .check(requireSponsorName);
+  .check(requireSponsorName)
+  .check(requireCategoryValues);
 
 export type EventFormValues = z.infer<typeof eventFormSchema>;
 export type EventInput = z.infer<typeof eventInputSchema>;

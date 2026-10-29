@@ -7,6 +7,7 @@ import { useState } from 'react';
 import { Pencil, Trash } from 'lucide-react';
 
 import { deleteEvent } from '@/features/events/actions';
+import type { EventCategory } from '@/features/events/categories';
 import { EditEventForm } from '@/features/events/components/edit-event-form';
 
 import { Surface } from '@/components/surface';
@@ -17,11 +18,13 @@ import type { Event } from '@/types';
 
 interface SingleEventMetaClientProps {
   event: Event;
+  categories: EventCategory[];
   clientView: boolean;
 }
 
 export function SingleEventMetaClient({
   event,
+  categories,
   clientView,
 }: SingleEventMetaClientProps) {
   const [isEditing, setIsEditing] = useState(false);
@@ -61,7 +64,11 @@ export function SingleEventMetaClient({
     return (
       <Surface className="flex flex-col gap-6 p-6">
         <h2 className="text-xl leading-none font-semibold">Event bearbeiten</h2>
-        <EditEventForm event={event} setIsEditing={setIsEditing} />
+        <EditEventForm
+          event={event}
+          categories={categories}
+          setIsEditing={setIsEditing}
+        />
       </Surface>
     );
   }

@@ -16,9 +16,18 @@ import { eventFormSchema, eventInputSchema } from '@/features/events/schema';
  * Policy.
  */
 
+/**
+ * Die Pflichtfelder, die mit keinem der optionalen Bloecke zu tun haben.
+ * Waechst ein Block, waechst diese Vorlage mit -- genau daran sind die
+ * Sponsor-Tests beim Hinzufuegen der Kategorien aufgefallen.
+ */
 const gueltigeBasis = {
   title: 'Sommerfest',
   date: new Date('2027-07-01'),
+  sponsorEnabled: false,
+  categoriesEnabled: false,
+  categoryRequired: false,
+  categories: [],
 };
 
 describe('eventFormSchema: Sponsor eingeschaltet verlangt einen Namen', () => {
@@ -47,6 +56,48 @@ describe('eventFormSchema: Sponsor eingeschaltet verlangt einen Namen', () => {
       ...gueltigeBasis,
       sponsorEnabled: false,
     });
+
+    expect(result.success).toBe(true);
+  });
+});
+
+describe('eventFormSchema: Kategorien eingeschaltet verlangen einen Wert', () => {
+  it('lehnt eingeschaltet ohne Werte ab', () => {
+    const result = eventFormSchema.safeParse({
+      ...gueltigeBasis,
+      categoriesEnabled: true,
+      categories: [],
+    });
+
+    expect(result.success).toBe(false);
+    expect(result.error?.issues[0]?.path).toEqual(['categories']);
+  });
+
+  it('lehnt eingeschaltet mit nur leeren Werten ab', () => {
+    // Eine Zeile, in der nichts steht, ist kein Wert. Sonst entstuende ein
+    // Select mit einem leeren Eintrag.
+    const result = eventFormSchema.safeParse({
+      ...gueltigeBasis,
+      categoriesEnabled: true,
+      categories: [{ label: '   ' }],
+    });
+
+    expect(result.success).toBe(false);
+    expect(result.error?.issues[0]?.path).toEqual(['categories']);
+  });
+
+  it('nimmt eingeschaltet mit einem Wert an', () => {
+    const result = eventFormSchema.safeParse({
+      ...gueltigeBasis,
+      categoriesEnabled: true,
+      categories: [{ label: 'Einzelperson' }, { label: 'Firma' }],
+    });
+
+    expect(result.success).toBe(true);
+  });
+
+  it('nimmt ausgeschaltet ohne Werte an', () => {
+    const result = eventFormSchema.safeParse(gueltigeBasis);
 
     expect(result.success).toBe(true);
   });

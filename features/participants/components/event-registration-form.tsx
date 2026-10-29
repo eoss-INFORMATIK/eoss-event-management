@@ -23,8 +23,28 @@ import {
   FormMessage,
 } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
 
-export function EventRegistrationForm({ eventId }: { eventId: string }) {
+type EventRegistrationFormProps = {
+  eventId: string;
+  /** Leer, wenn das Event keine Kategorien anbietet. */
+  categories: { id: string; label: string }[];
+  categoryLabel: string;
+  categoryRequired: boolean;
+};
+
+export function EventRegistrationForm({
+  eventId,
+  categories,
+  categoryLabel,
+  categoryRequired,
+}: EventRegistrationFormProps) {
   const [error, setError] = useState<string>('');
   const [status, setStatus] = useState<
     'idle' | 'loading' | 'success' | 'error'
@@ -93,6 +113,36 @@ export function EventRegistrationForm({ eventId }: { eventId: string }) {
             </FormItem>
           )}
         />
+
+        {categories.length > 0 && (
+          <FormField
+            control={form.control}
+            name="categoryId"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>
+                  {categoryLabel}
+                  {categoryRequired && ' *'}
+                </FormLabel>
+                <Select onValueChange={field.onChange} value={field.value}>
+                  <FormControl>
+                    <SelectTrigger className="w-full">
+                      <SelectValue placeholder="Bitte wählen" />
+                    </SelectTrigger>
+                  </FormControl>
+                  <SelectContent>
+                    {categories.map((category) => (
+                      <SelectItem key={category.id} value={category.id}>
+                        {category.label}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+        )}
 
         <FormField
           control={form.control}

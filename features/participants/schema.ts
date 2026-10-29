@@ -19,6 +19,15 @@ export const participantFormSchema = z.object({
     .trim()
     .max(255, 'Name darf höchstens 255 Zeichen lang sein')
     .optional(),
+  /**
+   * Die gewaehlte Kategorie, falls das Event welche anbietet.
+   *
+   * Dass die Id zu DIESEM Event gehoert, erzwingt der zusammengesetzte
+   * Fremdschluessel `(event_id, category_id)` in der Datenbank -- nicht dieses
+   * Schema. Die Anmeldung ist oeffentlich, eine Pruefung im Formular waere
+   * eine Hoeflichkeit, keine Grenze.
+   */
+  categoryId: z.uuid('Bitte einen gültigen Wert wählen').optional(),
 });
 
 export type ParticipantFormValues = z.infer<typeof participantFormSchema>;

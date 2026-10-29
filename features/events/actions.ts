@@ -36,6 +36,89 @@ const sponsorColumns = (input: EventInput) =>
       }
     : { sponsor_name: null, sponsor_text: null, sponsor_image_url: null };
 
+/**
+ * Bringt die Kategorien eines Events auf den eingereichten Stand.
+ *
+ * Kein "alles loeschen und neu anlegen": das wuerde jede bestehende Anmeldung
+ * entwerten, weil `category_id` darauf zeigt. Stattdessen abgleichen --
+ * vorhandene aktualisieren, neue anlegen, verschwundene loeschen.
+ *
+ * Das Loeschen kann scheitern, und das ist Absicht: auf der Kategorie liegt
+ * `on delete restrict`. Wer einen Wert entfernt, auf den bereits Anmeldungen
+ * zeigen, bekommt eine lesbare Meldung statt einer stillschweigend entwerteten
+ * Teilnehmerliste. 23503 ist foreign_key_violation.
+ */
+const syncCategories = async (
+  supabase: Awaited<ReturnType<typeof createClient>>,
+  eventId: string,
+  input: EventInput
+): Promise<ActionResponse> => {
+  const wanted = input.categoriesEnabled
+    ? input.categories
+        .map((category, index) => ({
+          ...category,
+          label: category.label.trim(),
+          index,
+        }))
+        .filter((category) => category.label)
+    : [];
+
+  const { data: existing, error: readError } = await supabase
+    .from('event_categories')
+    .select('id')
+    .eq('event_id', eventId);
+
+  if (readError) return { error: 'Kategorien konnten nicht geladen werden' };
+
+  const keptIds = new Set(
+    wanted.map((category) => category.id).filter(Boolean) as string[]
+  );
+  const removed = (existing ?? [])
+    .map((row) => row.id)
+    .filter((id) => !keptIds.has(id));
+
+  if (removed.length) {
+    const { error } = await supabase
+      .from('event_categories')
+      .delete()
+      .in('id', removed);
+
+    if (error?.code === '23503')
+      return {
+        error:
+          'Ein Wert lässt sich nicht entfernen, weil bereits Anmeldungen darauf verweisen',
+      };
+
+    if (error) return { error: 'Kategorien konnten nicht gespeichert werden' };
+  }
+
+  for (const category of wanted) {
+    const { error } = category.id
+      ? await supabase
+          .from('event_categories')
+          .update({ label: category.label, position: category.index })
+          .eq('id', category.id)
+      : await supabase.from('event_categories').insert({
+          event_id: eventId,
+          label: category.label,
+          position: category.index,
+        });
+
+    if (error) return { error: 'Kategorien konnten nicht gespeichert werden' };
+  }
+
+  return { success: true };
+};
+
+/** Die Spalten am Event, die zu den Kategorien gehoeren. */
+const categoryColumns = (input: EventInput) =>
+  input.categoriesEnabled
+    ? {
+        category_label: input.categoryLabel?.trim() || null,
+        category_required: input.categoryRequired,
+      }
+    : { category_label: null, category_required: false };
+
 export const addEvent = async (
   formData: EventInput
 ): Promise<ActionResponse> => {
@@ -60,17 +143,27 @@ export const addEvent = async (
   if (!organizationId)
     return { error: 'Zu deinem Konto gehört keine Organisation' };
 
-  const { error } = await supabase.from('events').insert({
-    title: parsed.data.title,
-    description: parsed.data.description || null,
-    date: parsed.data.date.toISOString(),
-    image_url: parsed.data.imageUrl || null,
-    organization_id: organizationId,
-    created_by: user.id,
-    ...sponsorColumns(parsed.data),
-  });
+  // `select('id')`, weil die Kategorien danach das frisch angelegte Event
+  // brauchen. Ohne das muesste man es wieder suchen.
+  const { data: created, error } = await supabase
+    .from('events')
+    .insert({
+      title: parsed.data.title,
+      description: parsed.data.description || null,
+      date: parsed.data.date.toISOString(),
+      image_url: parsed.data.imageUrl || null,
+      organization_id: organizationId,
+      created_by: user.id,
+      ...sponsorColumns(parsed.data),
+      ...categoryColumns(parsed.data),
+    })
+    .select('id')
+    .single();
 
-  if (error) return { error: 'Event konnte nicht erstellt werden' };
+  if (error || !created) return { error: 'Event konnte nicht erstellt werden' };
+
+  const categories = await syncCategories(supabase, created.id, parsed.data);
+  if (categories.error) return categories;
 
   revalidatePath('/events');
   return { success: true };
@@ -101,6 +194,7 @@ export const editEvent = async (
       image_url: parsed.data.imageUrl || null,
       updated_by: user.id,
       ...sponsorColumns(parsed.data),
+      ...categoryColumns(parsed.data),
     })
     .eq('id', eventId)
     .select('id');
@@ -109,6 +203,9 @@ export const editEvent = async (
   if (!data?.length) {
     return { error: 'Event nicht gefunden oder keine Berechtigung' };
   }
+
+  const categories = await syncCategories(supabase, eventId, parsed.data);
+  if (categories.error) return categories;
 
   revalidatePath('/events');
   revalidatePath(`/events/${eventId}`);

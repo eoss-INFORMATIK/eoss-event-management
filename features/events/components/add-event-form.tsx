@@ -8,6 +8,7 @@ import { useForm } from 'react-hook-form';
 import { toast } from 'sonner';
 
 import { addEvent } from '@/features/events/actions';
+import { CategoryFields } from '@/features/events/components/category-fields';
 import { SponsorFields } from '@/features/events/components/sponsor-fields';
 import {
   type EventFormValues,
@@ -44,6 +45,10 @@ export function AddEventForm() {
       sponsorEnabled: false,
       sponsorName: '',
       sponsorText: '',
+      categoriesEnabled: false,
+      categoryLabel: '',
+      categoryRequired: false,
+      categories: [],
     },
   });
 
@@ -168,6 +173,8 @@ export function AddEventForm() {
         />
 
         <SponsorFields form={form} fileInputRef={sponsorFileInputRef} />
+
+        <CategoryFields form={form} />
 
         <Button type="submit" className="w-full" disabled={isSubmitting}>
           {isSubmitting ? 'Wird erstellt…' : 'Event erstellen'}
