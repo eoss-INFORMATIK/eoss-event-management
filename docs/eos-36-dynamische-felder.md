@@ -40,9 +40,18 @@ Einsatz.
 
 ## Kategorien: eigene Tabelle, nicht `text[]`
 
-Tabelle `event_categories (id, event_id, organization_id, label, position)`, und
-auf dem Teilnehmer `category_id` mit **zusammengesetztem Fremdschlüssel**
+Tabelle `event_categories (id, event_id, label, position)`, und auf dem
+Teilnehmer `category_id` mit **zusammengesetztem Fremdschlüssel**
 `(event_id, category_id)` auf `event_categories (event_id, id)`.
+
+> **Abweichung von der ersten Fassung dieses Dokuments:** dort stand
+> `organization_id` auf `event_categories`. Beim Bauen fiel auf, dass die
+> Spalte nichts trägt. Bei den Teilnehmern ist sie nötig, weil deren
+> zusammengesetzter Fremdschlüssel auf `events (id, organization_id)` zeigt —
+> hier zeigt er auf das Event selbst. Eine denormalisierte Spalte ohne Zweck
+> bräuchte einen Trigger, der sie synchron hält, und wäre damit eine weitere
+> Stelle, die auseinanderlaufen kann. Die Policies gehen stattdessen über das
+> Eltern-Event.
 
 **Der Grund ist Sicherheit, nicht Ordnung.** Die Anmeldung ist öffentlich — der
 Client bestimmt, was er schickt. Mit `text[]` am Event und einer Textspalte am
@@ -74,6 +83,16 @@ Der Organisator benennt das Feld selbst, Vorgabe „Kategorie" — für
 
 Ob der Teilnehmer antworten *muss*, entscheidet der Organisator pro Event:
 Spalte `category_required`.
+
+## Gemessen: `cascade` und `restrict` kommen sich nicht in die Quere
+
+Ein Event kaskadiert auf **beides** — Kategorien und Teilnehmer. Löschte
+Postgres dabei die Kategorien zuerst, schlüge das `restrict` der Anmeldung zu
+und ein Event mit Anmeldungen wäre unlöschbar.
+
+Tut es nicht; die Anmeldungen gehen zuerst. Nachgemessen vor dem Bauen, und als
+Test festgehalten („das Event lässt sich trotzdem löschen, samt Kategorien und
+Anmeldungen"). Die Sorge war unbegründet — aber das weiss man vorher nicht.
 
 ## Reihenfolge
 

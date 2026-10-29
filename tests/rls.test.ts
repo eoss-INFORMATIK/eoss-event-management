@@ -450,6 +450,167 @@ describe('organizations: nur Mitglieder', () => {
   });
 });
 
+describe('event_categories: der Client darf keine fremde Kategorie unterschieben', () => {
+  let categoryOfA: string;
+  let categoryOfB: string;
+
+  beforeAll(async () => {
+    const insert = async (
+      account: TestAccount,
+      eventId: string,
+      label: string
+    ) => {
+      const { data, error } = await account.client
+        .from('event_categories')
+        .insert({ event_id: eventId, label })
+        .select('id')
+        .single();
+
+      if (error || !data)
+        throw new Error(`Kategorie "${label}": ${error?.message}`);
+
+      return data.id;
+    };
+
+    categoryOfA = await insert(a, eventOfA, 'Einzelperson');
+    categoryOfB = await insert(b, eventOfB, 'Firma');
+  });
+
+  it('A legt keine Kategorie am Event von B an', async () => {
+    const { error } = await a.client
+      .from('event_categories')
+      .insert({ event_id: eventOfB, label: 'geschmuggelt' })
+      .select('id');
+
+    expect(error).not.toBeNull();
+  });
+
+  it('A haengt die eigene Kategorie nicht an das Event von B um', async () => {
+    // Braucht das `with check` auf der UPDATE-Policy: `using` allein erlaubt,
+    // die Zeile anzufassen, sagt aber nichts darueber, wie sie danach aussieht.
+    const { error } = await a.client
+      .from('event_categories')
+      .update({ event_id: eventOfB })
+      .eq('id', categoryOfA)
+      .select('id');
+
+    expect(error).not.toBeNull();
+  });
+
+  it('Kategorien sind oeffentlich lesbar -- das Anmeldeformular braucht sie', async () => {
+    const { data, error } = await anonClient()
+      .from('event_categories')
+      .select('id')
+      .eq('event_id', eventOfA);
+
+    expect(error).toBeNull();
+    expect(data).toHaveLength(1);
+  });
+
+  /**
+   * Der Test, fuer den der zusammengesetzte Fremdschluessel da ist.
+   *
+   * Die Anmeldung ist oeffentlich. Ein Client kann eine beliebige
+   * Kategorie-Id mitschicken -- auch eine, die zu einem fremden Event gehoert.
+   * Ohne `(event_id, category_id)` -> event_categories(event_id, id) stuende
+   * danach "Firma" in der Teilnehmerliste eines Events, das diese Kategorie
+   * gar nicht anbietet.
+   */
+  /**
+   * KEIN `.select()` nach dem anonymen Insert -- das macht daraus ein
+   * `INSERT ... RETURNING` und verlangt damit auch Leserechte. Die hat ein
+   * anonymer Client auf `event_participants` nicht (lesen duerfen nur
+   * Mitglieder der Organisation), und der Test scheiterte dann an 42501 statt
+   * an dem, was er pruefen soll. Erst gemessen, dann verstanden.
+   */
+  it('eine anonyme Anmeldung nimmt keine Kategorie eines fremden Events', async () => {
+    const { error } = await anonClient().from('event_participants').insert({
+      event_id: eventOfA,
+      organization_id: a.organizationId,
+      email: 'schmuggel@example.com',
+      category_id: categoryOfB,
+    });
+
+    // 23503 = foreign_key_violation. Auf den Code pruefen, nicht auf den Text:
+    // der kommt aus Postgres und ist nicht unser Vertrag.
+    expect(error?.code).toBe('23503');
+
+    const { data } = await admin()
+      .from('event_participants')
+      .select('id')
+      .eq('email', 'schmuggel@example.com');
+
+    expect(data).toEqual([]);
+  });
+
+  it('eine anonyme Anmeldung nimmt die eigene Kategorie des Events an', async () => {
+    const { error } = await anonClient().from('event_participants').insert({
+      event_id: eventOfA,
+      organization_id: a.organizationId,
+      email: 'ordentlich@example.com',
+      category_id: categoryOfA,
+    });
+
+    expect(error).toBeNull();
+
+    const { data } = await admin()
+      .from('event_participants')
+      .select('category_id')
+      .eq('email', 'ordentlich@example.com')
+      .single();
+
+    expect(data?.category_id).toBe(categoryOfA);
+  });
+
+  /**
+   * Gemessen, nicht angenommen: `restrict` auf category_id und `cascade` vom
+   * Event koennten sich in die Quere kommen -- loescht Postgres beim Entfernen
+   * des Events zuerst die Kategorien, schlaegt `restrict` zu und das Event
+   * waere unloeschbar. Tut es nicht; die Anmeldungen gehen zuerst.
+   */
+  it('eine Kategorie mit Anmeldungen laesst sich nicht loeschen', async () => {
+    const { error } = await a.client
+      .from('event_categories')
+      .delete()
+      .eq('id', categoryOfA)
+      .select('id');
+
+    expect(error).not.toBeNull();
+  });
+
+  it('das Event laesst sich trotzdem loeschen, samt Kategorien und Anmeldungen', async () => {
+    const eventToDelete = await createEvent(a, 'Event zum Loeschen');
+
+    const { data: category } = await a.client
+      .from('event_categories')
+      .insert({ event_id: eventToDelete, label: 'mit Begleitung' })
+      .select('id')
+      .single();
+
+    await anonClient().from('event_participants').insert({
+      event_id: eventToDelete,
+      organization_id: a.organizationId,
+      email: 'mitkategorie@example.com',
+      category_id: category!.id,
+    });
+
+    const { error } = await a.client
+      .from('events')
+      .delete()
+      .eq('id', eventToDelete)
+      .select('id');
+
+    expect(error).toBeNull();
+
+    const { data: reste } = await admin()
+      .from('event_categories')
+      .select('id')
+      .eq('event_id', eventToDelete);
+
+    expect(reste).toEqual([]);
+  });
+});
+
 describe('Storage: Bilder gehoeren der Organisation', () => {
   const BUCKET = 'event-images';
   // Kleinstes gueltiges PNG -- der Bucket laesst nur Bild-Mimetypes zu.

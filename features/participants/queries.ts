@@ -2,7 +2,10 @@ import { createClient } from '@/server/supabase/server';
 import type { EventParticipant } from '@/types';
 
 type ParticipantsResponse = {
-  participants?: (EventParticipant & { eventName: string | null })[];
+  participants?: (EventParticipant & {
+    eventName: string | null;
+    categoryLabel: string | null;
+  })[];
   error?: string;
 };
 
@@ -19,16 +22,19 @@ export const getEventParticipants = async (
 
   const { data, error } = await supabase
     .from('event_participants')
-    .select('*, events (title)')
+    .select('*, events (title), event_categories (label)')
     .eq('event_id', eventId)
     .order('created_at', { ascending: true });
 
   if (error) return { error: 'Teilnehmer konnten nicht geladen werden' };
 
-  const participants = data.map(({ events, ...participant }) => ({
-    ...participant,
-    eventName: events?.title ?? null,
-  }));
+  const participants = data.map(
+    ({ events, event_categories, ...participant }) => ({
+      ...participant,
+      eventName: events?.title ?? null,
+      categoryLabel: event_categories?.label ?? null,
+    })
+  );
 
   return { participants };
 };

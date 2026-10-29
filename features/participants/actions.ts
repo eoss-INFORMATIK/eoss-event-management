@@ -36,17 +36,23 @@ export const addParticipant = async (
   // Fremdschluesselfehlers.
   const { data: event } = await supabase
     .from('events')
-    .select('organization_id')
+    .select('organization_id, category_required')
     .eq('id', eventId)
     .maybeSingle();
 
   if (!event) return { error: 'Event nicht gefunden' };
+
+  // Ob die Angabe Pflicht ist, steht am Event -- nicht im Formular. Ein
+  // oeffentlicher Client koennte das Feld sonst einfach weglassen.
+  if (event.category_required && !parsed.data.categoryId)
+    return { error: 'Bitte einen Wert auswählen' };
 
   const { error } = await supabase.from('event_participants').insert({
     event_id: eventId,
     email: parsed.data.email,
     name: parsed.data.name || null,
     organization_id: event.organization_id,
+    category_id: parsed.data.categoryId || null,
   });
 
   if (error) {
@@ -55,6 +61,12 @@ export const addParticipant = async (
       return {
         error: 'Für diese E-Mail-Adresse liegt bereits eine Anmeldung vor',
       };
+    }
+    // 23503 = foreign_key_violation: die Kategorie gehoert nicht zu diesem
+    // Event. Das faengt der zusammengesetzte Fremdschluessel ab -- hier wird
+    // daraus nur eine lesbare Meldung.
+    if (error.code === '23503') {
+      return { error: 'Der gewählte Wert gehört nicht zu diesem Event' };
     }
     return { error: 'Anmeldung fehlgeschlagen' };
   }

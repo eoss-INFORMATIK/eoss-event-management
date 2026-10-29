@@ -10,6 +10,7 @@ import type { EventParticipant as DbEventParticipant } from '@/types';
 
 export type ParticipantRow = DbEventParticipant & {
   eventName: string | null;
+  categoryLabel: string | null;
 };
 
 export const columns: ColumnDef<ParticipantRow>[] = [
@@ -24,6 +25,13 @@ export const columns: ColumnDef<ParticipantRow>[] = [
   {
     accessorKey: 'status',
     header: 'Status',
+  },
+  {
+    // Die Spalte bleibt stehen, auch wenn das Event keine Kategorien anbietet
+    // -- dann ist sie schlicht leer. Eine Spalte je nach Event ein- und
+    // auszublenden waere Zustand, den die Tabelle sonst nirgends braucht.
+    accessorKey: 'categoryLabel',
+    header: 'Kategorie',
   },
   {
     accessorKey: 'eventName',
