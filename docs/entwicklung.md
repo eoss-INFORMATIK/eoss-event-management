@@ -59,6 +59,19 @@ umschalten, lokaler Stack, Migrationen und Typen).
   endete auf `missing_code`. Pruefen mit
   `docker inspect supabase_auth_<projekt> --format '{{range .Config.Env}}{{println .}}{{end}}' | grep MAILER`.
 
+  **Der Ausloeser ist nicht nur die eigene Aenderung.** Ein Container, der
+  aelter ist als ein Eintrag in `config.toml`, hat ihn nie gesehen — auch wenn
+  seither niemand etwas geaendert hat. Beim zweiten Mal kam es genau so: die
+  Templates lagen seit Tagen richtig in `config.toml`, der Container stammte von
+  davor, und `db:reset` laedt die Config **nicht** neu. Wer also nach „ich habe
+  doch nichts geaendert" sucht, sucht am falschen Ort.
+
+  Deshalb symptomgetrieben lesen, nicht aenderungsgetrieben: **wenn die
+  Anmeldung lokal nicht mehr geht, ist der `grep MAILER` oben der erste
+  Griff.** Steht dort `GOTRUE_MAILER_SUBJECTS_MAGIC_LINK` mit dem eigenen
+  Betreff, ist die Config geladen und die Ursache liegt woanders; fehlt er,
+  genuegt `db:stop && db:start`.
+
 - **Entwickelt wird lokal, nicht gegen das gehostete Projekt.** `npm run
 db:start` / `db:reset`; Studio auf Port 54323, Mailcatcher auf 54324. Es gibt
   bewusst kein Script fuer `db reset --linked` — das setzt Produktion zurueck.
