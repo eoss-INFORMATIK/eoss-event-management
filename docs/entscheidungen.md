@@ -16,6 +16,16 @@ die auf die alte verweist.
 
 ## 2026-10
 
+- **Teilnehmerexport im Browser, als .xlsx (TASK-39).** Erzeugt aus den Zeilen
+  der TanStack-Tabelle, nicht über eine Server-Route: der gefilterte Export
+  (Folgetask) nimmt dann `getFilteredRowModel()` statt den Filterzustand an den
+  Server zu schicken; die Daten sind beim Laden schon durch RLS gegangen. .xlsx
+  statt .csv wegen **Formel-Injection** — Namen kommen aus dem öffentlichen
+  Formular, jede Textzelle ist ausdrücklich `type: String`. Bibliothek
+  `write-excel-file`, beim Klick nachgeladen; nicht `xlsx` (SheetJS, auf npm
+  eingefroren mit bekannten Lücken), nicht `exceljs` (schwer, Node-lastig,
+  ruht). Zeitstempel werden auf Zürcher Ortszeit umgerechnet, weil Excel keine
+  Zeitzone kennt. Test: `tests/participants-export.test.ts`.
 - **Profil Rebuild: drei Figma-Elemente fallen weg.** „Passwort ändern"
   ersatzlos — die App kennt kein Passwort, Anmeldung läuft über Magic Link und
   Google. Das Rollen-Label („Admin") erst mit den Rollen: ein Label mit genau

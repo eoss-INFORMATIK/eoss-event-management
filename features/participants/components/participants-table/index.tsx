@@ -1,7 +1,6 @@
 import { getEventParticipants } from '@/features/participants/queries';
 
-import { columns } from './columns';
-import { DataTable } from './data-table';
+import { ParticipantsTableClient } from './participants-table.client';
 
 interface EventParticipantsTableProps {
   params: Promise<{
@@ -17,7 +16,7 @@ export default async function EventParticipantsTable({
 
   return (
     <div className="container mx-auto py-10">
-      <DataTable columns={columns} data={participants ?? []} />
+      <ParticipantsTableClient data={participants ?? []} />
     </div>
   );
 }

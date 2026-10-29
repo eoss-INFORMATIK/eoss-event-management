@@ -7,6 +7,17 @@ export const PARTICIPANT_STATUSES = [
   'waitlisted',
 ] as const;
 
+/** Anzeige fuer Menschen ausserhalb der App, etwa im Export. */
+export const PARTICIPANT_STATUS_LABELS: Record<
+  (typeof PARTICIPANT_STATUSES)[number],
+  string
+> = {
+  pending: 'Ausstehend',
+  confirmed: 'Bestätigt',
+  declined: 'Abgesagt',
+  waitlisted: 'Warteliste',
+};
+
 export const participantStatusSchema = z.enum(PARTICIPANT_STATUSES, {
   error: 'Ungültiger Status',
 });
