@@ -24,6 +24,7 @@ const participant = (name: string) => ({
   name,
   email: 'a@example.ch',
   status: 'confirmed',
+  categoryLabel: 'Mitglied',
   created_at: '2026-07-01T12:00:00+00:00',
 });
 
@@ -53,6 +54,12 @@ describe('Teilnehmerexport', () => {
   it('schreibt den Status deutsch', async () => {
     const { strings } = await sheetXml([participant('Anna')]);
     expect(strings).toContain('Bestätigt');
+  });
+
+  it('schreibt die Kategorie', async () => {
+    const { strings } = await sheetXml([participant('Anna')]);
+    expect(strings).toContain('Kategorie');
+    expect(strings).toContain('Mitglied');
   });
 });
 

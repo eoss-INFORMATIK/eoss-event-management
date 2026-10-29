@@ -23,7 +23,7 @@ import type { EventParticipant } from '@/types';
 type ExportRow = Pick<
   EventParticipant,
   'name' | 'email' | 'status' | 'created_at'
->;
+> & { categoryLabel: string | null };
 
 const TIME_ZONE = 'Europe/Zurich';
 
@@ -81,6 +81,12 @@ export const participantExportColumns: Column<ExportRow>[] = [
     header: header('Status'),
     cell: (row) => ({ value: statusLabel(row.status), type: String }),
     width: 14,
+  },
+  {
+    // Wie in der Tabelle: immer da, leer, wenn das Event keine Kategorien hat.
+    header: header('Kategorie'),
+    cell: (row) => ({ value: row.categoryLabel ?? '', type: String }),
+    width: 20,
   },
   {
     header: header('Angemeldet am'),
