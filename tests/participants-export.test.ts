@@ -80,16 +80,26 @@ describe('toZurichWallClock', () => {
 describe('participantExportFileName', () => {
   it('macht aus dem Eventtitel einen Dateinamen', () => {
     expect(
-      participantExportFileName(
-        'Sommerfest Zürich / 2027',
-        new Date('2026-10-29T10:00:00Z')
-      )
+      participantExportFileName('Sommerfest Zürich / 2027', {
+        today: new Date('2026-10-29T10:00:00Z'),
+      })
     ).toBe('teilnehmer-sommerfest-zurich-2027-2026-10-29.xlsx');
+  });
+
+  it('markiert eine gefilterte Auswahl', () => {
+    expect(
+      participantExportFileName('Sommerfest', {
+        filtered: true,
+        today: new Date('2026-10-29T10:00:00Z'),
+      })
+    ).toBe('teilnehmer-sommerfest-auswahl-2026-10-29.xlsx');
   });
 
   it('kommt ohne Eventtitel aus', () => {
     expect(
-      participantExportFileName(null, new Date('2026-10-29T10:00:00Z'))
+      participantExportFileName(null, {
+        today: new Date('2026-10-29T10:00:00Z'),
+      })
     ).toBe('teilnehmer-2026-10-29.xlsx');
   });
 });

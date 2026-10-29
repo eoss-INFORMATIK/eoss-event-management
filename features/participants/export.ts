@@ -1,9 +1,6 @@
 import type { Column } from 'write-excel-file/browser';
 
-import {
-  PARTICIPANT_STATUS_LABELS,
-  type ParticipantStatus,
-} from '@/features/participants/schema';
+import { statusLabel } from '@/features/participants/schema';
 
 import type { EventParticipant } from '@/types';
 
@@ -61,9 +58,6 @@ export const toZurichWallClock = (value: string): Date => {
   );
 };
 
-const statusLabel = (status: string) =>
-  PARTICIPANT_STATUS_LABELS[status as ParticipantStatus] ?? status;
-
 const header = (value: string) => ({ value, fontWeight: 'bold' as const });
 
 export const participantExportColumns: Column<ExportRow>[] = [
@@ -99,10 +93,14 @@ export const participantExportColumns: Column<ExportRow>[] = [
   },
 ];
 
-/** `teilnehmer-sommerfest-2026-10-29.xlsx` */
+/**
+ * `teilnehmer-sommerfest-2026-10-29.xlsx`, bei einer gefilterten Auswahl
+ * `teilnehmer-sommerfest-auswahl-2026-10-29.xlsx` -- wer die Datei bekommt,
+ * soll nicht annehmen, sie sei vollstaendig.
+ */
 export const participantExportFileName = (
   eventName: string | null,
-  today = new Date()
+  { filtered = false, today = new Date() } = {}
 ) => {
   const slug = (eventName ?? '')
     .normalize('NFKD')
@@ -115,7 +113,7 @@ export const participantExportFileName = (
     .toISOString()
     .slice(0, 10);
 
-  return `${['teilnehmer', slug, date].filter(Boolean).join('-')}.xlsx`;
+  return `${['teilnehmer', slug, filtered && 'auswahl', date].filter(Boolean).join('-')}.xlsx`;
 };
 
 /**
@@ -123,7 +121,8 @@ export const participantExportFileName = (
  */
 export const downloadParticipantsXlsx = async (
   rows: ExportRow[],
-  eventName: string | null
+  eventName: string | null,
+  { filtered = false } = {}
 ) => {
   const { default: writeExcelFile } = await import('write-excel-file/browser');
 
@@ -131,5 +130,5 @@ export const downloadParticipantsXlsx = async (
     columns: participantExportColumns,
     sheet: 'Teilnehmer',
     stickyRowsCount: 1,
-  }).toFile(participantExportFileName(eventName));
+  }).toFile(participantExportFileName(eventName, { filtered }));
 };

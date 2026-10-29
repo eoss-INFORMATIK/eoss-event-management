@@ -43,3 +43,7 @@ export const participantFormSchema = z.object({
 
 export type ParticipantFormValues = z.infer<typeof participantFormSchema>;
 export type ParticipantStatus = z.infer<typeof participantStatusSchema>;
+
+/** Unbekannte Werte erscheinen roh statt zu verschwinden. */
+export const statusLabel = (status: string) =>
+  PARTICIPANT_STATUS_LABELS[status as ParticipantStatus] ?? status;
