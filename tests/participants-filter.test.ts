@@ -26,8 +26,8 @@ import {
  */
 
 const columns: ColumnDef<ParticipantRow>[] = [
-  { accessorKey: 'name', filterFn: searchParticipant },
-  { accessorKey: 'email' },
+  { accessorKey: 'email', filterFn: searchParticipant },
+  { accessorKey: 'name' },
   { accessorKey: 'status', filterFn: inSelection },
   { accessorKey: 'categoryLabel', filterFn: inSelection },
 ];
@@ -100,12 +100,12 @@ describe('Filter', () => {
   ];
 
   it('sucht im Namen, ohne Gross-/Kleinschreibung', () => {
-    const table = tableWith(data, [{ id: 'name', value: 'müll' }]);
+    const table = tableWith(data, [{ id: 'email', value: 'müll' }]);
     expect(selectedRows(table).map((p) => p.id)).toEqual(['id-1']);
   });
 
   it('findet Teilnehmer ohne Namen über die E-Mail', () => {
-    const table = tableWith(data, [{ id: 'name', value: 'ohne.name' }]);
+    const table = tableWith(data, [{ id: 'email', value: 'ohne.name' }]);
     expect(selectedRows(table).map((p) => p.id)).toEqual(['id-2']);
   });
 

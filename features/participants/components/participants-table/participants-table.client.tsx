@@ -40,7 +40,7 @@ export function ParticipantsTableClient({ data }: { data: ParticipantRow[] }) {
     onColumnFiltersChange: setColumnFilters,
   });
 
-  const search = (table.getColumn('name')?.getFilterValue() as string) ?? '';
+  const search = (table.getColumn('email')?.getFilterValue() as string) ?? '';
 
   return (
     <div className="flex flex-col gap-4">
@@ -49,12 +49,12 @@ export function ParticipantsTableClient({ data }: { data: ParticipantRow[] }) {
           <Search className="text-muted-foreground absolute top-1/2 left-3 size-4 -translate-y-1/2" />
           <Input
             type="search"
-            aria-label="Name oder E-Mail suchen"
-            placeholder="Name oder E-Mail suchen"
+            aria-label="E-Mail oder Name suchen"
+            placeholder="E-Mail oder Name suchen"
             className="pl-9"
             value={search}
             onChange={(event) =>
-              table.getColumn('name')?.setFilterValue(event.target.value)
+              table.getColumn('email')?.setFilterValue(event.target.value)
             }
           />
         </div>

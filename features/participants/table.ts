@@ -32,7 +32,7 @@ export const PAGE_SIZE = 50;
  * Textsuche auf Name **und** E-Mail. Der Name ist bei der Anmeldung optional;
  * wer ohne Namen angemeldet ist, waere sonst unauffindbar.
  *
- * Haengt an der Spalte `name`, nicht am globalen Filter: der globale Filter
+ * Haengt an der Spalte `email`, nicht am globalen Filter: der globale Filter
  * laeuft ueber jede Spalte und braeuchte eine Ausnahmeliste.
  */
 export const searchParticipant: FilterFn<ParticipantRow> = (

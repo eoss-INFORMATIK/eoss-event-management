@@ -20,7 +20,7 @@ import {
  * Diese Tests brauchen keine Datenbank.
  */
 
-const participant = (name: string) => ({
+const participant = (name: string | null) => ({
   name,
   email: 'a@example.ch',
   status: 'confirmed',
@@ -49,6 +49,20 @@ describe('Teilnehmerexport', () => {
 
     expect(sheet).not.toContain('<f>');
     expect(strings).toContain('=1+1');
+  });
+
+  it('beginnt jede Zeile mit einer Zelle, auch ohne Namen', async () => {
+    // Die macOS-Vorschau hoert an der ersten Zeile mit leerer erster Spalte
+    // auf zu lesen -- die Datei war vollstaendig, die Vorschau zeigte drei
+    // von fuenfzehn. Die E-Mail ist immer gesetzt und steht deshalb vorne.
+    const { sheet } = await sheetXml([
+      participant('Anna'),
+      participant(null),
+      participant('Ben'),
+    ]);
+    const rows = sheet.match(/<row [^>]*>.*?<\/row>/g) ?? [];
+    expect(rows).toHaveLength(4);
+    rows.forEach((row, i) => expect(row).toContain(`r="A${i + 1}"`));
   });
 
   it('schreibt den Status deutsch', async () => {

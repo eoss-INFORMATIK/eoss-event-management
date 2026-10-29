@@ -62,14 +62,17 @@ const header = (value: string) => ({ value, fontWeight: 'bold' as const });
 
 export const participantExportColumns: Column<ExportRow>[] = [
   {
-    header: header('Name'),
-    cell: (row) => ({ value: row.name ?? '', type: String }),
-    width: 30,
-  },
-  {
+    // Vorne, weil immer gesetzt: eine leere erste Spalte laesst manche
+    // Betrachter (die macOS-Vorschau) die Datei dort abschneiden. Gleiche
+    // Reihenfolge wie in der Tabelle.
     header: header('E-Mail'),
     cell: (row) => ({ value: row.email, type: String }),
     width: 36,
+  },
+  {
+    header: header('Name'),
+    cell: (row) => ({ value: row.name ?? '', type: String }),
+    width: 30,
   },
   {
     header: header('Status'),

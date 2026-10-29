@@ -16,6 +16,12 @@ die auf die alte verweist.
 
 ## 2026-10
 
+- **E-Mail steht vorne, in Tabelle und Export.** Sie identifiziert die Anmeldung
+  und ist immer gesetzt, der Name ist optional. Ausgelöst durch einen Test: die
+  macOS-Vorschau hört an der ersten Zeile mit leerer erster Spalte auf zu lesen
+  und zeigte 3 von 15 Teilnehmern, obwohl die Datei vollständig war. Die
+  Textsuche hängt jetzt an der Spalte `email`. Test „beginnt jede Zeile mit
+  einer Zelle“ in `tests/participants-export.test.ts`.
 - **Teilnehmer filtern im Browser (TASK-41).** Suche, Status und Kategorie
   filtern die bereits geladenen Zeilen mit TanStack, der Export nimmt dieselbe
   Auswahl (`selectedRows`, also `getFilteredRowModel()`, nie die angezeigte

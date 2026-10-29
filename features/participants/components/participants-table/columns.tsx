@@ -16,14 +16,16 @@ export type { ParticipantRow };
 
 export const columns: ColumnDef<ParticipantRow>[] = [
   {
-    accessorKey: 'name',
-    header: 'Name',
-    // Die Textsuche haengt hier und prueft Name und E-Mail.
+    // Die E-Mail steht vorne: sie identifiziert die Anmeldung und ist immer
+    // gesetzt, der Name ist optional. Gleiche Reihenfolge wie im Export.
+    accessorKey: 'email',
+    header: 'E-Mail',
+    // Die Textsuche haengt hier und prueft E-Mail und Name.
     filterFn: searchParticipant,
   },
   {
-    accessorKey: 'email',
-    header: 'E-Mail',
+    accessorKey: 'name',
+    header: 'Name',
   },
   {
     accessorKey: 'status',
