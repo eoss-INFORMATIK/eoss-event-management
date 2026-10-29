@@ -8,6 +8,7 @@ import { useForm } from 'react-hook-form';
 import { toast } from 'sonner';
 
 import { editEvent } from '@/features/events/actions';
+import { SponsorFields } from '@/features/events/components/sponsor-fields';
 import {
   type EventFormValues,
   eventFormSchema,
@@ -38,6 +39,7 @@ export function EditEventForm({ event, setIsEditing }: EditEventFormProps) {
   const [error, setError] = useState<string>('');
   const [isSubmitting, setIsSubmitting] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const sponsorFileInputRef = useRef<HTMLInputElement>(null);
 
   const form = useForm<EventFormValues>({
     resolver: zodResolver(eventFormSchema),
@@ -45,6 +47,11 @@ export function EditEventForm({ event, setIsEditing }: EditEventFormProps) {
       title: event.title,
       description: event.description ?? '',
       date: new Date(event.date),
+      // Gesetzter Name = der Block ist an. Es gibt keine eigene Spalte dafuer,
+      // und genau deshalb kann hier nichts auseinanderlaufen.
+      sponsorEnabled: Boolean(event.sponsor_name),
+      sponsorName: event.sponsor_name ?? '',
+      sponsorText: event.sponsor_text ?? '',
     },
   });
 
@@ -65,7 +72,23 @@ export function EditEventForm({ event, setIsEditing }: EditEventFormProps) {
         imageUrl = upload.url ?? '';
       }
 
-      const result = await editEvent(event.id, { ...values, imageUrl });
+      let sponsorImageUrl = event.sponsor_image_url ?? '';
+      const sponsorFile = sponsorFileInputRef.current?.files?.[0];
+
+      if (values.sponsorEnabled && sponsorFile) {
+        const upload = await uploadEventImage(sponsorFile);
+        if (upload.error) {
+          setError(upload.error);
+          return;
+        }
+        sponsorImageUrl = upload.url ?? '';
+      }
+
+      const result = await editEvent(event.id, {
+        ...values,
+        imageUrl,
+        sponsorImageUrl,
+      });
 
       if (result.error) {
         setError(result.error);
@@ -158,6 +181,8 @@ export function EditEventForm({ event, setIsEditing }: EditEventFormProps) {
             />
           </div>
         </div>
+        <SponsorFields form={form} fileInputRef={sponsorFileInputRef} />
+
         <div className="flex justify-end gap-2">
           <Button
             type="button"

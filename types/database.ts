@@ -89,6 +89,9 @@ export type Database = {
           id: string
           image_url: string | null
           organization_id: string
+          sponsor_image_url: string | null
+          sponsor_name: string | null
+          sponsor_text: string | null
           title: string
           updated_at: string
           updated_by: string | null
@@ -101,6 +104,9 @@ export type Database = {
           id?: string
           image_url?: string | null
           organization_id: string
+          sponsor_image_url?: string | null
+          sponsor_name?: string | null
+          sponsor_text?: string | null
           title: string
           updated_at?: string
           updated_by?: string | null
@@ -113,6 +119,9 @@ export type Database = {
           id?: string
           image_url?: string | null
           organization_id?: string
+          sponsor_image_url?: string | null
+          sponsor_name?: string | null
+          sponsor_text?: string | null
           title?: string
           updated_at?: string
           updated_by?: string | null

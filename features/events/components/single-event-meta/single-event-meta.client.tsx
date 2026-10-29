@@ -106,6 +106,34 @@ export function SingleEventMetaClient({
         </p>
       </div>
 
+      {/*
+        Sponsor oder Ort. Erscheint, wenn ein Name gesetzt ist -- es gibt
+        bewusst keine Spalte `sponsor_enabled`, die dem widersprechen koennte.
+        Die Darstellung ist fest, der Organisator bestimmt nur den Inhalt.
+      */}
+      {event.sponsor_name && (
+        <div className="flex flex-col gap-3 border-t pt-6">
+          <h3 className="font-semibold">Sponsor oder Ort</h3>
+          <div className="flex items-start gap-4">
+            {event.sponsor_image_url && (
+              <Image
+                src={event.sponsor_image_url}
+                alt={event.sponsor_name}
+                width={120}
+                height={120}
+                className="h-auto w-30 shrink-0 rounded-lg"
+              />
+            )}
+            <div className="flex min-w-0 flex-col gap-1">
+              <p className="text-lg font-medium">{event.sponsor_name}</p>
+              {event.sponsor_text && (
+                <p className="text-muted-foreground">{event.sponsor_text}</p>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
+
       {!clientView && (
         <div className="bg-muted rounded-lg p-4">
           <h3 className="mb-4 font-semibold">Event Timeline</h3>

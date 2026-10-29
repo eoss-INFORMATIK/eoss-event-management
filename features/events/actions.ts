@@ -20,6 +20,22 @@ type EventResponse = { event?: Event; error?: string };
  * a delete that matches no row under RLS succeeds with zero rows affected.
  */
 
+/**
+ * Der Sponsorblock als Spaltenwerte.
+ *
+ * Ausgeschaltet heisst: alle drei Spalten null. Es gibt bewusst keine Spalte
+ * `sponsor_enabled` -- ein Schalter neben den Daten waere ein zweiter Zustand,
+ * der dem ersten widersprechen kann. Siehe docs/eos-36-dynamische-felder.md.
+ */
+const sponsorColumns = (input: EventInput) =>
+  input.sponsorEnabled
+    ? {
+        sponsor_name: input.sponsorName ?? null,
+        sponsor_text: input.sponsorText || null,
+        sponsor_image_url: input.sponsorImageUrl || null,
+      }
+    : { sponsor_name: null, sponsor_text: null, sponsor_image_url: null };
+
 export const addEvent = async (
   formData: EventInput
 ): Promise<ActionResponse> => {
@@ -51,6 +67,7 @@ export const addEvent = async (
     image_url: parsed.data.imageUrl || null,
     organization_id: organizationId,
     created_by: user.id,
+    ...sponsorColumns(parsed.data),
   });
 
   if (error) return { error: 'Event konnte nicht erstellt werden' };
@@ -83,6 +100,7 @@ export const editEvent = async (
       date: parsed.data.date.toISOString(),
       image_url: parsed.data.imageUrl || null,
       updated_by: user.id,
+      ...sponsorColumns(parsed.data),
     })
     .eq('id', eventId)
     .select('id');
