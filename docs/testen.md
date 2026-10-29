@@ -51,6 +51,13 @@ oder keine Berechtigung".
 **Dasselbe gilt für die Storage-API beim Löschen**: sie meldet keinen Fehler,
 sie löscht nur nichts.
 
+Daneben zwei Dateien ohne Datenbank, die eine Regel festhalten statt einer
+Policy: `tests/event-schema.test.ts` (Sponsor eingeschaltet verlangt einen
+Namen) und `tests/participants-export.test.ts` — der Export schreibt einen
+Namen wie `=1+1` als Text, nicht als Formel. Geprüft wird die echte Datei,
+entpackt, ohne `<f>`-Element im Sheet. Gegenprobe gemacht: mit `type: 'Formula'`
+auf der Namensspalte wird der Test rot.
+
 ## Wie neue Behauptungen entstehen
 
 Beim Umbau wird von Hand gemessen — Impersonierung über `request.jwt.claims` in
