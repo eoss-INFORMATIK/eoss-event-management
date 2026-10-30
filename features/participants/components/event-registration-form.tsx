@@ -167,9 +167,10 @@ export function EventRegistrationForm({
           />
         )}
 
+        {/* Schwarz statt Markenfarbe: die Landingpage ist neutral (TASK-55). */}
         <Button
           type="submit"
-          className="h-auto rounded-full px-12 py-3 text-lg font-normal"
+          className="h-auto rounded-full bg-black px-12 py-3 text-lg font-normal text-white hover:bg-black/80"
         >
           Anmelden
         </Button>
