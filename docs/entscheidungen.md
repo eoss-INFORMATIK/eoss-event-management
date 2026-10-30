@@ -16,6 +16,15 @@ die auf die alte verweist.
 
 ## 2026-10
 
+- **Öffentliche Seiten ohne App-Rahmen, Routengruppen `(app)` und `(public)`
+  (TASK-55, Scheibe 1).** Die Event-Landingpage und die Ticket-Seite tragen den
+  Auftritt des Veranstalters: weiss, ohne Navigation der App, Kopfzeile mit
+  Organisationsname (Logo folgt), weisse Fusszeile nach Figma (nicht schwarz wie
+  zuerst im Task) mit kleinem Verweis „Erstellt mit eoss Event Manager“.
+  Routengruppen statt Pfadliste im Header — eine neue öffentliche Seite muss so
+  nirgends eingetragen werden. URLs unverändert. Logo-Formate: PNG, JPEG, WebP;
+  SVG erst post-MVP (kann Skripte enthalten).
+
 - **Supabase-CLI in CI fest auf 2.122.0.** `version: latest` in
   `supabase/setup-cli` fragt bei jedem Lauf die GitHub-API ab und brach den
   `rls`-Job mit "rate limit exceeded" ab, bevor ein Test lief. Feste Version

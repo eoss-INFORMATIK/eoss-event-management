@@ -1,7 +1,6 @@
 import type { Metadata } from 'next';
 import { Poppins, Space_Grotesk } from 'next/font/google';
 
-import { Header } from '@/components/header';
 import { Toaster } from '@/components/ui/sonner';
 
 import { cn } from '@/lib/utils';
@@ -39,16 +38,16 @@ export default function RootLayout({
         ></link>
       </head>
       {/*
-        overflow-x-clip: Elemente ueber die volle Fensterbreite (Bildstreifen
-        der Event-Landingpage) sind 100vw breit, und 100vw zaehlt unter Windows
-        die Scrollleiste mit -- ohne das gaebe es einen waagrechten Scrollbalken.
-        `clip` statt `hidden`, damit `position: sticky` weiter funktioniert.
+        overflow-x-clip: Anmelden und Registrieren sind `w-screen` breit, und
+        100vw zaehlt unter Windows die Scrollleiste mit -- ohne das gaebe es
+        einen waagrechten Scrollbalken. `clip` statt `hidden`, damit
+        `position: sticky` weiter funktioniert.
+
+        Header und Rahmen liegen in den Routengruppen: `(app)` fuer die App,
+        `(public)` fuer Seiten, die Teilnehmende sehen (TASK-55).
       */}
       <body className="overflow-x-clip">
-        <Header />
-        <main className="bg-background mx-auto flex max-w-7xl px-4 py-10">
-          {children}
-        </main>
+        {children}
         <Toaster expand={true} />
       </body>
     </html>

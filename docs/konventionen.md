@@ -21,14 +21,22 @@ migrations under `supabase/migrations/`.
 
 ```
 app/                   # Next.js App Router pages
-├── auth/              # Sign-in, verify, callback
-├── events/            # Event list, detail, admin
-└── profile/
+├── layout.tsx         # nur html/body, Schriften, Toaster
+├── (app)/             # Header + Navigation: alles, was Organisatoren sehen
+│   ├── auth/          # Sign-in, verify, callback
+│   ├── events/        # Event-Liste, admin, edit
+│   └── profile/
+└── (public)/          # weiss, ohne App-Navigation: was Teilnehmende sehen
+    ├── events/[id]/   # Event-Landingpage
+    └── t/[code]/      # Ticket-Ziel des QR-Codes
+
+Neue Seite: Sehen sie Teilnehmende, gehoert sie nach `(public)`, sonst nach
+`(app)`. Die Klammern erscheinen nicht in der URL.
 
 components/            # NUR bereichsuebergreifende Komponenten
 ├── ui/                # shadcn/ui — nicht von Hand editieren, via `shadcn add` neu holen
 ├── surface/           # eigene Flaeche (Rahmen, Radius, Hintergrund) — Ersatz fuer shadcns Card
-├── header/            # laeuft auf allen Seiten
+├── header/            # laeuft auf allen Seiten unter (app)/
 └── nav/
 
 features/              # Domaenenmodule: Actions, Schemas UND Komponenten
