@@ -38,10 +38,7 @@ const OrganizationSettingsPage = async ({
     <section className="flex flex-col gap-6">
       <h1 className="text-2xl font-bold">{organization.name}</h1>
 
-      <OrganizationForm
-        organizationId={organization.id}
-        name={organization.name}
-      />
+      <OrganizationForm organization={organization} />
     </section>
   );
 };

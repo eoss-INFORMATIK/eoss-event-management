@@ -18,10 +18,16 @@ import type { ActionResponse } from '@/types/actions';
  * sieht, gelingt mit null betroffenen Zeilen und waere sonst ein stilles
  * Nichts.
  *
- * Jedes Mitglied darf umbenennen; Rollen gibt es noch keine (siehe
+ * Jedes Mitglied darf aendern; Rollen gibt es noch keine (siehe
  * docs/datenmodell.md).
  */
-export const renameOrganization = async (
+/**
+ * Leere optionale Felder werden NULL, nicht ''. "Nicht angegeben" hat in der
+ * Datenbank so genau eine Darstellung.
+ */
+const orNull = (value: string) => value || null;
+
+export const updateOrganization = async (
   organizationId: string,
   formData: OrganizationFormValues
 ): Promise<ActionResponse> => {
@@ -41,7 +47,16 @@ export const renameOrganization = async (
 
   const { data, error } = await supabase
     .from('organizations')
-    .update({ name: parsed.data.name, updated_at: new Date().toISOString() })
+    .update({
+      name: parsed.data.name,
+      street: orNull(parsed.data.street),
+      address_addition: orNull(parsed.data.addressAddition),
+      postal_code: orNull(parsed.data.postalCode),
+      city: orNull(parsed.data.city),
+      contact_email: orNull(parsed.data.contactEmail),
+      phone: orNull(parsed.data.phone),
+      updated_at: new Date().toISOString(),
+    })
     .eq('id', organizationId)
     .select('id');
 

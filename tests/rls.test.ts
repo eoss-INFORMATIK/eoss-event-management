@@ -518,6 +518,37 @@ describe('organizations: nur Mitglieder', () => {
     expect(data).toEqual([{ name: 'Org A, neu' }]);
   });
 
+  it('A setzt Adresse und Kontakt der eigenen Organisation (TASK-55)', async () => {
+    const contact = {
+      street: 'Bahnhofstrasse 1',
+      address_addition: 'Postfach',
+      postal_code: '9500',
+      city: 'Wil',
+      contact_email: 'info@example.ch',
+      phone: '+41 71 000 00 00',
+    };
+
+    const { data, error } = await a.client
+      .from('organizations')
+      .update(contact)
+      .eq('id', a.organizationId)
+      .select(
+        'street, address_addition, postal_code, city, contact_email, phone'
+      );
+
+    expect(error).toBeNull();
+    expect(data).toEqual([contact]);
+  });
+
+  it('anonym bleibt der Kontakt unsichtbar -- oeffentlich erst ueber Scheibe 4', async () => {
+    const { data } = await anonClient()
+      .from('organizations')
+      .select('contact_email')
+      .eq('id', a.organizationId);
+
+    expect(data).toEqual([]);
+  });
+
   it('A sieht die Organisation von B nicht', async () => {
     const { data, error } = await a.client
       .from('organizations')

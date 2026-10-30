@@ -216,21 +216,39 @@ export type Database = {
       }
       organizations: {
         Row: {
+          address_addition: string | null
+          city: string | null
+          contact_email: string | null
           created_at: string
           id: string
           name: string
+          phone: string | null
+          postal_code: string | null
+          street: string | null
           updated_at: string
         }
         Insert: {
+          address_addition?: string | null
+          city?: string | null
+          contact_email?: string | null
           created_at?: string
           id?: string
           name: string
+          phone?: string | null
+          postal_code?: string | null
+          street?: string | null
           updated_at?: string
         }
         Update: {
+          address_addition?: string | null
+          city?: string | null
+          contact_email?: string | null
           created_at?: string
           id?: string
           name?: string
+          phone?: string | null
+          postal_code?: string | null
+          street?: string | null
           updated_at?: string
         }
         Relationships: []
@@ -267,9 +285,15 @@ export type Database = {
       create_organization: {
         Args: { p_name: string }
         Returns: {
+          address_addition: string | null
+          city: string | null
+          contact_email: string | null
           created_at: string
           id: string
           name: string
+          phone: string | null
+          postal_code: string | null
+          street: string | null
           updated_at: string
         }
         SetofOptions: {
