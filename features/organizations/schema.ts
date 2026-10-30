@@ -1,12 +1,22 @@
 import { z } from 'zod';
 
 /**
- * Der Name der Organisation, wie ihn ein Mitglied setzt.
+ * Ein optionales Textfeld, getrimmt. Leer bleibt hier '' -- erst die Action
+ * schreibt `null` (siehe `updateOrganization`). Ein `transform` im Schema
+ * machte Ein- und Ausgabetyp verschieden, und das vertraegt `FormField` nicht.
+ */
+const optionalText = (max: number) =>
+  z.string().trim().max(max, `Höchstens ${max} Zeichen`);
+
+/**
+ * Name, Adresse und Kontakt der Organisation, wie ein Mitglied sie setzt.
  *
- * Bis hierher entstand er nur automatisch ("Organisation von ..."), weil
- * Schritt 1 von EOS-20 bewusst keine Seite dafuer hatte. `organizations.name`
- * ist `not null`, ein leerer Name waere also auch in der Datenbank ungueltig --
- * das Schema sagt es nur frueher und lesbarer.
+ * Der Name entstand bis EOS-20 nur automatisch ("Organisation von ...").
+ * `organizations.name` ist `not null`, ein leerer Name waere also auch in der
+ * Datenbank ungueltig -- das Schema sagt es nur frueher und lesbarer.
+ *
+ * Adresse und Kontakt (TASK-55) sind alle optional und erscheinen oeffentlich
+ * in der Fusszeile der Event-Seiten. Die Laengen entsprechen den Spalten.
  */
 export const organizationFormSchema = z.object({
   name: z
@@ -14,6 +24,18 @@ export const organizationFormSchema = z.object({
     .trim()
     .min(1, 'Bitte gib einen Namen an')
     .max(120, 'Der Name darf hoechstens 120 Zeichen lang sein'),
+  street: optionalText(255),
+  addressAddition: optionalText(255),
+  postalCode: optionalText(10),
+  city: optionalText(255),
+  contactEmail: z
+    .string()
+    .trim()
+    .max(255, 'Höchstens 255 Zeichen')
+    .pipe(
+      z.union([z.literal(''), z.email('Bitte gib eine gültige E-Mail an')])
+    ),
+  phone: optionalText(50),
 });
 
 export type OrganizationFormValues = z.infer<typeof organizationFormSchema>;

@@ -16,6 +16,14 @@ die auf die alte verweist.
 
 ## 2026-10
 
+- **Adresse und Kontakt der Organisation (TASK-55, Scheibe 2).** Sechs
+  optionale Spalten auf `organizations`: `street`, `address_addition`,
+  `postal_code`, `city`, `contact_email` (die öffentliche Adresse, nicht die
+  Anmeldung eines Mitglieds), `phone`. Leer wird NULL, nicht '' — das macht die
+  Action, nicht das Schema (ein `transform` verträgt `FormField` nicht). Keine
+  neue Policy: lesen und ändern nur Mitglieder; öffentlich wird der Kontakt
+  erst in Scheibe 4 über eine Definer-Funktion.
+
 - **Öffentliche Seiten ohne App-Rahmen, Routengruppen `(app)` und `(public)`
   (TASK-55, Scheibe 1).** Die Event-Landingpage und die Ticket-Seite tragen den
   Auftritt des Veranstalters: weiss, ohne Navigation der App, Kopfzeile mit

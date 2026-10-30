@@ -8,7 +8,7 @@ Was hier **nicht** steht: Produktentscheidungen, Roadmap, Aufgaben — die liege
 in Notion. Konventionen und Fallstricke der Codebasis stehen in
 [`CLAUDE.md`](../CLAUDE.md).
 
-Stand: 2026-10-30, nach neunzehn Migrationen.
+Stand: 2026-10-30, nach zwanzig Migrationen.
 
 ## Das Besitzmodell in einem Satz
 
@@ -22,7 +22,7 @@ Organisation ihres Events, Bilder liegen im Ordner der Organisation.
 
 | Tabelle              | Zweck                  | Besonderheit                                                              |
 | -------------------- | ---------------------- | ------------------------------------------------------------------------- |
-| `organizations`      | Mandant                | `name` und Zeitstempel, sonst nichts                                      |
+| `organizations`      | Mandant                | `name`, Adresse und Kontakt (alle optional, leer = NULL), Zeitstempel     |
 | `organization_user`  | Mitgliedschaft         | `unique(organization_id, user_id)` **und** `unique(user_id)`              |
 | `profiles`           | Profil zu `auth.users` | wird bei der Anmeldung angelegt, nie überschrieben                        |
 | `events`             | Event                  | `organization_id` **not null**, `created_by`/`updated_by` nullable        |
