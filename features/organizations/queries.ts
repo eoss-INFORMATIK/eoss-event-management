@@ -75,3 +75,29 @@ export const getOrganization = async (
 
   return data ?? null;
 };
+
+/**
+ * Was eine oeffentliche Event-Seite ueber den Veranstalter zeigt. Heute nur
+ * der Name; Logo und Kontakt kommen mit TASK-55, Scheibe 4.
+ */
+export interface EventOrganization {
+  name: string;
+}
+
+/**
+ * Der Veranstalter eines Events, lesbar auch ohne Anmeldung.
+ *
+ * Nicht ueber `organizations`: deren SELECT-Policy zeigt nur Mitgliedern
+ * etwas. Die Definer-Funktion gibt genau den Namen heraus und sonst nichts
+ * (Begruendung: docs/task-51-bestaetigungsmail.md).
+ */
+export const getEventOrganization = async (
+  supabase: SupabaseClient<Database>,
+  eventId: string
+): Promise<EventOrganization | null> => {
+  const { data } = await supabase.rpc('event_organization_name', {
+    p_event_id: eventId,
+  });
+
+  return data ? { name: data } : null;
+};
