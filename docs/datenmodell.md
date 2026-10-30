@@ -8,7 +8,7 @@ Was hier **nicht** steht: Produktentscheidungen, Roadmap, Aufgaben — die liege
 in Notion. Konventionen und Fallstricke der Codebasis stehen in
 [`CLAUDE.md`](../CLAUDE.md).
 
-Stand: 2026-10-23, nach dreizehn Migrationen.
+Stand: 2026-10-30, nach sechzehn Migrationen.
 
 ## Das Besitzmodell in einem Satz
 
@@ -41,6 +41,15 @@ entfernen ist ein Erweitern, also scheinbar Migration zuerst. Aber
 Mitgliedschaften, statt eine zu wählen. Gefährlich ist nicht die Migration,
 sondern die erste zweite Mitgliedschaft. Also: erst Code, der mit mehreren
 umgehen kann, dann die Constraint fallen lassen.
+
+**Status einer Anmeldung** (`event_participants.status`, Check-Constraint
+`event_participants_status_check`): `invited`, `registered`, `waitlisted`,
+`cancelled`, `attended` — angezeigt als Eingeladen, Angemeldet, Warteliste,
+Abgemeldet, Teilgenommen. Der Standard `registered` kommt aus dem Default der
+Spalte; kein Code setzt ihn. `invited` hat noch keinen Ablauf (kommt mit den
+Einladungen per Mail), `waitlisted` keinen (kommt mit der Kapazität). Check
+statt Enum-Typ, weil sich ein Enum-Wert nicht entfernen lässt, ohne den Typ neu
+zu bauen.
 
 ## Löschverhalten
 

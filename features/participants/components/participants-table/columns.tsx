@@ -1,16 +1,15 @@
 'use client';
 
 import { ColumnDef } from '@tanstack/react-table';
-import { MoreHorizontal } from 'lucide-react';
-import { toast } from 'sonner';
 
-import { deleteParticipant } from '@/features/participants/actions';
 import { statusLabel } from '@/features/participants/schema';
 import {
   type ParticipantRow,
   inSelection,
   searchParticipant,
 } from '@/features/participants/table';
+
+import { RowActions } from './row-actions';
 
 export type { ParticipantRow };
 
@@ -46,27 +45,8 @@ export const columns: ColumnDef<ParticipantRow>[] = [
     header: 'Event',
   },
   {
-    header: 'Aktionen',
     id: 'actions',
-    cell: ({ row }) => {
-      const participant = row.original;
-      return (
-        <button
-          onClick={async () => {
-            const result = await deleteParticipant(
-              participant.id,
-              participant.event_id
-            );
-            if (result.success) {
-              toast.success('Teilnehmer erfolgreich gelöscht');
-            } else {
-              toast.error('Fehler beim Löschen des Teilnehmers');
-            }
-          }}
-        >
-          <MoreHorizontal />
-        </button>
-      );
-    },
+    header: () => <span className="sr-only">Aktionen</span>,
+    cell: ({ row }) => <RowActions participant={row.original} />,
   },
 ];

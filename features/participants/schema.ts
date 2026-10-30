@@ -1,21 +1,29 @@
 import { z } from 'zod';
 
+/**
+ * Muss mit der Check-Constraint `event_participants_status_check` uebereinstimmen
+ * (Migration `participant_status`). Reihenfolge = Ablauf, so erscheinen sie in
+ * Menue und Filter. Den Standard `registered` setzt der Default der Spalte,
+ * nicht der Code.
+ */
 export const PARTICIPANT_STATUSES = [
-  'pending',
-  'confirmed',
-  'declined',
+  'invited',
+  'registered',
   'waitlisted',
+  'cancelled',
+  'attended',
 ] as const;
 
-/** Anzeige fuer Menschen ausserhalb der App, etwa im Export. */
+/** Anzeige fuer Menschen: Tabelle, Filter, Menue, Export. */
 export const PARTICIPANT_STATUS_LABELS: Record<
   (typeof PARTICIPANT_STATUSES)[number],
   string
 > = {
-  pending: 'Ausstehend',
-  confirmed: 'Bestätigt',
-  declined: 'Abgesagt',
+  invited: 'Eingeladen',
+  registered: 'Angemeldet',
   waitlisted: 'Warteliste',
+  cancelled: 'Abgemeldet',
+  attended: 'Teilgenommen',
 };
 
 export const participantStatusSchema = z.enum(PARTICIPANT_STATUSES, {
