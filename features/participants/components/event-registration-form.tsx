@@ -38,12 +38,11 @@ type EventRegistrationFormProps = {
   categoryRequired: boolean;
 };
 
-// Feldstil der Landingpage (Figma "Forms"): hoch, stark gerundet, auf dem
-// Seitenhintergrund. Nur hier -- die Formulare der Verwaltung bleiben bei
-// den shadcn-Vorgaben.
+// Feldstil der Landingpage (Figma "Forms"): hoch, stark gerundet. Hintergrund
+// transparent wie die shadcn-Vorgabe ueberall sonst -- keine eigene Farbe, die
+// auf dem weissen Rahmen der Landingpage als Markenton auffiele.
 const LABEL = 'text-lg font-normal';
-const FIELD =
-  'bg-background border-muted h-12 rounded-2xl px-4 text-lg md:text-lg';
+const FIELD = 'border-muted h-12 rounded-2xl px-4 text-lg md:text-lg';
 
 export function EventRegistrationForm({
   eventId,
