@@ -16,6 +16,22 @@ die auf die alte verweist.
 
 ## 2026-10
 
+- **E-Mail steht vorne, in Tabelle und Export.** Sie identifiziert die Anmeldung
+  und ist immer gesetzt, der Name ist optional. Ausgelöst durch einen Test: die
+  macOS-Vorschau hört an der ersten Zeile mit leerer erster Spalte auf zu lesen
+  und zeigte 3 von 15 Teilnehmern, obwohl die Datei vollständig war. Die
+  Textsuche hängt jetzt an der Spalte `email`. Test „beginnt jede Zeile mit
+  einer Zelle“ in `tests/participants-export.test.ts`.
+- **Teilnehmer filtern im Browser (TASK-41).** Suche, Status und Kategorie
+  filtern die bereits geladenen Zeilen mit TanStack, der Export nimmt dieselbe
+  Auswahl (`selectedRows`, also `getFilteredRowModel()`, nie die angezeigte
+  Seite). Die Suche geht auf Name **und** E-Mail, weil der Name optional ist.
+  Filteroptionen kommen aus den Anmeldungen, mit Anzahl, nicht aus den
+  Kategorien des Events: eine Option ohne Treffer hilft niemandem.
+  Pagination ab 51 Treffern, 50 pro Seite. Ein Button „N Teilnehmer
+  exportieren“ statt Menü; eine gefilterte Datei heisst `…-auswahl-…`. Filter
+  stehen nicht in der URL — nach Neuladen ist die Liste vollständig. Test:
+  `tests/participants-filter.test.ts`.
 - **Teilnehmerexport im Browser, als .xlsx (TASK-39).** Erzeugt aus den Zeilen
   der TanStack-Tabelle, nicht über eine Server-Route: der gefilterte Export
   (Folgetask) nimmt dann `getFilteredRowModel()` statt den Filterzustand an den

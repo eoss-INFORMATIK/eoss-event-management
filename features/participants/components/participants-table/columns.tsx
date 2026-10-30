@@ -5,26 +5,33 @@ import { MoreHorizontal } from 'lucide-react';
 import { toast } from 'sonner';
 
 import { deleteParticipant } from '@/features/participants/actions';
+import { statusLabel } from '@/features/participants/schema';
+import {
+  type ParticipantRow,
+  inSelection,
+  searchParticipant,
+} from '@/features/participants/table';
 
-import type { EventParticipant as DbEventParticipant } from '@/types';
-
-export type ParticipantRow = DbEventParticipant & {
-  eventName: string | null;
-  categoryLabel: string | null;
-};
+export type { ParticipantRow };
 
 export const columns: ColumnDef<ParticipantRow>[] = [
+  {
+    // Die E-Mail steht vorne: sie identifiziert die Anmeldung und ist immer
+    // gesetzt, der Name ist optional. Gleiche Reihenfolge wie im Export.
+    accessorKey: 'email',
+    header: 'E-Mail',
+    // Die Textsuche haengt hier und prueft E-Mail und Name.
+    filterFn: searchParticipant,
+  },
   {
     accessorKey: 'name',
     header: 'Name',
   },
   {
-    accessorKey: 'email',
-    header: 'E-Mail',
-  },
-  {
     accessorKey: 'status',
     header: 'Status',
+    cell: ({ row }) => statusLabel(row.original.status),
+    filterFn: inSelection,
   },
   {
     // Die Spalte bleibt stehen, auch wenn das Event keine Kategorien anbietet
@@ -32,6 +39,7 @@ export const columns: ColumnDef<ParticipantRow>[] = [
     // auszublenden waere Zustand, den die Tabelle sonst nirgends braucht.
     accessorKey: 'categoryLabel',
     header: 'Kategorie',
+    filterFn: inSelection,
   },
   {
     accessorKey: 'eventName',

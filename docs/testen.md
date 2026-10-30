@@ -58,6 +58,11 @@ Namen wie `=1+1` als Text, nicht als Formel. Geprüft wird die echte Datei,
 entpackt, ohne `<f>`-Element im Sheet. Gegenprobe gemacht: mit `type: 'Formula'`
 auf der Namensspalte wird der Test rot.
 
+`tests/participants-filter.test.ts` hält fest, dass der Export die ganze
+gefilterte Auswahl nimmt, nicht die angezeigte Seite — mit derselben
+Tabellenkonfiguration wie die Seite. Gegenprobe: mit `getRowModel()` statt
+`getFilteredRowModel()` wird er rot.
+
 ## Wie neue Behauptungen entstehen
 
 Beim Umbau wird von Hand gemessen — Impersonierung über `request.jwt.claims` in
