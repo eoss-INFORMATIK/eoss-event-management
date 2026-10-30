@@ -8,7 +8,7 @@ Was hier **nicht** steht: Produktentscheidungen, Roadmap, Aufgaben — die liege
 in Notion. Konventionen und Fallstricke der Codebasis stehen in
 [`CLAUDE.md`](../CLAUDE.md).
 
-Stand: 2026-10-30, nach achtzehn Migrationen.
+Stand: 2026-10-30, nach neunzehn Migrationen.
 
 ## Das Besitzmodell in einem Satz
 
@@ -20,13 +20,13 @@ Organisation ihres Events, Bilder liegen im Ordner der Organisation.
 
 ## Tabellen
 
-| Tabelle              | Zweck                  | Besonderheit                                                       |
-| -------------------- | ---------------------- | ------------------------------------------------------------------ |
-| `organizations`      | Mandant                | `name` und Zeitstempel, sonst nichts                               |
-| `organization_user`  | Mitgliedschaft         | `unique(organization_id, user_id)` **und** `unique(user_id)`       |
-| `profiles`           | Profil zu `auth.users` | wird bei der Anmeldung angelegt, nie überschrieben                 |
-| `events`             | Event                  | `organization_id` **not null**, `created_by`/`updated_by` nullable |
-| `event_participants` | Anmeldung              | `organization_id` **not null**, per Trigger gesetzt                |
+| Tabelle              | Zweck                  | Besonderheit                                                              |
+| -------------------- | ---------------------- | ------------------------------------------------------------------------- |
+| `organizations`      | Mandant                | `name` und Zeitstempel, sonst nichts                                      |
+| `organization_user`  | Mitgliedschaft         | `unique(organization_id, user_id)` **und** `unique(user_id)`              |
+| `profiles`           | Profil zu `auth.users` | wird bei der Anmeldung angelegt, nie überschrieben                        |
+| `events`             | Event                  | `organization_id` **not null**, `created_by`/`updated_by` nullable        |
+| `event_participants` | Anmeldung              | `organization_id` **not null**, per Trigger gesetzt; `ticket_code` unique |
 
 **`unique(user_id)` auf `organization_user` ist eine Schritt-1-Krücke:** ein
 Nutzer ist derzeit in genau einer Organisation. Sie fällt mit den Einladungen
@@ -41,6 +41,12 @@ entfernen ist ein Erweitern, also scheinbar Migration zuerst. Aber
 Mitgliedschaften, statt eine zu wählen. Gefährlich ist nicht die Migration,
 sondern die erste zweite Mitgliedschaft. Also: erst Code, der mit mehreren
 umgehen kann, dann die Constraint fallen lassen.
+
+**Ticket-Code** (`event_participants.ticket_code`, unique): 32 Hex-Zeichen
+Zufall, Default aus `gen_random_uuid()`. Die öffentliche Anmeldung erzeugt ihn
+im Server im selben Format und schreibt ihn mit, weil sie ihre Zeile nicht
+zurücklesen darf; die Bestätigungsmail enthält ihn als QR-Code mit
+`<SITE_URL>/t/<code>`. Lesen dürfen ihn nur Mitglieder (SELECT-Policy).
 
 **Status einer Anmeldung** (`event_participants.status`, Check-Constraint
 `event_participants_status_check`): `invited`, `registered`, `waitlisted`,
@@ -80,13 +86,13 @@ Aufräumen gehört zur Mitgliederverwaltung.
 **RLS ist die Grenze.** Die Prüfungen in den Server Actions liefern nur lesbare
 Fehlermeldungen; fehlt eine Policy, hilft kein Anwendungscode.
 
-| Tabelle              | Lesen                                                  | Schreiben                                          |
-| -------------------- | ------------------------------------------------------ | -------------------------------------------------- |
-| `events`             | **öffentlich** — Events stehen auf öffentlichen Seiten | Mitglieder der Organisation                        |
+| Tabelle              | Lesen                                                  | Schreiben                                                                                |
+| -------------------- | ------------------------------------------------------ | ---------------------------------------------------------------------------------------- |
+| `events`             | **öffentlich** — Events stehen auf öffentlichen Seiten | Mitglieder der Organisation                                                              |
 | `event_participants` | nur Mitglieder der Organisation des Events             | INSERT **öffentlich** nur als `registered`, Mitglieder mit jedem Status; Rest Mitglieder |
-| `organizations`      | Mitglieder                                             | INSERT für Angemeldete, Rest Mitglieder            |
-| `organization_user`  | nur die eigenen Zeilen                                 | kein direktes Schreiben — nur über den Trigger     |
-| `profiles`           | nur das eigene                                         | nur das eigene                                     |
+| `organizations`      | Mitglieder                                             | INSERT für Angemeldete, Rest Mitglieder                                                  |
+| `organization_user`  | nur die eigenen Zeilen                                 | kein direktes Schreiben — nur über den Trigger                                           |
+| `profiles`           | nur das eigene                                         | nur das eigene                                                                           |
 
 **Den Status bei der Anmeldung bestimmt nicht der Client.** Zwei
 INSERT-Policies, die Postgres mit ODER verknüpft: „Anyone can register for an

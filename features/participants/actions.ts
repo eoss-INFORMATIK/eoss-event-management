@@ -14,6 +14,7 @@ import {
   participantStatusSchema,
 } from '@/features/participants/schema';
 
+import { newTicketCode } from '@/lib/ticket';
 import { createClient } from '@/server/supabase/server';
 import type { ActionResponse } from '@/types/actions';
 
@@ -51,12 +52,17 @@ export const addParticipant = async (
   if (event.category_required && !parsed.data.categoryId)
     return { error: 'Bitte einen Wert auswählen' };
 
+  // Im Server erzeugt und mitgeschrieben: die anonyme Anmeldung darf ihre
+  // Zeile nicht zuruecklesen, die Mail braucht den Code fuer den QR-Code.
+  const ticketCode = newTicketCode();
+
   const { error } = await supabase.from('event_participants').insert({
     event_id: eventId,
     email: parsed.data.email,
     name: parsed.data.name || null,
     organization_id: event.organization_id,
     category_id: parsed.data.categoryId || null,
+    ticket_code: ticketCode,
   });
 
   if (error) {
@@ -73,6 +79,7 @@ export const addParticipant = async (
       email: parsed.data.email,
       name: parsed.data.name || null,
       categoryId: parsed.data.categoryId || null,
+      ticketCode,
     });
     if (result.error) {
       // eslint-disable-next-line no-console

@@ -79,6 +79,7 @@ export type Database = {
           name: string | null
           organization_id: string
           status: string
+          ticket_code: string
           updated_at: string
         }
         Insert: {
@@ -90,6 +91,7 @@ export type Database = {
           name?: string | null
           organization_id: string
           status?: string
+          ticket_code?: string
           updated_at?: string
         }
         Update: {
@@ -101,6 +103,7 @@ export type Database = {
           name?: string | null
           organization_id?: string
           status?: string
+          ticket_code?: string
           updated_at?: string
         }
         Relationships: [
