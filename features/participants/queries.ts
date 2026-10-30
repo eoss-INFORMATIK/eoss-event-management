@@ -24,7 +24,11 @@ export const getEventParticipants = async (
     .from('event_participants')
     .select('*, events (title), event_categories (label)')
     .eq('event_id', eventId)
-    .order('created_at', { ascending: true });
+    .order('created_at', { ascending: true })
+    // Gleichstandsregel: gleiche Zeitstempel (Import, gleichzeitige Anmeldung)
+    // haben in Postgres keine feste Reihenfolge, und ein UPDATE schreibt die
+    // Zeile neu -- ohne `id` sprang eine Zeile nach einer Statusaenderung.
+    .order('id', { ascending: true });
 
   if (error) return { error: 'Teilnehmer konnten nicht geladen werden' };
 
