@@ -276,6 +276,7 @@ export type Database = {
           isSetofReturn: false
         }
       }
+      event_organization_name: { Args: { p_event_id: string }; Returns: string }
     }
     Enums: {
       [_ in never]: never

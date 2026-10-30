@@ -5,7 +5,6 @@ import { useState } from 'react';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useForm } from 'react-hook-form';
 
-import { sendConfirmationEmail } from '@/features/email/actions';
 import { addParticipant } from '@/features/participants/actions';
 import {
   type ParticipantFormValues,
@@ -80,14 +79,6 @@ export function EventRegistrationForm({
     }
 
     setStatus('success');
-
-    // A failed confirmation mail does not undo the registration.
-    await sendConfirmationEmail(
-      values.name || '',
-      'Anmeldung bestätigt',
-      values.email,
-      eventId
-    );
   };
 
   if (status === 'loading') {

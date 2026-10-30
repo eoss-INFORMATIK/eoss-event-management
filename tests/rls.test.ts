@@ -443,6 +443,37 @@ describe('profiles: nur das eigene', () => {
   });
 });
 
+describe('event_organization_name: nur der Name, nur ueber ein Event', () => {
+  // Die Bestaetigungsmail braucht den Organisationsnamen bei einer anonymen
+  // Anmeldung. Die Funktion gibt genau den heraus -- die Tabelle bleibt zu.
+  it('anonym liefert sie den Namen der Organisation eines Events', async () => {
+    const { data: expected } = await admin()
+      .from('organizations')
+      .select('name')
+      .eq('id', b.organizationId)
+      .single();
+
+    const { data, error } = await anonClient().rpc('event_organization_name', {
+      p_event_id: eventOfB,
+    });
+
+    expect(error).toBeNull();
+    expect(data).toBe(expected?.name);
+  });
+
+  it('fuer ein unbekanntes Event liefert sie nichts', async () => {
+    const { data } = await anonClient().rpc('event_organization_name', {
+      p_event_id: '00000000-0000-0000-0000-000000000000',
+    });
+    expect(data).toBeNull();
+  });
+
+  it('die Tabelle organizations bleibt anonym verschlossen', async () => {
+    const { data } = await anonClient().from('organizations').select('name');
+    expect(data).toEqual([]);
+  });
+});
+
 describe('organizations: nur Mitglieder', () => {
   it('A benennt die eigene Organisation um', async () => {
     const { data, error } = await a.client
