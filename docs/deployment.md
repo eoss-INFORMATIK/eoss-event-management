@@ -16,6 +16,11 @@ deployt jeden Push auf `main` nach Produktion. Deshalb:
 - Keine Review-Pflicht — Sh arbeitet allein, und eine Pflicht, die man selbst
   abnickt, ist Zeremonie.
 
+**Funktionsregion `fra1`** (Frankfurt), gesetzt in `vercel.json`. Die Datenbank
+steht in Zürich; ohne Angabe liefen die Funktionen in Washington und jede
+Abfrage kostete ~100 ms. Prüfen: der Header `x-vercel-id` einer dynamischen
+Seite beginnt mit `fra1::fra1::`.
+
 ### Was welcher Check abdeckt
 
 |              | Vercel   | `verify`                | `rls`          |
