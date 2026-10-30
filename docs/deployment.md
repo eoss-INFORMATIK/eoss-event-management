@@ -43,7 +43,14 @@ nur Token, kein Datenbankpasswort. Laeuft nur auf Pull Requests.
 
 Beim **Verschaerfen und Entfernen** gehoert die Migration absichtlich erst nach
 dem Merge nach Produktion. Dort setzt man das Label **`migration-nach-merge`**
-an den Pull Request, dann wird der Job uebersprungen.
+an den Pull Request, dann wird der Job uebersprungen. Zwei Dinge dazu, beide
+gemessen an PR #43:
+
+- **Das Label wirkt erst beim naechsten Push.** `on: pull_request` horcht
+  standardmaessig nicht auf das Setzen von Labels, der Check bleibt also auf
+  seinem alten Ergebnis stehen. Label setzen, dann committen.
+- **Ein uebersprungener Job gilt als erfuellt**, auch wenn der Check
+  erforderlich ist -- er blockiert den Merge nicht.
 
 `next build` lintet seit Next 15 nicht mehr mit — ein Lint-Fehler würde ohne den
 CI-Workflow unbemerkt nach Produktion gehen.
