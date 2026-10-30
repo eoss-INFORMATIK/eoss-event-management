@@ -8,7 +8,7 @@ Was hier **nicht** steht: Produktentscheidungen, Roadmap, Aufgaben — die liege
 in Notion. Konventionen und Fallstricke der Codebasis stehen in
 [`CLAUDE.md`](../CLAUDE.md).
 
-Stand: 2026-10-30, nach sechzehn Migrationen.
+Stand: 2026-10-30, nach siebzehn Migrationen.
 
 ## Das Besitzmodell in einem Satz
 
@@ -83,10 +83,18 @@ Fehlermeldungen; fehlt eine Policy, hilft kein Anwendungscode.
 | Tabelle              | Lesen                                                  | Schreiben                                          |
 | -------------------- | ------------------------------------------------------ | -------------------------------------------------- |
 | `events`             | **öffentlich** — Events stehen auf öffentlichen Seiten | Mitglieder der Organisation                        |
-| `event_participants` | nur Mitglieder der Organisation des Events             | INSERT **öffentlich** (Anmeldung), Rest Mitglieder |
+| `event_participants` | nur Mitglieder der Organisation des Events             | INSERT **öffentlich** nur als `registered`, Mitglieder mit jedem Status; Rest Mitglieder |
 | `organizations`      | Mitglieder                                             | INSERT für Angemeldete, Rest Mitglieder            |
 | `organization_user`  | nur die eigenen Zeilen                                 | kein direktes Schreiben — nur über den Trigger     |
 | `profiles`           | nur das eigene                                         | nur das eigene                                     |
+
+**Den Status bei der Anmeldung bestimmt nicht der Client.** Zwei
+INSERT-Policies, die Postgres mit ODER verknüpft: „Anyone can register for an
+event" erlaubt nur `status = 'registered'`, „Members can add participants with
+any status" erlaubt Mitgliedern jeden Wert. Das öffentliche Formular setzt nie
+einen Status, es bekommt `registered` über den Default. Gemessen vorher: mit
+`with check (true)` legte ein anonymer API-Aufruf eine Anmeldung als
+`attended` an.
 
 Zwei Feinheiten, die man den Policies nicht ansieht:
 

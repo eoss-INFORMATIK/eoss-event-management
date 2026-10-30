@@ -195,6 +195,30 @@ describe('event_participants: nur die Organisation des Events sieht sie', () => 
     }
   );
 
+  it('die oeffentliche Anmeldung setzt keinen eigenen Status', async () => {
+    // Vorher `with check (true)`: anonym liess sich direkt "attended"
+    // eintragen. Policy "Anyone can register for an event" erlaubt seit
+    // `participant_insert_status` nur noch `registered`.
+    const { error } = await anonClient().from('event_participants').insert({
+      event_id: eventOfB,
+      email: 'selbsternannt@example.com',
+      status: 'attended',
+      organization_id: b.organizationId,
+    });
+
+    expect(error?.code).toBe('42501');
+  });
+
+  it('A setzt bei einem fremden Event keinen Status, nur die Anmeldung', async () => {
+    const withStatus = await a.client.from('event_participants').insert({
+      event_id: eventOfB,
+      email: 'a-traegt-ein@example.com',
+      status: 'invited',
+      organization_id: b.organizationId,
+    });
+    expect(withStatus.error?.code).toBe('42501');
+  });
+
   it('A aendert die Teilnehmer von B nicht', async () => {
     const { data, error } = await a.client
       .from('event_participants')
@@ -215,6 +239,22 @@ describe('event_participants: nur die Organisation des Events sieht sie', () => 
 
     expect(error).toBeNull();
     expect(data).toHaveLength(1);
+  });
+
+  it('B fuegt dem eigenen Event einen Teilnehmer mit beliebigem Status hinzu', async () => {
+    const { data, error } = await b.client
+      .from('event_participants')
+      .insert({
+        event_id: eventOfB,
+        email: 'vor-ort@example.com',
+        status: 'attended',
+        organization_id: b.organizationId,
+      })
+      .select('status')
+      .single();
+
+    expect(error).toBeNull();
+    expect(data?.status).toBe('attended');
   });
 
   it('eine Anmeldung bekommt die Organisation des Events, auch wenn der Client luegt', async () => {
