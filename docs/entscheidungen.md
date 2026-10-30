@@ -16,6 +16,15 @@ die auf die alte verweist.
 
 ## 2026-10
 
+- **Event-Admin: Aktionen in der Leiste, Bearbeiten als Route (TASK-49, 1/3).**
+  Bearbeiten und Löschen stehen rechts neben „zu allen Events“. Bearbeiten ist
+  die Seite `/events/[id]/edit` statt eines Zustands in der Event-Karte: die
+  Leiste teilt so nichts mit der Karte, Zurück und Lesezeichen funktionieren.
+  Die Seite zeigt sich nur Mitgliedern (`getOrganization` liefert sonst
+  `null`), die Grenze bleibt die UPDATE-Policy. Löschen fragt nach, nennt die
+  Zahl der Anmeldungen (kaskadiert) und navigiert erst nach Erfolg — vorher
+  löschte ein Klick sofort und navigierte ohne auf das Ergebnis zu warten.
+  TASK-49 ist in drei PRs geschnitten: Leiste, QR-Code, Teilnehmer hinzufügen.
 - **Fünf Status für Teilnehmer (TASK-44).** Eingeladen, Angemeldet (Standard),
   Warteliste, Abgemeldet, Teilgenommen. Umgestellt `pending`/`confirmed` →
   `registered`, `declined` → `cancelled`; `waitlisted` bleibt für den

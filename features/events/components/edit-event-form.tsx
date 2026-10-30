@@ -1,6 +1,8 @@
 'use client';
 
 import Image from 'next/image';
+import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 import { useRef, useState } from 'react';
 
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -35,14 +37,11 @@ import type { Event } from '@/types';
 interface EditEventFormProps {
   event: Event;
   categories: EventCategory[];
-  setIsEditing: (isEditing: boolean) => void;
 }
 
-export function EditEventForm({
-  event,
-  categories,
-  setIsEditing,
-}: EditEventFormProps) {
+export function EditEventForm({ event, categories }: EditEventFormProps) {
+  const router = useRouter();
+  const adminPath = `/events/${event.id}/admin`;
   const [error, setError] = useState<string>('');
   const [isSubmitting, setIsSubmitting] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -108,8 +107,8 @@ export function EditEventForm({
         return;
       }
 
-      setIsEditing(false);
       toast.success('Event erfolgreich bearbeitet');
+      router.push(adminPath);
     } finally {
       setIsSubmitting(false);
     }
@@ -199,12 +198,8 @@ export function EditEventForm({
         <CategoryFields form={form} />
 
         <div className="flex justify-end gap-2">
-          <Button
-            type="button"
-            variant="outline"
-            onClick={() => setIsEditing(false)}
-          >
-            Abbrechen
+          <Button type="button" variant="outline" asChild>
+            <Link href={adminPath}>Abbrechen</Link>
           </Button>
           <Button type="submit" disabled={isSubmitting}>
             {isSubmitting ? 'Wird gespeichert…' : 'Änderungen speichern'}
