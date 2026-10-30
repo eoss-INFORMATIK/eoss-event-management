@@ -506,6 +506,56 @@ describe('event_organization_name: nur der Name, nur ueber ein Event', () => {
   });
 });
 
+describe('event_organization: Veranstalter fuer die Landingpage (TASK-55)', () => {
+  // Die Landingpage zeigt Logo, Name, Adresse und Kontakt -- fuer anonyme
+  // Besucher. Die Funktion gibt genau diese Felder heraus, nur ueber ein
+  // existierendes Event; die Tabelle bleibt zu (Test oben).
+  it('anonym liefert sie genau Name, Logo, Adresse und Kontakt', async () => {
+    const contact = {
+      logo_url:
+        'http://127.0.0.1:54321/storage/v1/object/public/event-images/b.png',
+      street: 'Marktgasse 2',
+      address_addition: null,
+      postal_code: '9500',
+      city: 'Wil',
+      contact_email: 'kontakt@example.ch',
+      phone: '071 000 00 00',
+    };
+    await admin()
+      .from('organizations')
+      .update(contact)
+      .eq('id', b.organizationId);
+
+    const { data, error } = await anonClient()
+      .rpc('event_organization', { p_event_id: eventOfB })
+      .maybeSingle();
+
+    expect(error).toBeNull();
+    // toEqual mit dem ganzen Objekt: eine zusaetzliche Spalte -- etwa
+    // `created_at` oder die Id -- liesse den Test scheitern.
+    expect(data).toEqual({ name: 'Org b', ...contact });
+  });
+
+  it('fuer ein unbekanntes Event liefert sie nichts', async () => {
+    const { data } = await anonClient()
+      .rpc('event_organization', {
+        p_event_id: '00000000-0000-0000-0000-000000000000',
+      })
+      .maybeSingle();
+
+    expect(data).toBeNull();
+  });
+
+  it('mit einer Organisations-Id statt Event-Id liefert sie nichts', async () => {
+    // Kein Weg, Organisationen ueber ihre Id abzufragen -- nur ueber ein Event.
+    const { data } = await anonClient()
+      .rpc('event_organization', { p_event_id: b.organizationId })
+      .maybeSingle();
+
+    expect(data).toBeNull();
+  });
+});
+
 describe('organizations: nur Mitglieder', () => {
   it('A benennt die eigene Organisation um', async () => {
     const { data, error } = await a.client

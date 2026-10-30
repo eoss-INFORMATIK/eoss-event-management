@@ -8,7 +8,7 @@ Was hier **nicht** steht: Produktentscheidungen, Roadmap, Aufgaben — die liege
 in Notion. Konventionen und Fallstricke der Codebasis stehen in
 [`CLAUDE.md`](../CLAUDE.md).
 
-Stand: 2026-10-30, nach einundzwanzig Migrationen.
+Stand: 2026-10-30, nach zweiundzwanzig Migrationen.
 
 ## Das Besitzmodell in einem Satz
 
@@ -121,12 +121,19 @@ als das `using` daneben — bei `events` etwa, damit lesbar bleibt, dass auch di
 Ziel-Organisation geprüft wird. Der gefährliche Fall ist nicht das Weglassen,
 sondern ein `with check`, das schwächer ist als sein `using`.
 
-**Eine Definer-Funktion gibt es: `event_organization_name(event_id)`.** Sie
-liefert den Namen der Organisation eines Events, auch anonym — für die
-Bestätigungsmail, die bei einer anonymen Anmeldung verschickt wird. Nur der
-Name, nur über ein existierendes Event; die Tabelle `organizations` bleibt
-anonym verschlossen. `set search_path = ''`, alle Namen voll qualifiziert.
-Begründung in [`task-51-bestaetigungsmail.md`](./task-51-bestaetigungsmail.md).
+**Zwei Definer-Funktionen geben Organisationsdaten anonym heraus**, beide nur
+über ein existierendes Event, beide mit `set search_path = ''` und voll
+qualifizierten Namen; die Tabelle `organizations` bleibt anonym verschlossen.
+
+- `event_organization_name(event_id)` — nur der Name, für die
+  Bestätigungsmail bei einer anonymen Anmeldung. Begründung in
+  [`task-51-bestaetigungsmail.md`](./task-51-bestaetigungsmail.md).
+- `event_organization(event_id)` — eine Zeile mit Name, Logo, Adresse und
+  Kontakt, für Kopf- und Fusszeile der Landingpage (TASK-55). Keine weitere
+  Spalte, keine Id; ein Test schlägt fehl, sobald eine dazukommt.
+
+`event_organization_name` fällt weg, sobald die Mail auf `event_organization`
+umsteigt — Entfernen heisst Code zuerst.
 
 **Keine Rekursion, und darum noch keine Definer-Funktion.** Eine Policy auf
 `events` liest `organization_user`, dort greift `user_id = auth.uid()` — ein

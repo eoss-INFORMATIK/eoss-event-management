@@ -307,6 +307,19 @@ export type Database = {
           isSetofReturn: false
         }
       }
+      event_organization: {
+        Args: { p_event_id: string }
+        Returns: {
+          address_addition: string
+          city: string
+          contact_email: string
+          logo_url: string
+          name: string
+          phone: string
+          postal_code: string
+          street: string
+        }[]
+      }
       event_organization_name: { Args: { p_event_id: string }; Returns: string }
     }
     Enums: {

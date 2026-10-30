@@ -23,8 +23,8 @@ interface EventLandingProps {
  * Sponsor/Ort, rechts Anmeldung und das Sponsor-Bild. Unter `lg` untereinander.
  *
  * Die Seite tritt im Auftritt des Veranstalters auf (TASK-55): Kopfzeile mit
- * dessen Namen (Logo folgt), Fusszeile mit Name und Kontakt, darunter klein
- * der Verweis auf die App.
+ * dessen Logo (ohne Logo der Name), Fusszeile mit Name, Adresse und Kontakt,
+ * darunter klein der Verweis auf die App.
  *
  * Abweichungen vom Figma, bewusst: das Datum steht unter dem Titel (im Figma
  * fehlt es, laut Task bleibt es); die Sponsor-Ueberschrift ist der erfasste
@@ -40,8 +40,19 @@ export function EventLanding({
     <>
       <header className="border-muted border-b-2">
         <div className={cn(CONTAINER, 'flex h-24 items-center')}>
-          {organization && (
-            <p className="text-2xl font-bold">{organization.name}</p>
+          {organization?.logoUrl ? (
+            <Image
+              src={organization.logoUrl}
+              alt={organization.name}
+              width={320}
+              height={160}
+              priority
+              className="h-auto max-h-16 w-auto max-w-full"
+            />
+          ) : (
+            organization && (
+              <p className="text-2xl font-bold">{organization.name}</p>
+            )
           )}
         </div>
       </header>
@@ -52,9 +63,7 @@ export function EventLanding({
 
       <footer className="border-muted border-t-2">
         <div className={cn(CONTAINER, 'flex flex-col gap-8 py-12')}>
-          {organization && (
-            <p className="text-lg font-bold">{organization.name}</p>
-          )}
+          {organization && <OrganizationContact organization={organization} />}
           <p className="text-muted-foreground text-sm">
             Erstellt mit{' '}
             <Link href="/" className="underline underline-offset-4">
@@ -64,6 +73,62 @@ export function EventLanding({
         </div>
       </footer>
     </>
+  );
+}
+
+/**
+ * Name links, Adresse und Kontakt rechts (Figma 144:1566); unter `md`
+ * untereinander. Leere Angaben fallen weg -- eine Organisation ohne Kontakt
+ * zeigt nur ihren Namen.
+ */
+function OrganizationContact({
+  organization,
+}: {
+  organization: EventOrganization;
+}) {
+  const place = [organization.postalCode, organization.city]
+    .filter(Boolean)
+    .join(' ');
+  const address = [
+    organization.street,
+    organization.addressAddition,
+    place,
+  ].filter(Boolean);
+
+  return (
+    <div className="flex flex-col gap-6 text-lg md:flex-row md:items-center md:justify-between">
+      <p className="font-bold">{organization.name}</p>
+
+      <div className="flex flex-col gap-6 sm:flex-row sm:gap-24">
+        {address.length > 0 && (
+          <address className="flex flex-col gap-1 not-italic">
+            {address.map((line) => (
+              <span key={line}>{line}</span>
+            ))}
+          </address>
+        )}
+        {(organization.contactEmail || organization.phone) && (
+          <div className="flex flex-col gap-1">
+            {organization.contactEmail && (
+              <a
+                href={`mailto:${organization.contactEmail}`}
+                className="underline-offset-4 hover:underline"
+              >
+                {organization.contactEmail}
+              </a>
+            )}
+            {organization.phone && (
+              <a
+                href={`tel:${organization.phone.replace(/[^+\d]/g, '')}`}
+                className="underline-offset-4 hover:underline"
+              >
+                {organization.phone}
+              </a>
+            )}
+          </div>
+        )}
+      </div>
+    </div>
   );
 }
 
