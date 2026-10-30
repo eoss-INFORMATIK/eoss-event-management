@@ -1,16 +1,15 @@
 'use client';
 
 import { ColumnDef } from '@tanstack/react-table';
-import { MoreHorizontal } from 'lucide-react';
-import { toast } from 'sonner';
 
-import { deleteParticipant } from '@/features/participants/actions';
 import { statusLabel } from '@/features/participants/schema';
 import {
   type ParticipantRow,
   inSelection,
   searchParticipant,
 } from '@/features/participants/table';
+
+import { RowActions } from './row-actions';
 
 export type { ParticipantRow };
 
@@ -22,16 +21,23 @@ export const columns: ColumnDef<ParticipantRow>[] = [
     header: 'E-Mail',
     // Die Textsuche haengt hier und prueft E-Mail und Name.
     filterFn: searchParticipant,
+    // Name und E-Mail duerfen umbrechen, damit die festen Spalten fest
+    // bleiben. `wrap-anywhere`, weil eine E-Mail keine Leerzeichen hat.
+    meta: { className: 'whitespace-normal wrap-anywhere' },
   },
   {
     accessorKey: 'name',
     header: 'Name',
+    meta: { className: 'whitespace-normal wrap-anywhere' },
   },
   {
     accessorKey: 'status',
     header: 'Status',
     cell: ({ row }) => statusLabel(row.original.status),
     filterFn: inSelection,
+    // Fest so breit wie der laengste Wert ("Teilgenommen"): sonst verschiebt
+    // eine Statusaenderung die ganze Tabelle.
+    meta: { className: 'w-32' },
   },
   {
     // Die Spalte bleibt stehen, auch wenn das Event keine Kategorien anbietet
@@ -46,27 +52,8 @@ export const columns: ColumnDef<ParticipantRow>[] = [
     header: 'Event',
   },
   {
-    header: 'Aktionen',
     id: 'actions',
-    cell: ({ row }) => {
-      const participant = row.original;
-      return (
-        <button
-          onClick={async () => {
-            const result = await deleteParticipant(
-              participant.id,
-              participant.event_id
-            );
-            if (result.success) {
-              toast.success('Teilnehmer erfolgreich gelöscht');
-            } else {
-              toast.error('Fehler beim Löschen des Teilnehmers');
-            }
-          }}
-        >
-          <MoreHorizontal />
-        </button>
-      );
-    },
+    header: () => <span className="sr-only">Aktionen</span>,
+    cell: ({ row }) => <RowActions participant={row.original} />,
   },
 ];

@@ -16,6 +16,14 @@ die auf die alte verweist.
 
 ## 2026-10
 
+- **Fünf Status für Teilnehmer (TASK-44).** Eingeladen, Angemeldet (Standard),
+  Warteliste, Abgemeldet, Teilgenommen. Umgestellt `pending`/`confirmed` →
+  `registered`, `declined` → `cancelled`; `waitlisted` bleibt für den
+  Warteliste-Task. **Migration zuerst**, obwohl die Constraint verschärft wird:
+  der alte Code schreibt nie einen Status ausdrücklich, neue Anmeldungen laufen
+  über den Default, den die Migration mitändert. Das ⋯-Menü setzt den Status
+  und löscht — Löschen jetzt mit Bestätigungsdialog, vorher löschte ein Klick
+  auf ⋯ sofort. [`datenmodell.md`](./datenmodell.md)
 - **E-Mail steht vorne, in Tabelle und Export.** Sie identifiziert die Anmeldung
   und ist immer gesetzt, der Name ist optional. Ausgelöst durch einen Test: die
   macOS-Vorschau hört an der ersten Zeile mit leerer erster Spalte auf zu lesen

@@ -166,10 +166,39 @@ describe('event_participants: nur die Organisation des Events sieht sie', () => 
     expect(data).toHaveLength(1);
   });
 
+  it('eine neue Anmeldung ist "registered", ohne dass der Code es setzt', async () => {
+    // Der Status kommt aus dem Default der Spalte. `addParticipant` setzt ihn
+    // nicht -- genau darauf beruht die Reihenfolge "Migration zuerst" in
+    // `participant_status`.
+    const { data, error } = await admin()
+      .from('event_participants')
+      .select('status')
+      .eq('event_id', eventOfB)
+      .eq('email', 'gast@example.com')
+      .single();
+
+    expect(error).toBeNull();
+    expect(data?.status).toBe('registered');
+  });
+
+  it.each(['confirmed', 'pending', 'erfunden'])(
+    'die Datenbank lehnt den Status "%s" ab, auch fuer die eigene Organisation',
+    async (status) => {
+      const { error } = await b.client
+        .from('event_participants')
+        .update({ status })
+        .eq('event_id', eventOfB)
+        .select('id');
+
+      // 23514 = check_violation (event_participants_status_check)
+      expect(error?.code).toBe('23514');
+    }
+  );
+
   it('A aendert die Teilnehmer von B nicht', async () => {
     const { data, error } = await a.client
       .from('event_participants')
-      .update({ status: 'confirmed' })
+      .update({ status: 'attended' })
       .eq('event_id', eventOfB)
       .select('id');
 
@@ -180,7 +209,7 @@ describe('event_participants: nur die Organisation des Events sieht sie', () => 
   it('B aendert die eigenen Teilnehmer', async () => {
     const { data, error } = await b.client
       .from('event_participants')
-      .update({ status: 'confirmed' })
+      .update({ status: 'attended' })
       .eq('event_id', eventOfB)
       .select('id');
 

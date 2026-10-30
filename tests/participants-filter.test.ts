@@ -42,7 +42,7 @@ const participant = (
   category_id: null,
   name: `Person ${i}`,
   email: `person${i}@example.ch`,
-  status: 'pending',
+  status: 'registered',
   created_at: '2026-10-29T10:00:00Z',
   updated_at: '2026-10-29T10:00:00Z',
   eventName: 'Sommerfest',
@@ -72,13 +72,13 @@ const tableWith = (
 describe('Export der gefilterten Auswahl', () => {
   it('nimmt alle Treffer, nicht nur die angezeigte Seite', () => {
     const data = Array.from({ length: 130 }, (_, i) =>
-      participant(i, { status: i % 2 ? 'confirmed' : 'pending' })
+      participant(i, { status: i % 2 ? 'attended' : 'registered' })
     );
-    const table = tableWith(data, [{ id: 'status', value: ['confirmed'] }]);
+    const table = tableWith(data, [{ id: 'status', value: ['attended'] }]);
 
     expect(table.getRowModel().rows).toHaveLength(PAGE_SIZE);
     expect(selectedRows(table)).toHaveLength(65);
-    expect(selectedRows(table).every((p) => p.status === 'confirmed')).toBe(
+    expect(selectedRows(table).every((p) => p.status === 'attended')).toBe(
       true
     );
   });
@@ -96,7 +96,7 @@ describe('Filter', () => {
   const data = [
     participant(1, { name: 'Anna Müller', categoryLabel: 'Mitglied' }),
     participant(2, { name: null, email: 'ohne.name@example.ch' }),
-    participant(3, { name: 'Ben', categoryLabel: 'Gast', status: 'confirmed' }),
+    participant(3, { name: 'Ben', categoryLabel: 'Gast', status: 'attended' }),
   ];
 
   it('sucht im Namen, ohne Gross-/Kleinschreibung', () => {
@@ -119,13 +119,13 @@ describe('Filter', () => {
   it('verknüpft verschiedene Filter mit UND', () => {
     const table = tableWith(data, [
       { id: 'categoryLabel', value: ['Gast', 'Mitglied'] },
-      { id: 'status', value: ['confirmed'] },
+      { id: 'status', value: ['attended'] },
     ]);
     expect(selectedRows(table).map((p) => p.id)).toEqual(['id-3']);
   });
 
   it('zählt Optionen unter Berücksichtigung der anderen Filter', () => {
-    const table = tableWith(data, [{ id: 'status', value: ['pending'] }]);
+    const table = tableWith(data, [{ id: 'status', value: ['registered'] }]);
     const counts = table.getColumn('categoryLabel')!.getFacetedUniqueValues();
     expect(counts.get('Mitglied')).toBe(1);
     expect(counts.get(null)).toBe(1);
