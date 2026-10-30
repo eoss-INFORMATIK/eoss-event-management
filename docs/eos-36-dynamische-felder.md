@@ -8,7 +8,7 @@ Folge-Task zu den Kategorien.
 ## Das Problem mit dem Namen
 
 Der Task heisst „Dynamisches Anmeldeformular". Spezifiziert sind aber **zwei
-feste optionale Blöcke**, deren Darstellung der Organisator ausdrücklich _nicht_
+feste optionale Blöcke**, deren Darstellung der Organisator ausdrücklich *nicht*
 anpassen kann:
 
 1. **Sponsor oder Ort** auf der Landingpage — Name, Zusatztext, Bild
@@ -59,7 +59,7 @@ Teilnehmer könnte jemand „Gratis-VIP" eintragen, und es stünde in der
 Teilnehmerliste des Organisators. Der zusammengesetzte Fremdschlüssel macht eine
 Kategorie, die nicht zu diesem Event gehört, **unmöglich** — dasselbe Muster wie
 bei `event_participants.organization_id`, nur dass hier kein Trigger nötig ist,
-weil der Wert vom Client kommen _darf_, solange er zum Event passt.
+weil der Wert vom Client kommen *darf*, solange er zum Event passt.
 
 Dafür braucht `event_categories` einen Unique-Index auf `(event_id, id)` — ein
 zusammengesetzter Fremdschlüssel verlangt das, auch wenn `id` schon
@@ -81,7 +81,7 @@ Der Organisator benennt das Feld selbst, Vorgabe „Kategorie" — für
 „Einzelperson / mit Begleitung / Firma" ist „Kategorie" die falsche
 Überschrift, „Teilnahme als" die richtige. Spalte `category_label` auf `events`.
 
-Ob der Teilnehmer antworten _muss_, entscheidet der Organisator pro Event:
+Ob der Teilnehmer antworten *muss*, entscheidet der Organisator pro Event:
 Spalte `category_required`.
 
 ## Gemessen: `cascade` und `restrict` kommen sich nicht in die Quere
