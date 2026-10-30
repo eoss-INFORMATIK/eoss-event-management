@@ -77,27 +77,48 @@ export const getOrganization = async (
 };
 
 /**
- * Was eine oeffentliche Event-Seite ueber den Veranstalter zeigt. Heute nur
- * der Name; Logo und Kontakt kommen mit TASK-55, Scheibe 4.
+ * Was eine oeffentliche Event-Seite ueber den Veranstalter zeigt (TASK-55).
+ * Alles ausser dem Namen ist optional.
  */
 export interface EventOrganization {
   name: string;
+  logoUrl: string | null;
+  street: string | null;
+  addressAddition: string | null;
+  postalCode: string | null;
+  city: string | null;
+  contactEmail: string | null;
+  phone: string | null;
 }
 
 /**
  * Der Veranstalter eines Events, lesbar auch ohne Anmeldung.
  *
  * Nicht ueber `organizations`: deren SELECT-Policy zeigt nur Mitgliedern
- * etwas. Die Definer-Funktion gibt genau den Namen heraus und sonst nichts
- * (Begruendung: docs/task-51-bestaetigungsmail.md).
+ * etwas. Die Definer-Funktion `event_organization` gibt genau diese Felder
+ * heraus und sonst nichts.
+ *
+ * `|| null` auf jedem optionalen Feld: die generierten Typen kennen bei
+ * Rueckgaben von Funktionen keine Nullbarkeit und behaupten `string`.
  */
 export const getEventOrganization = async (
   supabase: SupabaseClient<Database>,
   eventId: string
 ): Promise<EventOrganization | null> => {
-  const { data } = await supabase.rpc('event_organization_name', {
-    p_event_id: eventId,
-  });
+  const { data } = await supabase
+    .rpc('event_organization', { p_event_id: eventId })
+    .maybeSingle();
 
-  return data ? { name: data } : null;
+  if (!data) return null;
+
+  return {
+    name: data.name,
+    logoUrl: data.logo_url || null,
+    street: data.street || null,
+    addressAddition: data.address_addition || null,
+    postalCode: data.postal_code || null,
+    city: data.city || null,
+    contactEmail: data.contact_email || null,
+    phone: data.phone || null,
+  };
 };

@@ -16,6 +16,13 @@ die auf die alte verweist.
 
 ## 2026-10
 
+- **Veranstalter auf der Landingpage (TASK-55, Scheibe 4).** Definer-Funktion
+  `event_organization(event_id)` gibt genau Name, Logo, Adresse und Kontakt
+  einer Organisation heraus, nur über ein existierendes Event. Kopfzeile zeigt
+  das Logo, ohne Logo den Namen; Fusszeile Name, Adresse, E-Mail und Telefon
+  (als Links), leere Angaben fallen weg. `event_organization_name` bleibt
+  vorerst für die Mail und fällt weg, wenn die Mail umsteigt (Code zuerst).
+
 - **Logo der Organisation (TASK-55, Scheibe 3).** Spalte `organizations.logo_url`,
   Upload wie bei den Event-Bildern direkt aus dem Browser in `event-images`
   unter `<organization_id>/` — keine neue Storage-Policy. „Kein SVG“ hält der
