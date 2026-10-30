@@ -540,6 +540,20 @@ describe('organizations: nur Mitglieder', () => {
     expect(data).toEqual([contact]);
   });
 
+  it('A setzt das Logo der eigenen Organisation (TASK-55)', async () => {
+    const logoUrl =
+      'http://127.0.0.1:54321/storage/v1/object/public/event-images/logo.png';
+
+    const { data, error } = await a.client
+      .from('organizations')
+      .update({ logo_url: logoUrl })
+      .eq('id', a.organizationId)
+      .select('logo_url');
+
+    expect(error).toBeNull();
+    expect(data).toEqual([{ logo_url: logoUrl }]);
+  });
+
   it('anonym bleibt der Kontakt unsichtbar -- oeffentlich erst ueber Scheibe 4', async () => {
     const { data } = await anonClient()
       .from('organizations')
@@ -793,6 +807,25 @@ describe('Storage: Bilder gehoeren der Organisation', () => {
       .from(BUCKET)
       .upload(`${b.organizationId}/fremd.png`, png(), {
         contentType: 'image/png',
+      });
+
+    expect(error).toBeTruthy();
+  });
+
+  it('der Bucket lehnt SVG ab, auch im eigenen Ordner (TASK-55: Logos)', async () => {
+    // Haelt die Entscheidung "kein SVG" fest: nicht das `accept` am
+    // Dateifeld, das jeder umgehen kann, sondern die Typliste des Buckets.
+    const svg = new Blob(
+      [
+        '<svg xmlns="http://www.w3.org/2000/svg"><script>alert(1)</script></svg>',
+      ],
+      { type: 'image/svg+xml' }
+    );
+
+    const { error } = await a.client.storage
+      .from(BUCKET)
+      .upload(`${a.organizationId}/logo-${Date.now()}.svg`, svg, {
+        contentType: 'image/svg+xml',
       });
 
     expect(error).toBeTruthy();

@@ -221,6 +221,7 @@ export type Database = {
           contact_email: string | null
           created_at: string
           id: string
+          logo_url: string | null
           name: string
           phone: string | null
           postal_code: string | null
@@ -233,6 +234,7 @@ export type Database = {
           contact_email?: string | null
           created_at?: string
           id?: string
+          logo_url?: string | null
           name: string
           phone?: string | null
           postal_code?: string | null
@@ -245,6 +247,7 @@ export type Database = {
           contact_email?: string | null
           created_at?: string
           id?: string
+          logo_url?: string | null
           name?: string
           phone?: string | null
           postal_code?: string | null
@@ -290,6 +293,7 @@ export type Database = {
           contact_email: string | null
           created_at: string
           id: string
+          logo_url: string | null
           name: string
           phone: string | null
           postal_code: string | null

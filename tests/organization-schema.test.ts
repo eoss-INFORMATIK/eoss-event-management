@@ -1,6 +1,9 @@
 import { describe, expect, it } from 'vitest';
 
-import { organizationFormSchema } from '@/features/organizations/schema';
+import {
+  organizationFormSchema,
+  organizationInputSchema,
+} from '@/features/organizations/schema';
 
 /** Ein gueltiges Formular ohne Kontaktangaben -- so sieht es nach EOS-20 aus. */
 const empty = {
@@ -47,5 +50,27 @@ describe('organizationFormSchema: Kontakt (TASK-55)', () => {
       organizationFormSchema.safeParse({ ...empty, postalCode: '12345678901' })
         .success
     ).toBe(false);
+  });
+});
+
+describe('organizationInputSchema: Logo (TASK-55)', () => {
+  it('kein Logo ist gueltig', () => {
+    expect(
+      organizationInputSchema.safeParse({ ...empty, logoUrl: '' }).success
+    ).toBe(true);
+  });
+
+  it('nimmt nur eine URL an', () => {
+    expect(
+      organizationInputSchema.safeParse({ ...empty, logoUrl: 'logo.png' })
+        .success
+    ).toBe(false);
+    expect(
+      organizationInputSchema.safeParse({
+        ...empty,
+        logoUrl:
+          'https://example.supabase.co/storage/v1/object/public/event-images/a/logo.png',
+      }).success
+    ).toBe(true);
   });
 });

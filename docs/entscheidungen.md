@@ -16,6 +16,13 @@ die auf die alte verweist.
 
 ## 2026-10
 
+- **Logo der Organisation (TASK-55, Scheibe 3).** Spalte `organizations.logo_url`,
+  Upload wie bei den Event-Bildern direkt aus dem Browser in `event-images`
+  unter `<organization_id>/` — keine neue Storage-Policy. „Kein SVG“ hält der
+  Bucket (Typliste), nicht das `accept` am Dateifeld; ein Test belegt es und
+  wird rot, sobald SVG erlaubt ist. Ersetzte oder entfernte Logos bleiben als
+  Datei liegen, wie heute bei Event-Bildern (Aufräumen: eigener Task).
+
 - **Adresse und Kontakt der Organisation (TASK-55, Scheibe 2).** Sechs
   optionale Spalten auf `organizations`: `street`, `address_addition`,
   `postal_code`, `city`, `contact_email` (die öffentliche Adresse, nicht die
