@@ -1,6 +1,8 @@
 import { createElement } from 'react';
 
 import { render } from '@react-email/render';
+import jsQR from 'jsqr';
+import { PNG } from 'pngjs';
 import { describe, expect, it } from 'vitest';
 
 import {
@@ -8,6 +10,12 @@ import {
   type ConfirmationMailProps,
   confirmationSubject,
 } from '@/features/email/confirmation-template';
+import {
+  TICKET_CID,
+  ticketAttachments,
+} from '@/features/email/ticket-attachments';
+
+import { newTicketCode, ticketUrl } from '@/lib/ticket';
 
 /**
  * Inhalt der Bestaetigungsmail (TASK-51): Betreff, Anmeldedaten als Liste,
@@ -24,6 +32,7 @@ const props: ConfirmationMailProps = {
   email: 'anna@example.ch',
   category: { label: 'Teilnahme als', value: 'mit Begleitung' },
   organizationName: 'HEV Wil und Umgebung',
+  qrImageSrc: 'cid:ticket-qr',
 };
 
 const plain = (overrides: Partial<ConfirmationMailProps> = {}) =>
@@ -62,5 +71,36 @@ describe('Bestätigungsmail', () => {
     );
     expect(html).not.toContain('<b>x</b>');
     expect(html).toContain('&lt;b&gt;x&lt;/b&gt;');
+  });
+});
+
+describe('QR-Ticket in der Mail', () => {
+  it('bindet den QR-Code über cid: ein und sagt, dass er beiliegt', async () => {
+    const html = await render(createElement(ConfirmationMail, props));
+    expect(html).toContain(`src="cid:${TICKET_CID}"`);
+    expect(await plain()).toContain('auch als Anhang');
+  });
+
+  it('hängt denselben PNG inline und als Anhang an, mit der Ticket-URL', async () => {
+    const url = ticketUrl('https://events.eoss.ch', newTicketCode());
+    const [inline, file] = await ticketAttachments(url);
+
+    expect(inline.contentId).toBe(TICKET_CID);
+    expect(file).not.toHaveProperty('contentId');
+    expect(file.filename).toBe('ticket.png');
+
+    const png = PNG.sync.read(file.content);
+    const decoded = jsQR(
+      new Uint8ClampedArray(png.data),
+      png.width,
+      png.height
+    );
+    expect(decoded?.data).toBe(url);
+  });
+
+  it('erzeugt Ticket-Codes im Format der Spalte: 32 Hex-Zeichen, verschieden', () => {
+    const a = newTicketCode();
+    expect(a).toMatch(/^[0-9a-f]{32}$/);
+    expect(newTicketCode()).not.toBe(a);
   });
 });

@@ -40,6 +40,7 @@ const participant = (
   event_id: 'event',
   organization_id: 'org',
   category_id: null,
+  ticket_code: `ticket-${i}`,
   name: `Person ${i}`,
   email: `person${i}@example.ch`,
   status: 'registered',

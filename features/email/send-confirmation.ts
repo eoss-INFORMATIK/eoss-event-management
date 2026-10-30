@@ -6,9 +6,14 @@ import {
   ConfirmationMail,
   confirmationSubject,
 } from '@/features/email/confirmation-template';
+import {
+  TICKET_CID,
+  ticketAttachments,
+} from '@/features/email/ticket-attachments';
 
 import { env } from '@/env';
 import { formatDate } from '@/lib/format';
+import { ticketUrl } from '@/lib/ticket';
 import { createClient } from '@/server/supabase/server';
 
 /**
@@ -30,6 +35,7 @@ interface Registration {
   email: string;
   name: string | null;
   categoryId: string | null;
+  ticketCode: string;
 }
 
 export const sendRegistrationConfirmation = async ({
@@ -37,6 +43,7 @@ export const sendRegistrationConfirmation = async ({
   email,
   name,
   categoryId,
+  ticketCode,
 }: Registration): Promise<{ error?: string }> => {
   const supabase = await createClient();
 
@@ -60,11 +67,16 @@ export const sendRegistrationConfirmation = async ({
     { p_event_id: eventId }
   );
 
+  const attachments = await ticketAttachments(
+    ticketUrl(env.SITE_URL, ticketCode)
+  );
+
   const resend = new Resend(env.RESEND_API_KEY);
   const { error } = await resend.emails.send({
     from: env.EMAIL_FROM_ADDRESS,
     to: [email],
     subject: confirmationSubject(event.title),
+    attachments,
     react: createElement(ConfirmationMail, {
       eventTitle: event.title,
       eventDate: formatDate(event.date),
@@ -74,6 +86,7 @@ export const sendRegistrationConfirmation = async ({
         ? { label: event.category_label || 'Kategorie', value: category.label }
         : null,
       organizationName: organizationName ?? null,
+      qrImageSrc: `cid:${TICKET_CID}`,
     }),
   });
 

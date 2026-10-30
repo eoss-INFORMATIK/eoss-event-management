@@ -13,6 +13,11 @@ const PUBLIC_ROUTES = [
   '/sign-in',
   '/verify',
   '/register',
+  // Ziel des QR-Codes in der Bestaetigungsmail. Ein Teilnehmer, der seinen
+  // Code scannt, soll keine Anmeldeseite fuer Organisatoren sehen. Der
+  // spaetere Check-in unterscheidet auf der Seite selbst, ob ein Mitglied
+  // angemeldet ist -- den Status setzen sichert ohnehin RLS ab.
+  '/t',
 ];
 
 const isPublicRoute = (pathname: string) =>

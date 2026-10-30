@@ -195,6 +195,38 @@ describe('event_participants: nur die Organisation des Events sieht sie', () => 
     }
   );
 
+  it('jede Anmeldung hat einen Ticket-Code, auch ohne mitgelieferten', async () => {
+    // Der Default der Spalte greift, wenn der Insert keinen Code mitbringt --
+    // etwa beim manuellen Hinzufuegen. Format wie newTicketCode().
+    const { data } = await admin()
+      .from('event_participants')
+      .select('ticket_code')
+      .eq('event_id', eventOfB)
+      .eq('email', 'gast@example.com')
+      .single();
+
+    expect(data?.ticket_code).toMatch(/^[0-9a-f]{32}$/);
+  });
+
+  it('zwei Anmeldungen koennen nicht denselben Ticket-Code tragen', async () => {
+    const { data } = await admin()
+      .from('event_participants')
+      .select('ticket_code')
+      .eq('event_id', eventOfB)
+      .eq('email', 'gast@example.com')
+      .single();
+
+    const { error } = await anonClient().from('event_participants').insert({
+      event_id: eventOfB,
+      email: 'doppelt@example.com',
+      organization_id: b.organizationId,
+      ticket_code: data!.ticket_code,
+    });
+
+    // 23505 = unique_violation (event_participants_ticket_code_key)
+    expect(error?.code).toBe('23505');
+  });
+
   it('die oeffentliche Anmeldung setzt keinen eigenen Status', async () => {
     // Vorher `with check (true)`: anonym liess sich direkt "attended"
     // eintragen. Policy "Anyone can register for an event" erlaubt seit

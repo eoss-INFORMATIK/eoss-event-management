@@ -3,7 +3,8 @@
  *
  * Inline-Styles, weil Mailprogramme `<style>` und Klassen nur teilweise
  * kennen. Keine Bilder von aussen: der QR-Code kommt als Anhang mit
- * `contentId` (Scheibe 2), Gmail zeigt `data:`-Bilder nicht an.
+ * `contentId` und wird ueber `cid:` eingebunden -- Gmail zeigt `data:`-Bilder
+ * nicht an.
  */
 
 export interface ConfirmationMailProps {
@@ -15,6 +16,8 @@ export interface ConfirmationMailProps {
   /** Beschriftung und Wert der Kategorie, falls gewaehlt. */
   category: { label: string; value: string } | null;
   organizationName: string | null;
+  /** `cid:...` des QR-Anhangs. */
+  qrImageSrc: string;
 }
 
 export const confirmationSubject = (eventTitle: string) =>
@@ -36,6 +39,7 @@ export function ConfirmationMail({
   email,
   category,
   organizationName,
+  qrImageSrc,
 }: ConfirmationMailProps) {
   const rows: [string, string][] = [
     ['Anlass', eventTitle],
@@ -66,6 +70,23 @@ export function ConfirmationMail({
         </tbody>
       </table>
 
+      <p style={{ ...text, fontWeight: 'bold', marginTop: '24px' }}>
+        Ihr Ticket
+      </p>
+      {/* next/image gibt es in einer Mail nicht -- Mailprogramme brauchen <img>. */}
+      {/* eslint-disable-next-line @next/next/no-img-element */}
+      <img
+        src={qrImageSrc}
+        alt="QR-Code Ihres Tickets"
+        width={200}
+        height={200}
+        style={{ display: 'block', width: '200px', height: '200px' }}
+      />
+      <p style={text}>
+        Bitte zeigen Sie diesen QR-Code am Eingang vor. Er liegt dieser Mail
+        auch als Anhang bei.
+      </p>
+
       <p style={{ ...text, marginTop: '24px' }}>
         Freundliche Grüsse
         {organizationName && (
@@ -87,6 +108,7 @@ ConfirmationMail.PreviewProps = {
   email: 'anna@example.ch',
   category: { label: 'Teilnahme als', value: 'mit Begleitung' },
   organizationName: 'HEV Wil und Umgebung',
+  qrImageSrc: 'https://placehold.co/200x200/png?text=QR',
 } satisfies ConfirmationMailProps;
 
 export default ConfirmationMail;
