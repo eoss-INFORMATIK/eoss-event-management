@@ -38,7 +38,13 @@ export default function RootLayout({
           href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>📅</text></svg>"
         ></link>
       </head>
-      <body>
+      {/*
+        overflow-x-clip: Elemente ueber die volle Fensterbreite (Bildstreifen
+        der Event-Landingpage) sind 100vw breit, und 100vw zaehlt unter Windows
+        die Scrollleiste mit -- ohne das gaebe es einen waagrechten Scrollbalken.
+        `clip` statt `hidden`, damit `position: sticky` weiter funktioniert.
+      */}
+      <body className="overflow-x-clip">
         <Header />
         <main className="bg-background mx-auto flex max-w-7xl px-4 py-10">
           {children}

@@ -39,6 +39,13 @@ type EventRegistrationFormProps = {
   categoryRequired: boolean;
 };
 
+// Feldstil der Landingpage (Figma "Forms"): hoch, stark gerundet, auf dem
+// Seitenhintergrund. Nur hier -- die Formulare der Verwaltung bleiben bei
+// den shadcn-Vorgaben.
+const LABEL = 'text-lg font-normal';
+const FIELD =
+  'bg-background border-muted h-12 rounded-2xl px-4 text-lg md:text-lg';
+
 export function EventRegistrationForm({
   eventId,
   categories,
@@ -102,12 +109,36 @@ export function EventRegistrationForm({
 
         <FormField
           control={form.control}
+          name="name"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel className={LABEL}>Name</FormLabel>
+              <FormControl>
+                <Input
+                  autoComplete="name"
+                  className={FIELD}
+                  {...field}
+                  value={field.value || ''}
+                />
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+
+        <FormField
+          control={form.control}
           name="email"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>Email</FormLabel>
+              <FormLabel className={LABEL}>E-Mail *</FormLabel>
               <FormControl>
-                <Input placeholder="E-Mail" {...field} />
+                <Input
+                  type="email"
+                  autoComplete="email"
+                  className={FIELD}
+                  {...field}
+                />
               </FormControl>
               <FormMessage />
             </FormItem>
@@ -120,13 +151,15 @@ export function EventRegistrationForm({
             name="categoryId"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>
+                <FormLabel className={LABEL}>
                   {categoryLabel}
                   {categoryRequired && ' *'}
                 </FormLabel>
                 <Select onValueChange={field.onChange} value={field.value}>
                   <FormControl>
-                    <SelectTrigger className="w-full">
+                    <SelectTrigger
+                      className={`${FIELD} w-full data-[size=default]:h-12`}
+                    >
                       <SelectValue placeholder="Bitte wählen" />
                     </SelectTrigger>
                   </FormControl>
@@ -144,26 +177,11 @@ export function EventRegistrationForm({
           />
         )}
 
-        <FormField
-          control={form.control}
-          name="name"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>Name</FormLabel>
-              <FormControl>
-                <Input
-                  placeholder="Name"
-                  {...field}
-                  value={field.value || ''}
-                />
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
-
-        <Button type="submit" className="w-full">
-          Registrieren
+        <Button
+          type="submit"
+          className="h-auto rounded-full px-12 py-3 text-lg font-normal"
+        >
+          Anmelden
         </Button>
       </form>
     </Form>

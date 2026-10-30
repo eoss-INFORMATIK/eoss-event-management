@@ -16,6 +16,13 @@ die auf die alte verweist.
 
 ## 2026-10
 
+- **Event-Landingpage nach Figma (TASK-38).** Bildstreifen über die volle
+  Breite, Titel, zwei Spalten (Beschreibung | Anmeldung, darunter Sponsor |
+  Sponsor-Bild). Abweichungen vom Figma: Datum unter dem Titel (fehlt im
+  Figma, laut Task bleibt es), Sponsor-Überschrift ist der erfasste Name statt
+  „Durchführung / Sponsor“. Der Feldstil des Figma gilt nur im öffentlichen
+  Formular; die Verwaltung bleibt bei shadcn. `body` bekommt `overflow-x-clip`,
+  weil `100vw` unter Windows die Scrollleiste mitzählt.
 - **Teilnehmer von Hand hinzufügen, öffentliche Anmeldung nur als
   `registered` (TASK-49, 3/3).** „+“ in der Admin-Leiste öffnet einen Dialog
   (E-Mail, Name, Kategorie optional, Status). Dabei gemessen: die
