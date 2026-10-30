@@ -8,6 +8,7 @@ import { Pencil, Trash } from 'lucide-react';
 import { toast } from 'sonner';
 
 import { deleteEvent } from '@/features/events/actions';
+import { QrCodeButton } from '@/features/events/components/qr-code-button';
 
 import {
   AlertDialog,
@@ -24,13 +25,15 @@ import { Button } from '@/components/ui/button';
 interface EventAdminActionsProps {
   eventId: string;
   title: string;
+  /** Oeffentliche URL des Events, fuer den QR-Code. */
+  publicUrl: string;
   /** Fuer die Rueckfrage: Loeschen kaskadiert auf alle Anmeldungen. */
   participantCount: number;
 }
 
 /**
  * Die Aktionen der Admin-Ansicht, rechts in der Leiste neben "zu allen
- * Events". Weitere (QR-Code, Teilnehmer hinzufuegen) kommen hier dazu.
+ * Events". Weitere (Teilnehmer hinzufuegen) kommen hier dazu.
  *
  * Bearbeiten ist ein Link auf `/events/[id]/edit`, kein Zustand -- so braucht
  * die Leiste nichts mit der Event-Karte darunter zu teilen.
@@ -38,6 +41,7 @@ interface EventAdminActionsProps {
 export function EventAdminActions({
   eventId,
   title,
+  publicUrl,
   participantCount,
 }: EventAdminActionsProps) {
   const router = useRouter();
@@ -59,6 +63,7 @@ export function EventAdminActions({
 
   return (
     <div className="flex gap-2">
+      <QrCodeButton url={publicUrl} title={title} />
       <Button variant="outline" size="icon" asChild>
         <Link href={`/events/${eventId}/edit`} aria-label="Event bearbeiten">
           <Pencil />

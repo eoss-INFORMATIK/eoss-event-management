@@ -16,6 +16,14 @@ die auf die alte verweist.
 
 ## 2026-10
 
+- **QR-Code mit `qrcode` (TASK-49, 2/3).** Dieselbe Bibliothek erzeugt im
+  Browser den PNG zum Herunterladen und später auf dem Server die persönlichen
+  Codes für Mails — dort als Anhang (`toBuffer`), weil Gmail `data:`-Bilder
+  blockiert. Nicht `qrcode.react` (nur React, kein PNG auf dem Server), nicht
+  `qr-code-styling` (braucht auf dem Server Canvas). Einstellungen an einer
+  Stelle: `lib/qr.ts` (1024 px, Fehlerkorrektur M, Ruhezone 4). Die URL kommt
+  aus `SITE_URL` auf dem Server. Test: `tests/qr.test.ts` entschlüsselt den
+  PNG mit einem unabhängigen Decoder.
 - **Event-Admin: Aktionen in der Leiste, Bearbeiten als Route (TASK-49, 1/3).**
   Bearbeiten und Löschen stehen rechts neben „zu allen Events“. Bearbeiten ist
   die Seite `/events/[id]/edit` statt eines Zustands in der Event-Karte: die

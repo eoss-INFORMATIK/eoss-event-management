@@ -2,6 +2,7 @@ import type { Column } from 'write-excel-file/browser';
 
 import { statusLabel } from '@/features/participants/schema';
 
+import { slugify } from '@/lib/slug';
 import type { EventParticipant } from '@/types';
 
 /**
@@ -105,13 +106,7 @@ export const participantExportFileName = (
   eventName: string | null,
   { filtered = false, today = new Date() } = {}
 ) => {
-  const slug = (eventName ?? '')
-    .normalize('NFKD')
-    .replace(/[̀-ͯ]/g, '')
-    .toLowerCase()
-    .replace(/[^a-z0-9]+/g, '-')
-    .replace(/^-+|-+$/g, '')
-    .slice(0, 60);
+  const slug = slugify(eventName);
   const date = toZurichWallClock(today.toISOString())
     .toISOString()
     .slice(0, 10);
