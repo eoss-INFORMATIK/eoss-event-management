@@ -1,11 +1,13 @@
 'use client';
 
-import { useState } from 'react';
+import Image from 'next/image';
+import { useRef, useState } from 'react';
 
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useForm } from 'react-hook-form';
 import { toast } from 'sonner';
 
+import { uploadEventImage } from '@/features/events/upload';
 import { updateOrganization } from '@/features/organizations/actions';
 import {
   type OrganizationFormValues,
@@ -57,6 +59,11 @@ const CONTACT_FIELDS = [
 export const OrganizationForm = ({ organization }: OrganizationFormProps) => {
   const [error, setError] = useState<string>('');
   const [isSubmitting, setIsSubmitting] = useState(false);
+  // Das Logo liegt ausserhalb des Formularzustands, wie die Event-Bilder: die
+  // Datei geht beim Speichern direkt in den Storage, die Action bekommt nur
+  // die URL. '' heisst "kein Logo".
+  const [logoUrl, setLogoUrl] = useState(organization.logo_url ?? '');
+  const logoInputRef = useRef<HTMLInputElement>(null);
 
   const form = useForm<OrganizationFormValues>({
     resolver: zodResolver(organizationFormSchema),
@@ -76,13 +83,32 @@ export const OrganizationForm = ({ organization }: OrganizationFormProps) => {
     setIsSubmitting(true);
 
     try {
-      const result = await updateOrganization(organization.id, values);
+      let nextLogoUrl = logoUrl;
+      const file = logoInputRef.current?.files?.[0];
+
+      if (file) {
+        // Gleicher Bucket und Ordner wie die Event-Bilder: `<organization_id>/`.
+        // Die Storage-Policy laesst nur Mitglieder dort schreiben.
+        const upload = await uploadEventImage(file);
+        if (upload.error) {
+          setError(upload.error);
+          return;
+        }
+        nextLogoUrl = upload.url ?? '';
+      }
+
+      const result = await updateOrganization(organization.id, {
+        ...values,
+        logoUrl: nextLogoUrl,
+      });
 
       if (result.error) {
         setError(result.error);
         return;
       }
 
+      setLogoUrl(nextLogoUrl);
+      if (logoInputRef.current) logoInputRef.current.value = '';
       form.reset(values);
       toast.success('Organisation gespeichert');
     } finally {
@@ -109,6 +135,45 @@ export const OrganizationForm = ({ organization }: OrganizationFormProps) => {
             </FormItem>
           )}
         />
+
+        <fieldset className="mt-4 flex flex-col gap-4">
+          <legend className="text-lg font-semibold">Logo</legend>
+          <p className="text-muted-foreground text-sm">
+            Erscheint in der Kopfzeile deiner Event-Seiten. JPEG, PNG oder WebP,
+            höchstens 5 MB. Ohne Logo steht dort der Name.
+          </p>
+
+          {logoUrl && (
+            <div className="flex items-end gap-4">
+              <Image
+                src={logoUrl}
+                alt={`Logo ${organization.name}`}
+                width={320}
+                height={160}
+                className="h-auto max-h-24 w-auto max-w-full"
+              />
+              <Button
+                type="button"
+                variant="outline"
+                onClick={() => setLogoUrl('')}
+              >
+                Logo entfernen
+              </Button>
+            </div>
+          )}
+
+          <div className="space-y-2">
+            <label htmlFor="organization-logo" className="text-sm font-medium">
+              {logoUrl ? 'Logo ersetzen' : 'Logo hochladen'}
+            </label>
+            <Input
+              id="organization-logo"
+              type="file"
+              accept="image/jpeg,image/png,image/webp"
+              ref={logoInputRef}
+            />
+          </div>
+        </fieldset>
 
         <fieldset className="mt-4 flex flex-col gap-4">
           <legend className="text-lg font-semibold">

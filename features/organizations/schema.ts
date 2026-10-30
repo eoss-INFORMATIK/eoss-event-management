@@ -39,3 +39,14 @@ export const organizationFormSchema = z.object({
 });
 
 export type OrganizationFormValues = z.infer<typeof organizationFormSchema>;
+
+/**
+ * Was die Action annimmt: die Formularfelder plus die URL des Logos. Die Datei
+ * selbst laedt der Browser direkt in den Storage, wie bei den Event-Bildern;
+ * '' heisst "kein Logo".
+ */
+export const organizationInputSchema = organizationFormSchema.extend({
+  logoUrl: z.url('Ungültige Bild-URL').or(z.literal('')),
+});
+
+export type OrganizationInput = z.infer<typeof organizationInputSchema>;

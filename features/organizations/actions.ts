@@ -5,8 +5,8 @@ import { revalidatePath } from 'next/cache';
 import { z } from 'zod';
 
 import {
-  type OrganizationFormValues,
-  organizationFormSchema,
+  type OrganizationInput,
+  organizationInputSchema,
 } from '@/features/organizations/schema';
 
 import { createClient } from '@/server/supabase/server';
@@ -29,7 +29,7 @@ const orNull = (value: string) => value || null;
 
 export const updateOrganization = async (
   organizationId: string,
-  formData: OrganizationFormValues
+  formData: OrganizationInput
 ): Promise<ActionResponse> => {
   const supabase = await createClient();
 
@@ -42,7 +42,7 @@ export const updateOrganization = async (
       error: 'Du musst angemeldet sein, um die Organisation zu aendern',
     };
 
-  const parsed = organizationFormSchema.safeParse(formData);
+  const parsed = organizationInputSchema.safeParse(formData);
   if (!parsed.success) return { error: z.prettifyError(parsed.error) };
 
   const { data, error } = await supabase
@@ -55,6 +55,7 @@ export const updateOrganization = async (
       city: orNull(parsed.data.city),
       contact_email: orNull(parsed.data.contactEmail),
       phone: orNull(parsed.data.phone),
+      logo_url: orNull(parsed.data.logoUrl),
       updated_at: new Date().toISOString(),
     })
     .eq('id', organizationId)
