@@ -24,11 +24,14 @@ export const getEventParticipants = async (
     .from('event_participants')
     .select('*, events (title), event_categories (label)')
     .eq('event_id', eventId)
-    .order('created_at', { ascending: true })
+    // Neueste zuerst: ein gerade hinzugefuegter oder angemeldeter Teilnehmer
+    // steht oben auf Seite 1 statt unten, bei mehr als 50 auf einer Folgeseite.
+    // Der Export uebernimmt die Reihenfolge der Tabelle.
+    .order('created_at', { ascending: false })
     // Gleichstandsregel: gleiche Zeitstempel (Import, gleichzeitige Anmeldung)
     // haben in Postgres keine feste Reihenfolge, und ein UPDATE schreibt die
     // Zeile neu -- ohne `id` sprang eine Zeile nach einer Statusaenderung.
-    .order('id', { ascending: true });
+    .order('id', { ascending: false });
 
   if (error) return { error: 'Teilnehmer konnten nicht geladen werden' };
 

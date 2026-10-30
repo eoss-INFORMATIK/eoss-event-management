@@ -16,6 +16,14 @@ die auf die alte verweist.
 
 ## 2026-10
 
+- **Teilnehmer von Hand hinzufügen, öffentliche Anmeldung nur als
+  `registered` (TASK-49, 3/3).** „+“ in der Admin-Leiste öffnet einen Dialog
+  (E-Mail, Name, Kategorie optional, Status). Dabei gemessen: die
+  INSERT-Policy war `with check (true)`, anonym liess sich jeder Status
+  eintragen. Jetzt zwei Policies — öffentlich nur `registered`, Mitglieder
+  jeder Status. Migration zuerst: der alte Code setzt nie einen Status. Keine
+  Mail beim Hinzufügen; das kommt mit dem Anmeldeflow.
+  [`datenmodell.md`](./datenmodell.md)
 - **QR-Code mit `qrcode` (TASK-49, 2/3).** Dieselbe Bibliothek erzeugt im
   Browser den PNG zum Herunterladen und später auf dem Server die persönlichen
   Codes für Mails — dort als Anhang (`toBuffer`), weil Gmail `data:`-Bilder

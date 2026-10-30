@@ -5,7 +5,9 @@ import { revalidatePath } from 'next/cache';
 import { z } from 'zod';
 
 import {
+  type OrganizerParticipantValues,
   type ParticipantFormValues,
+  organizerParticipantSchema,
   participantFormSchema,
   participantStatusSchema,
 } from '@/features/participants/schema';
@@ -56,22 +58,77 @@ export const addParticipant = async (
   });
 
   if (error) {
-    // 23505 = unique_violation on (event_id, lower(email))
-    if (error.code === '23505') {
-      return {
-        error: 'Für diese E-Mail-Adresse liegt bereits eine Anmeldung vor',
-      };
-    }
-    // 23503 = foreign_key_violation: die Kategorie gehoert nicht zu diesem
-    // Event. Das faengt der zusammengesetzte Fremdschluessel ab -- hier wird
-    // daraus nur eine lesbare Meldung.
-    if (error.code === '23503') {
-      return { error: 'Der gewählte Wert gehört nicht zu diesem Event' };
-    }
-    return { error: 'Anmeldung fehlgeschlagen' };
+    return {
+      error: insertErrorMessage(error.code) ?? 'Anmeldung fehlgeschlagen',
+    };
   }
 
   revalidatePath(`/events/${eventId}`);
+  return { success: true };
+};
+
+/** Meldungen fuer Fehler, die beide Einfuege-Wege kennen. */
+const insertErrorMessage = (code: string | undefined) => {
+  // 23505 = unique_violation on (event_id, lower(email))
+  if (code === '23505')
+    return 'Für diese E-Mail-Adresse liegt bereits eine Anmeldung vor';
+  // 23503 = foreign_key_violation: die Kategorie gehoert nicht zu diesem Event.
+  if (code === '23503') return 'Der gewählte Wert gehört nicht zu diesem Event';
+  return null;
+};
+
+/**
+ * Organisator fuegt einen Teilnehmer von Hand hinzu, mit Status.
+ *
+ * Die Grenze ist die Policy "Members can add participants with any status":
+ * ein Nicht-Mitglied faellt auf die oeffentliche Policy zurueck, und die
+ * erlaubt nur `registered`. Die Kategorie ist hier optional, auch wenn das
+ * Event sie bei der oeffentlichen Anmeldung verlangt -- der Organisator kennt
+ * sie nicht immer. Es geht keine Mail raus.
+ */
+export const addParticipantAsOrganizer = async (
+  formData: OrganizerParticipantValues,
+  eventId: string
+): Promise<ActionResponse> => {
+  const parsed = organizerParticipantSchema.safeParse(formData);
+  if (!parsed.success) return { error: z.prettifyError(parsed.error) };
+
+  if (!z.uuid().safeParse(eventId).success) {
+    return { error: 'Ungültige Event-ID' };
+  }
+
+  const supabase = await createClient();
+
+  const { data: event } = await supabase
+    .from('events')
+    .select('organization_id')
+    .eq('id', eventId)
+    .maybeSingle();
+
+  if (!event) return { error: 'Event nicht gefunden' };
+
+  const { error } = await supabase.from('event_participants').insert({
+    event_id: eventId,
+    email: parsed.data.email,
+    name: parsed.data.name || null,
+    status: parsed.data.status,
+    organization_id: event.organization_id,
+    category_id: parsed.data.categoryId || null,
+  });
+
+  if (error) {
+    // 42501 = RLS: kein Mitglied der Organisation dieses Events.
+    if (error.code === '42501') {
+      return { error: 'Keine Berechtigung für dieses Event' };
+    }
+    return {
+      error:
+        insertErrorMessage(error.code) ??
+        'Teilnehmer konnte nicht hinzugefügt werden',
+    };
+  }
+
+  revalidatePath(`/events/${eventId}/admin`);
   return { success: true };
 };
 

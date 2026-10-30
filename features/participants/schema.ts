@@ -50,6 +50,19 @@ export const participantFormSchema = z.object({
 });
 
 export type ParticipantFormValues = z.infer<typeof participantFormSchema>;
+
+/**
+ * Was der Organisator beim manuellen Hinzufuegen erfasst: dieselben Felder,
+ * dazu der Status. Ob er ihn setzen darf, entscheidet die Policy "Members can
+ * add participants with any status" -- nicht dieses Schema.
+ */
+export const organizerParticipantSchema = participantFormSchema.extend({
+  status: participantStatusSchema,
+});
+
+export type OrganizerParticipantValues = z.infer<
+  typeof organizerParticipantSchema
+>;
 export type ParticipantStatus = z.infer<typeof participantStatusSchema>;
 
 /** Unbekannte Werte erscheinen roh statt zu verschwinden. */
