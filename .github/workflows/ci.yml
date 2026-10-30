@@ -59,9 +59,12 @@ jobs:
           node-version: 22
           cache: npm
 
+      # Feste Version statt `latest`: `latest` fragt bei jedem Lauf die
+      # GitHub-API ab und scheitert ohne Token am Abruflimit
+      # ("rate limit exceeded"). Gleiche Version wie lokal (`supabase --version`).
       - uses: supabase/setup-cli@v1
         with:
-          version: latest
+          version: 2.122.0
 
       - run: npm ci
 

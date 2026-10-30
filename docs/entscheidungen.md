@@ -16,6 +16,12 @@ die auf die alte verweist.
 
 ## 2026-10
 
+- **Supabase-CLI in CI fest auf 2.122.0.** `version: latest` in
+  `supabase/setup-cli` fragt bei jedem Lauf die GitHub-API ab und brach den
+  `rls`-Job mit "rate limit exceeded" ab, bevor ein Test lief. Feste Version
+  heisst auch: CI und lokal laufen dieselbe CLI. Aktualisieren bewusst, mit
+  der lokalen Version zusammen.
+
 - **Bestätigungsmail serverseitig, QR als Ticket-Link (TASK-51).** Die Mail
   verschickt `addParticipant` nach dem Insert per `after()`; die öffentliche
   Server Action `sendConfirmationEmail` ist entfernt — sie war ein offenes
