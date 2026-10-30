@@ -22,6 +22,14 @@ die auf die alte verweist.
   heisst auch: CI und lokal laufen dieselbe CLI. Aktualisieren bewusst, mit
   der lokalen Version zusammen.
 
+- **Funktionen in Frankfurt (`fra1`), nicht Washington.** Ohne Angabe liefen
+  die Vercel-Funktionen in `iad1`, die Datenbank steht in Zürich
+  (`eu-central-2`): jede Abfrage ~100 ms über den Atlantik, eine Admin-Seite
+  mit fünf bis sieben Abfragen hintereinander brauchte gemessen 0,6 s und mehr.
+  `vercel.json` setzt `regions: ["fra1"]` — im Repo statt im Dashboard, damit
+  es versioniert ist. Nebenwirkung: die Daten werden in der EU verarbeitet,
+  nicht in den USA. Wer die Datenbank verlegt, verlegt die Region mit.
+
 - **Bestätigungsmail serverseitig, QR als Ticket-Link (TASK-51).** Die Mail
   verschickt `addParticipant` nach dem Insert per `after()`; die öffentliche
   Server Action `sendConfirmationEmail` ist entfernt — sie war ein offenes
