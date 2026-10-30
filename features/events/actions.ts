@@ -209,6 +209,7 @@ export const editEvent = async (
 
   revalidatePath('/events');
   revalidatePath(`/events/${eventId}`);
+  revalidatePath(`/events/${eventId}/admin`);
   return { success: true };
 };
 
