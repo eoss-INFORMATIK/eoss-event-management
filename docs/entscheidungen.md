@@ -16,6 +16,13 @@ die auf die alte verweist.
 
 ## 2026-10
 
+- **Bestätigungsmail serverseitig, QR als Ticket-Link (TASK-51).** Die Mail
+  verschickt `addParticipant` nach dem Insert per `after()`; die öffentliche
+  Server Action `sendConfirmationEmail` ist entfernt — sie war ein offenes
+  Mail-Relais (beliebiger Empfänger, beliebig oft). Organisationsname über die
+  Definer-Funktion `event_organization_name`, kein Service-Role-Key. QR-Code
+  (Scheibe 2) enthält `<SITE_URL>/t/<ticket_code>` mit Zufallscode, den der
+  Server erzeugt. [`task-51-bestaetigungsmail.md`](./task-51-bestaetigungsmail.md)
 - **Event-Landingpage nach Figma (TASK-38).** Bildstreifen über die volle
   Breite, Titel, zwei Spalten (Beschreibung | Anmeldung, darunter Sponsor |
   Sponsor-Bild). Abweichungen vom Figma: Datum unter dem Titel (fehlt im

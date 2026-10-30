@@ -1,9 +1,11 @@
 'use server';
 
 import { revalidatePath } from 'next/cache';
+import { after } from 'next/server';
 
 import { z } from 'zod';
 
+import { sendRegistrationConfirmation } from '@/features/email/send-confirmation';
 import {
   type OrganizerParticipantValues,
   type ParticipantFormValues,
@@ -62,6 +64,24 @@ export const addParticipant = async (
       error: insertErrorMessage(error.code) ?? 'Anmeldung fehlgeschlagen',
     };
   }
+
+  // Die Bestaetigungsmail geht nach der Antwort raus: die Anmeldung wartet
+  // nicht auf Resend, und ein Fehler beim Versand macht sie nicht rueckgaengig.
+  after(async () => {
+    const result = await sendRegistrationConfirmation({
+      eventId,
+      email: parsed.data.email,
+      name: parsed.data.name || null,
+      categoryId: parsed.data.categoryId || null,
+    });
+    if (result.error) {
+      // eslint-disable-next-line no-console
+      console.error('[mail] Bestaetigung fehlgeschlagen', {
+        eventId,
+        error: result.error,
+      });
+    }
+  });
 
   revalidatePath(`/events/${eventId}`);
   return { success: true };

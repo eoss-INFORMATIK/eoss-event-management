@@ -8,7 +8,7 @@ Was hier **nicht** steht: Produktentscheidungen, Roadmap, Aufgaben — die liege
 in Notion. Konventionen und Fallstricke der Codebasis stehen in
 [`CLAUDE.md`](../CLAUDE.md).
 
-Stand: 2026-10-30, nach siebzehn Migrationen.
+Stand: 2026-10-30, nach achtzehn Migrationen.
 
 ## Das Besitzmodell in einem Satz
 
@@ -114,6 +114,13 @@ Ausgeschrieben gehört es trotzdem überall dorthin, wo es **anders** lauten mus
 als das `using` daneben — bei `events` etwa, damit lesbar bleibt, dass auch die
 Ziel-Organisation geprüft wird. Der gefährliche Fall ist nicht das Weglassen,
 sondern ein `with check`, das schwächer ist als sein `using`.
+
+**Eine Definer-Funktion gibt es: `event_organization_name(event_id)`.** Sie
+liefert den Namen der Organisation eines Events, auch anonym — für die
+Bestätigungsmail, die bei einer anonymen Anmeldung verschickt wird. Nur der
+Name, nur über ein existierendes Event; die Tabelle `organizations` bleibt
+anonym verschlossen. `set search_path = ''`, alle Namen voll qualifiziert.
+Begründung in [`task-51-bestaetigungsmail.md`](./task-51-bestaetigungsmail.md).
 
 **Keine Rekursion, und darum noch keine Definer-Funktion.** Eine Policy auf
 `events` liest `organization_user`, dort greift `user_id = auth.uid()` — ein
