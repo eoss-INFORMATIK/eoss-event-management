@@ -16,6 +16,12 @@ die auf die alte verweist.
 
 ## 2026-10
 
+- **Supabase-CLI in CI fest auf 2.122.0.** `version: latest` in
+  `supabase/setup-cli` fragt bei jedem Lauf die GitHub-API ab und brach den
+  `rls`-Job mit "rate limit exceeded" ab, bevor ein Test lief. Feste Version
+  heisst auch: CI und lokal laufen dieselbe CLI. Aktualisieren bewusst, mit
+  der lokalen Version zusammen.
+
 - **Funktionen in Frankfurt (`fra1`), nicht Washington.** Ohne Angabe liefen
   die Vercel-Funktionen in `iad1`, die Datenbank steht in Zürich
   (`eu-central-2`): jede Abfrage ~100 ms über den Atlantik, eine Admin-Seite
