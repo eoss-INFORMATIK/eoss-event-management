@@ -10,6 +10,7 @@ import ParticipantsTable from '@/features/participants/components/participants-t
 
 import { Button } from '@/components/ui/button';
 
+import { env } from '@/env';
 import { createClient } from '@/server/supabase/server';
 
 interface EventPageProps {
@@ -51,6 +52,7 @@ export default async function EventAdminPage({ params }: EventPageProps) {
         <EventAdminActions
           eventId={event.id}
           title={event.title}
+          publicUrl={`${env.SITE_URL}/events/${event.id}`}
           participantCount={count ?? 0}
         />
       </div>
