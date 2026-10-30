@@ -73,3 +73,66 @@ jobs:
 
       - name: RLS-Tests
         run: npm test
+
+  # Stellt sicher, dass jede Migration eines PR schon in Produktion angewendet
+  # ist, bevor der Code dorthin geht -- sonst schreibt er in Spalten, die es
+  # dort noch nicht gibt. Genau das passierte bei PR #40: danach schlug in
+  # Produktion jedes Speichern der Organisation fehl. "Erweitern heisst
+  # Migration zuerst" stand laengst in CLAUDE.md und half nichts -- eine Regel,
+  # an die man sich erinnern muss, ist keine Absicherung.
+  #
+  # Nur auf Pull Requests: Der Job soll einen Merge verhindern, nach dem Merge
+  # ist es dafuer zu spaet.
+  #
+  # Bei 22 Migrationen liefert die API alle in einer Antwort. Sollte sie
+  # irgendwann seitenweise antworten, zeigte sich das als Liste "fehlender"
+  # Migrationen, die in Wahrheit laengst in Produktion sind.
+  migration:
+    runs-on: ubuntu-latest
+    # Ausnahme fuer "Verschaerfen" und "Entfernen": dort gehoert die Migration
+    # absichtlich erst NACH dem Merge nach Produktion, weil die alte Version
+    # sonst daran bricht. Das Label am Pull Request schaltet die Pruefung ab.
+    if: >-
+      github.event_name == 'pull_request' &&
+      !contains(github.event.pull_request.labels.*.name, 'migration-nach-merge')
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Migrationen gegen Produktion vergleichen
+        env:
+          SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
+        run: |
+          # pipefail, weil fuer `set -e` sonst nur der LETZTE Befehl einer
+          # Pipeline zaehlt: ein scheiterndes `ls` liefe durch, die Liste waere
+          # leer, und der Check wuerde stumm gruen.
+          set -o pipefail
+          ls -1 ./supabase/migrations/*.sql | xargs -n1 basename | cut -d_ -f1 | sort > /tmp/branch.txt
+          # Die Management-API braucht nur das Access-Token, nicht das
+          # Datenbankpasswort. Der Projektschluessel ist kein Geheimnis, er
+          # steht in jeder Browser-Anfrage (NEXT_PUBLIC_SUPABASE_URL).
+          code=$(curl -sS -o /tmp/prod.json -w '%{http_code}' \
+            "https://api.supabase.com/v1/projects/mcztjefizxfpcfsqmlec/database/migrations" \
+            -H "Authorization: Bearer $SUPABASE_ACCESS_TOKEN")
+
+          # Erst den Code pruefen, dann parsen: auf eine Fehlerantwort gaebe
+          # `jq` nur "Cannot index string with string" aus, und die Ursache --
+          # etwa ein abgelaufenes Token -- stuende nirgends.
+          if [ "$code" == "200" ]; then
+            jq -r '.[].version' /tmp/prod.json | sort > /tmp/prod.txt
+          else
+            echo "Produktion nicht lesbar (HTTP $code) -- Abbruch."
+            exit 1
+          fi
+          if [ ! -s /tmp/prod.txt ]; then
+            echo "Konnte den Stand von Produktion nicht lesen -- Abbruch."
+            exit 1
+          fi
+          # Nur diese Richtung blockiert. Umgekehrt -- in Produktion, aber
+          # nicht im Branch -- ist harmlos: der Branch ist dann aelter als
+          # main, oder eine andere Migration lief inzwischen durch.
+          fehlend=$(comm -23 /tmp/branch.txt /tmp/prod.txt)
+          if [ -n "$fehlend" ]; then
+            echo "Nicht in Produktion: $fehlend"
+            echo "Vor dem Merge: npm run db:push, danach npm run db:check."
+            exit 1
+          fi
