@@ -16,6 +16,16 @@ die auf die alte verweist.
 
 ## 2026-10
 
+- **CI blockiert den Merge, solange eine Migration nicht in Produktion ist.**
+  Anlass: PR #40 wurde vor `db:push` gemergt, danach schlug in Produktion jedes
+  Speichern der Organisation fehl — die Regel „Erweitern heisst Migration
+  zuerst“ stand längst in `CLAUDE.md` und half nichts. Der Job `migration`
+  vergleicht die Migrationen des Branch mit der Supabase-Management-API.
+  Bewusst nur das Access-Token als Secret, nicht das Datenbankpasswort (dasselbe
+  Argument wie gegen den Service-Role-Key in TASK-51). Ausnahme für „Code
+  zuerst“ über das Label `migration-nach-merge`. Nur auf Pull Requests, weil
+  der Job einen Merge verhindern soll.
+
 - **Veranstalter auf der Landingpage (TASK-55, Scheibe 4).** Definer-Funktion
   `event_organization(event_id)` gibt genau Name, Logo, Adresse und Kontakt
   einer Organisation heraus, nur über ein existierendes Event. Kopfzeile zeigt

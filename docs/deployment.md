@@ -23,17 +23,27 @@ Seite beginnt mit `fra1::fra1::`.
 
 ### Was welcher Check abdeckt
 
-|              | Vercel   | `verify`                | `rls`          |
-| ------------ | -------- | ----------------------- | -------------- |
-| Build        | ✓        | — (nicht doppelt)       | —              |
-| TypeScript   | ✓        | ✓ (`npm run typecheck`) | —              |
-| ESLint       | **nein** | ✓ (`npm run lint`)      | —              |
-| RLS-Policies | nein     | nein                    | ✓ (`npm test`) |
+|                    | Vercel   | `verify`                | `rls`          | `migration` |
+| ------------------ | -------- | ----------------------- | -------------- | ----------- |
+| Build              | ✓        | — (nicht doppelt)       | —              | —           |
+| TypeScript         | ✓        | ✓ (`npm run typecheck`) | —              | —           |
+| ESLint             | **nein** | ✓ (`npm run lint`)      | —              | —           |
+| RLS-Policies       | nein     | nein                    | ✓ (`npm test`) | —           |
+| Migration in Prod? | nein     | nein                    | nein           | ✓           |
 
-Alle drei sind im Ruleset **erforderlich**. `rls` faehrt den Supabase-Stack in
+Alle sind im Ruleset **erforderlich**. `rls` faehrt den Supabase-Stack in
 Docker hoch und braucht ein paar Minuten; das ist der Preis dafuer, dass eine
 kaputte Policy nicht nach Produktion kommt -- die einzige Fehlerklasse hier, die
 im UI unsichtbar bleibt, bis sie jemand ausnutzt.
+
+**`migration` vergleicht die Migrationen des Branch mit denen, die in
+Produktion angewendet sind**, und blockiert den Merge, solange eine fehlt. Er
+liest die Supabase-Management-API mit dem Secret `SUPABASE_ACCESS_TOKEN` --
+nur Token, kein Datenbankpasswort. Laeuft nur auf Pull Requests.
+
+Beim **Verschaerfen und Entfernen** gehoert die Migration absichtlich erst nach
+dem Merge nach Produktion. Dort setzt man das Label **`migration-nach-merge`**
+an den Pull Request, dann wird der Job uebersprungen.
 
 `next build` lintet seit Next 15 nicht mehr mit — ein Lint-Fehler würde ohne den
 CI-Workflow unbemerkt nach Produktion gehen.
