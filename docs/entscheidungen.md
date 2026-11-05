@@ -16,6 +16,13 @@ die auf die alte verweist.
 
 ## 2026-11
 
+- **Kurztext umgesetzt (TASK-53, Scheibe 2).** Spalte `events.excerpt
+  varchar(160)` — die Grenze hält die Datenbank, das Schema liefert nur die
+  Meldung. Rückfall und Kürzung an genau einer Stelle, `eventExcerpt` in
+  `features/events/excerpt.ts`: an einer Wortgrenze, mit „…“, insgesamt
+  höchstens 160 Zeichen. Der Klartext-Helfer ist dafür aus `description.tsx`
+  ausgezogen, damit das Schema nicht `react-markdown` in den Browser zieht.
+
 - **Beschreibung als Markdown, Editor Tiptap (TASK-53, Scheibe 1).**
   `events.description` bleibt `text`, ohne Migration, und enthält jetzt
   Markdown: Titel (nur `h2`), Listen, fett, kursiv. Verworfen: HTML in der
