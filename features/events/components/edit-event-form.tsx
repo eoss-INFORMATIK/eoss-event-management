@@ -138,25 +138,6 @@ export function EditEventForm({ event, categories }: EditEventFormProps) {
         />
         <FormField
           control={form.control}
-          name="description"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>Beschreibung</FormLabel>
-              <FormControl>
-                <DescriptionEditor
-                  placeholder="Beschreibung des Events"
-                  value={field.value ?? ''}
-                  onChange={field.onChange}
-                  onBlur={field.onBlur}
-                />
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
-
-        <FormField
-          control={form.control}
           name="excerpt"
           render={({ field }) => (
             <FormItem>
@@ -174,6 +155,24 @@ export function EditEventForm({ event, categories }: EditEventFormProps) {
                 Höchstens {EXCERPT_LENGTH} Zeichen. Leer gelassen, erscheint der
                 Anfang der Beschreibung.
               </FormDescription>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+        <FormField
+          control={form.control}
+          name="description"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>Beschreibung</FormLabel>
+              <FormControl>
+                <DescriptionEditor
+                  placeholder="Beschreibung des Events"
+                  value={field.value ?? ''}
+                  onChange={field.onChange}
+                  onBlur={field.onBlur}
+                />
+              </FormControl>
               <FormMessage />
             </FormItem>
           )}
