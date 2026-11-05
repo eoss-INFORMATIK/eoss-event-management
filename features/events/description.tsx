@@ -1,4 +1,3 @@
-import { fromMarkdown } from 'mdast-util-from-markdown';
 import Markdown from 'react-markdown';
 import remarkBreaks from 'remark-breaks';
 
@@ -63,33 +62,4 @@ export function EventDescription({
       </Markdown>
     </div>
   );
-}
-
-type MdastNode = ReturnType<typeof fromMarkdown>['children'][number];
-
-const CONTAINER_BLOCKS = new Set(['list', 'listItem', 'blockquote']);
-
-/**
- * Die Beschreibung als Klartext, Bloecke durch ein Leerzeichen getrennt -- fuer
- * Vorschauen, in denen ein Titel oder eine Liste das Layout sprengen wuerde.
- *
- * Nicht `mdast-util-to-string`: das klebt Absaetze und Zeilenumbrueche ohne
- * Abstand aneinander ("TitelText").
- */
-export function descriptionToPlainText(markdown: string): string {
-  const text = (node: MdastNode): string => {
-    if ('value' in node && node.type !== 'html') return node.value;
-    if (node.type === 'break') return ' ';
-    if (!('children' in node)) return '';
-    // Bloecke, deren Kinder wieder Bloecke sind, bekommen ein Leerzeichen
-    // dazwischen; innerhalb eines Absatzes (fett, kursiv) kein zusaetzliches.
-    const separator = CONTAINER_BLOCKS.has(node.type) ? ' ' : '';
-    return (node.children as MdastNode[]).map(text).join(separator);
-  };
-
-  return fromMarkdown(markdown)
-    .children.map(text)
-    .join(' ')
-    .replace(/\s+/g, ' ')
-    .trim();
 }

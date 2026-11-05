@@ -15,6 +15,7 @@ import { CategoryFields } from '@/features/events/components/category-fields';
 import { DescriptionEditor } from '@/features/events/components/description-editor';
 import { SponsorFields } from '@/features/events/components/sponsor-fields';
 import {
+  EXCERPT_LENGTH,
   type EventFormValues,
   eventFormSchema,
 } from '@/features/events/schema';
@@ -25,12 +26,14 @@ import { Button } from '@/components/ui/button';
 import {
   Form,
   FormControl,
+  FormDescription,
   FormField,
   FormItem,
   FormLabel,
   FormMessage,
 } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
+import { Textarea } from '@/components/ui/textarea';
 
 import type { Event } from '@/types';
 
@@ -52,6 +55,7 @@ export function EditEventForm({ event, categories }: EditEventFormProps) {
     defaultValues: {
       title: event.title,
       description: event.description ?? '',
+      excerpt: event.excerpt ?? '',
       date: new Date(event.date),
       // Gesetzter Name = der Block ist an. Es gibt keine eigene Spalte dafuer,
       // und genau deshalb kann hier nichts auseinanderlaufen.
@@ -128,6 +132,29 @@ export function EditEventForm({ event, categories }: EditEventFormProps) {
               <FormControl>
                 <Input placeholder="Titel des Events" {...field} />
               </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+        <FormField
+          control={form.control}
+          name="excerpt"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>Kurztext</FormLabel>
+              <FormControl>
+                <Textarea
+                  placeholder="Ein, zwei Sätze für die Event-Übersicht"
+                  className="resize-none"
+                  maxLength={EXCERPT_LENGTH}
+                  {...field}
+                  value={field.value ?? ''}
+                />
+              </FormControl>
+              <FormDescription>
+                Höchstens {EXCERPT_LENGTH} Zeichen. Leer gelassen, erscheint der
+                Anfang der Beschreibung.
+              </FormDescription>
               <FormMessage />
             </FormItem>
           )}

@@ -3,10 +3,8 @@ import { createElement } from 'react';
 import { renderToStaticMarkup } from 'react-dom/server';
 import { describe, expect, it } from 'vitest';
 
-import {
-  EventDescription,
-  descriptionToPlainText,
-} from '@/features/events/description';
+import { EventDescription } from '@/features/events/description';
+import { descriptionToPlainText } from '@/features/events/excerpt';
 
 /**
  * Beschreibung als Markdown (TASK-53). Die Landingpage ist oeffentlich, und wer

@@ -1,7 +1,7 @@
 import Image from 'next/image';
 import Link from 'next/link';
 
-import { descriptionToPlainText } from '@/features/events/description';
+import { eventExcerpt } from '@/features/events/excerpt';
 
 import { Surface } from '@/components/surface';
 import { Button } from '@/components/ui/button';
@@ -55,11 +55,10 @@ export const SingleEventCard = ({ event }: SingleEventCardProps) => {
         </p>
       </div>
 
-      {/* Klartext statt formatiert: ein Titel oder eine Liste sprengt die
-          Karte. Die Laenge haelt line-clamp, nicht der Text. */}
-      <p className="text-muted-foreground line-clamp-3 text-sm">
-        {(event.description && descriptionToPlainText(event.description)) ||
-          'Keine Beschreibung vorhanden'}
+      {/* Kurztext oder Anfang der Beschreibung, immer Klartext: ein Titel oder
+          eine Liste sprengt die Karte. */}
+      <p className="text-muted-foreground text-sm">
+        {eventExcerpt(event) || 'Keine Beschreibung vorhanden'}
       </p>
 
       {/* Ohne Bild gibt es nichts, worueber die Buttons schweben koennten --

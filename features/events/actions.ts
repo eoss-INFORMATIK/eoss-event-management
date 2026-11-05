@@ -150,6 +150,7 @@ export const addEvent = async (
     .insert({
       title: parsed.data.title,
       description: parsed.data.description || null,
+      excerpt: parsed.data.excerpt || null,
       date: parsed.data.date.toISOString(),
       image_url: parsed.data.imageUrl || null,
       organization_id: organizationId,
@@ -190,6 +191,7 @@ export const editEvent = async (
     .update({
       title: parsed.data.title,
       description: parsed.data.description || null,
+      excerpt: parsed.data.excerpt || null,
       date: parsed.data.date.toISOString(),
       image_url: parsed.data.imageUrl || null,
       updated_by: user.id,
