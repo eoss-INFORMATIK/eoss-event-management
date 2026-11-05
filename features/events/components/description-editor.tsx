@@ -96,7 +96,6 @@ export function DescriptionEditor({
       italic: editor?.isActive('italic') ?? false,
       bulletList: editor?.isActive('bulletList') ?? false,
       orderedList: editor?.isActive('orderedList') ?? false,
-      empty: editor?.isEmpty ?? true,
     }),
   });
 
@@ -160,7 +159,10 @@ export function DescriptionEditor({
         ))}
       </div>
       <div className="relative">
-        {placeholder && active?.empty && (
+        {/* Am Formularwert, nicht am Editor: der entsteht erst nach dem
+            ersten Rendern (immediatelyRender: false) und galt bis zur ersten
+            Eingabe als leer -- der Placeholder lag dann ueber dem Text. */}
+        {placeholder && !value && (
           <p className="text-muted-foreground pointer-events-none absolute top-2 left-3">
             {placeholder}
           </p>
