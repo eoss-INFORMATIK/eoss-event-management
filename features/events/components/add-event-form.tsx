@@ -9,6 +9,7 @@ import { toast } from 'sonner';
 
 import { addEvent } from '@/features/events/actions';
 import { CategoryFields } from '@/features/events/components/category-fields';
+import { DescriptionEditor } from '@/features/events/components/description-editor';
 import { SponsorFields } from '@/features/events/components/sponsor-fields';
 import {
   type EventFormValues,
@@ -27,7 +28,6 @@ import {
   FormMessage,
 } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
-import { Textarea } from '@/components/ui/textarea';
 
 export function AddEventForm() {
   const router = useRouter();
@@ -121,11 +121,11 @@ export function AddEventForm() {
             <FormItem>
               <FormLabel>Beschreibung</FormLabel>
               <FormControl>
-                <Textarea
+                <DescriptionEditor
                   placeholder="Beschreibung des Events"
-                  className="resize-none"
-                  {...field}
                   value={field.value ?? ''}
+                  onChange={field.onChange}
+                  onBlur={field.onBlur}
                 />
               </FormControl>
               <FormMessage />
