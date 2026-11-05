@@ -14,6 +14,26 @@ die die aktuelle Aufgabe betreffen, und nur dort nachlesen. Neueste oben.
 Anhängen, nie umschreiben — eine überholte Entscheidung bekommt eine neue Zeile,
 die auf die alte verweist.
 
+## 2026-11
+
+- **Beschreibung als Markdown, Editor Tiptap (TASK-53, Scheibe 1).**
+  `events.description` bleibt `text`, ohne Migration, und enthält jetzt
+  Markdown: Titel (nur `h2`), Listen, fett, kursiv. Verworfen: HTML in der
+  Spalte (braucht eine Bereinigung an jeder Anzeigestelle) und Tiptap-JSON in
+  `jsonb` (Migration, Datenbank hängt am Editor). Die Sicherheitsgrenze ist der
+  Renderer in `features/events/description.tsx` — kein `rehype-raw`, feste
+  Liste erlaubter Elemente —, nicht der Editor, denn wer RLS-Rechte hat,
+  schreibt am Editor vorbei. Alte Klartexte bleiben gültig: `breaks: true` im
+  Editor und `remark-breaks` in der Anzeige halten einfache Zeilenumbrüche.
+  Tiptap fest auf 3.32.0. Die Event-Karte zeigt Klartext, nicht formatiert.
+
+- **Kurztext für die Karte in eigener Spalte `excerpt` (TASK-53, Scheibe 2,
+  geplant).** Selbst geschrieben, Rückfall auf die ersten 160 Zeichen der
+  Beschreibung als Klartext. Bewusst nicht `description` zum Kurztext
+  umgedeutet: die bestehenden Texte sind lang, und Umdeuten wäre Verschärfen
+  mit Übergangszustand statt Erweitern. Aus „Detail Informationen Event“
+  herausgelöst.
+
 ## 2026-10
 
 - **CI blockiert den Merge, solange eine Migration nicht in Produktion ist.**

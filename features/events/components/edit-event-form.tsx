@@ -12,6 +12,7 @@ import { toast } from 'sonner';
 import { editEvent } from '@/features/events/actions';
 import type { EventCategory } from '@/features/events/categories';
 import { CategoryFields } from '@/features/events/components/category-fields';
+import { DescriptionEditor } from '@/features/events/components/description-editor';
 import { SponsorFields } from '@/features/events/components/sponsor-fields';
 import {
   type EventFormValues,
@@ -30,7 +31,6 @@ import {
   FormMessage,
 } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
-import { Textarea } from '@/components/ui/textarea';
 
 import type { Event } from '@/types';
 
@@ -139,11 +139,11 @@ export function EditEventForm({ event, categories }: EditEventFormProps) {
             <FormItem>
               <FormLabel>Beschreibung</FormLabel>
               <FormControl>
-                <Textarea
+                <DescriptionEditor
                   placeholder="Beschreibung des Events"
-                  className="resize-none"
-                  {...field}
                   value={field.value ?? ''}
+                  onChange={field.onChange}
+                  onBlur={field.onBlur}
                 />
               </FormControl>
               <FormMessage />
