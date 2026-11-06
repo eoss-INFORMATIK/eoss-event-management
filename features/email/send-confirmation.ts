@@ -6,10 +6,12 @@ import {
   ConfirmationMail,
   confirmationSubject,
 } from '@/features/email/confirmation-template';
+import { logoAttachment } from '@/features/email/logo-attachment';
 import {
   TICKET_CID,
   ticketAttachments,
 } from '@/features/email/ticket-attachments';
+import { getEventOrganization } from '@/features/organizations/queries';
 
 import { env } from '@/env';
 import { formatDate } from '@/lib/format';
@@ -25,9 +27,10 @@ import { createClient } from '@/server/supabase/server';
  * nur `addParticipant` diese Funktion auf, nach einem erfolgreichen Insert.
  *
  * Laeuft im Kontext der anonymen Anmeldung. Gelesen wird nur, was oeffentlich
- * ist: Event und Kategorie (oeffentliche SELECT-Policies) und der
- * Organisationsname ueber `event_organization_name()`.
- * Begruendung: docs/task-51-bestaetigungsmail.md
+ * ist: Event und Kategorie (oeffentliche SELECT-Policies) und Name, Logo,
+ * Adresse und Kontakt der Organisation ueber `event_organization()` -- dieselbe
+ * Definer-Funktion wie die Landingpage (TASK-56).
+ * Begruendung: docs/task-51-bestaetigungsmail.md, docs/entscheidungen.md
  */
 
 interface Registration {
@@ -62,21 +65,19 @@ export const sendRegistrationConfirmation = async ({
         .maybeSingle()
     : { data: null };
 
-  const { data: organizationName } = await supabase.rpc(
-    'event_organization_name',
-    { p_event_id: eventId }
-  );
+  const organization = await getEventOrganization(supabase, eventId);
 
-  const attachments = await ticketAttachments(
-    ticketUrl(env.SITE_URL, ticketCode)
-  );
+  const [tickets, logo] = await Promise.all([
+    ticketAttachments(ticketUrl(env.SITE_URL, ticketCode)),
+    logoAttachment(organization?.logoUrl ?? null, env.NEXT_PUBLIC_SUPABASE_URL),
+  ]);
 
   const resend = new Resend(env.RESEND_API_KEY);
   const { error } = await resend.emails.send({
     from: env.EMAIL_FROM_ADDRESS,
     to: [email],
     subject: confirmationSubject(event.title),
-    attachments,
+    attachments: logo ? [...tickets, logo.attachment] : tickets,
     react: createElement(ConfirmationMail, {
       eventTitle: event.title,
       eventDate: formatDate(event.date),
@@ -85,7 +86,8 @@ export const sendRegistrationConfirmation = async ({
       category: category
         ? { label: event.category_label || 'Kategorie', value: category.label }
         : null,
-      organizationName: organizationName ?? null,
+      organization,
+      logo: logo?.logo ?? null,
       qrImageSrc: `cid:${TICKET_CID}`,
     }),
   });

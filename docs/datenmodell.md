@@ -125,15 +125,15 @@ sondern ein `with check`, das schwächer ist als sein `using`.
 über ein existierendes Event, beide mit `set search_path = ''` und voll
 qualifizierten Namen; die Tabelle `organizations` bleibt anonym verschlossen.
 
-- `event_organization_name(event_id)` — nur der Name, für die
-  Bestätigungsmail bei einer anonymen Anmeldung. Begründung in
-  [`task-51-bestaetigungsmail.md`](./task-51-bestaetigungsmail.md).
+- `event_organization_name(event_id)` — nur der Name. Entstanden für die
+  Bestätigungsmail (TASK-51, Begründung in
+  [`task-51-bestaetigungsmail.md`](./task-51-bestaetigungsmail.md)); seit
+  TASK-56 ruft der Code sie nicht mehr auf. Sie bleibt trotzdem bestehen —
+  ausdrücklich so entschieden, siehe `entscheidungen.md`.
 - `event_organization(event_id)` — eine Zeile mit Name, Logo, Adresse und
-  Kontakt, für Kopf- und Fusszeile der Landingpage (TASK-55). Keine weitere
-  Spalte, keine Id; ein Test schlägt fehl, sobald eine dazukommt.
-
-`event_organization_name` fällt weg, sobald die Mail auf `event_organization`
-umsteigt — Entfernen heisst Code zuerst.
+  Kontakt, für Kopf- und Fusszeile der Landingpage (TASK-55) und der
+  Bestätigungsmail (TASK-56). Keine weitere Spalte, keine Id; ein Test schlägt
+  fehl, sobald eine dazukommt.
 
 **Keine Rekursion, und darum noch keine Definer-Funktion.** Eine Policy auf
 `events` liest `organization_user`, dort greift `user_id = auth.uid()` — ein

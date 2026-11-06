@@ -14,6 +14,21 @@ die die aktuelle Aufgabe betreffen, und nur dort nachlesen. Neueste oben.
 Anhängen, nie umschreiben — eine überholte Entscheidung bekommt eine neue Zeile,
 die auf die alte verweist.
 
+## 2026-11
+
+- **Logo und Kontaktzeile in der Bestätigungsmail (TASK-56).** Die Mail liest
+  die Organisation über `event_organization()`, wie die Landingpage. Das Logo
+  kommt als `cid:`-Anhang, nicht als externe URL: Outlook blockiert externe
+  Bilder, WebP und AVIF zeigen Outlook und Teile von Gmail nicht an. Beim
+  Versand wird es mit `sharp` auf höchstens 200 × 80 (doppelte Auflösung) als
+  PNG umgerechnet; Breite und Höhe stehen als Attribute im `<img>`, damit auch
+  Outlook nicht verzerrt. Geladen werden nur URLs aus dem eigenen Bucket
+  `event-images`, weil `logo_url` beliebige URLs zulässt (sonst SSRF). Jeder
+  Fehler beim Logo heisst: Mail ohne Logo. `sharp` ist jetzt direkte
+  Abhängigkeit (vorher nur über `next`). **`event_organization_name()` bleibt
+  bestehen**, obwohl kein Code sie mehr aufruft. So entschieden von Sh,
+  überholt die Ankündigung bei TASK-55, Scheibe 4.
+
 ## 2026-10
 
 - **CI blockiert den Merge, solange eine Migration nicht in Produktion ist.**
