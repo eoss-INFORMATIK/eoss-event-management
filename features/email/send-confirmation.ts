@@ -5,7 +5,9 @@ import { Resend } from 'resend';
 import {
   ConfirmationMail,
   confirmationSubject,
+  footerParts,
 } from '@/features/email/confirmation-template';
+import { footerIconAttachments } from '@/features/email/footer-icons';
 import { logoAttachment } from '@/features/email/logo-attachment';
 import {
   TICKET_CID,
@@ -67,9 +69,10 @@ export const sendRegistrationConfirmation = async ({
 
   const organization = await getEventOrganization(supabase, eventId);
 
-  const [tickets, logo] = await Promise.all([
+  const [tickets, logo, icons] = await Promise.all([
     ticketAttachments(ticketUrl(env.SITE_URL, ticketCode)),
     logoAttachment(organization?.logoUrl ?? null, env.NEXT_PUBLIC_SUPABASE_URL),
+    footerIconAttachments(footerParts(organization)),
   ]);
 
   const resend = new Resend(env.RESEND_API_KEY);
@@ -77,7 +80,7 @@ export const sendRegistrationConfirmation = async ({
     from: env.EMAIL_FROM_ADDRESS,
     to: [email],
     subject: confirmationSubject(event.title),
-    attachments: logo ? [...tickets, logo.attachment] : tickets,
+    attachments: [...tickets, ...(logo ? [logo.attachment] : []), ...icons],
     react: createElement(ConfirmationMail, {
       eventTitle: event.title,
       eventDate: formatDate(event.date),

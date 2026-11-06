@@ -16,6 +16,14 @@ die auf die alte verweist.
 
 ## 2026-11
 
+- **Footer-Icons der Bestätigungsmail als Bild, nicht als Textzeichen
+  (TASK-56, Korrektur).** ☎ und ✉ holt jedes Mailprogramm aus einer anderen
+  Ersatzschrift, mit anderer Grösse und Grundlinie; in der Praxis waren sie
+  ungleich gross. Jetzt Lucide `Phone` und `Mail` (wie in der App), beim Versand
+  per `sharp` als PNG (3×) gerendert und als `cid:`-Anhang eingebunden, 14 × 14 px
+  mit `vertical-align: middle`. Nur angehängt, was der Footer zeigt; schlägt das
+  Rendern fehl, steht der Alt-Text da. Footer-Struktur unverändert.
+
 - **Logo und Kontaktzeile in der Bestätigungsmail (TASK-56).** Die Mail liest
   die Organisation über `event_organization()`, wie die Landingpage. Das Logo
   kommt als `cid:`-Anhang, nicht als externe URL: Outlook blockiert externe
