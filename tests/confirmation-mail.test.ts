@@ -2,6 +2,8 @@ import { createElement } from 'react';
 
 import { render } from '@react-email/render';
 import jsQR from 'jsqr';
+import { readFileSync, readdirSync } from 'node:fs';
+import { resolve } from 'node:path';
 import { PNG } from 'pngjs';
 import sharp from 'sharp';
 import { describe, expect, it } from 'vitest';
@@ -9,9 +11,16 @@ import { describe, expect, it } from 'vitest';
 import {
   ConfirmationMail,
   type ConfirmationMailProps,
+  FOOTER_ICON_CID,
+  FOOTER_ICON_SIZE,
   confirmationSubject,
   footerParts,
 } from '@/features/email/confirmation-template';
+import {
+  footerIconAttachments,
+  footerIconPng,
+  footerIconSvg,
+} from '@/features/email/footer-icons';
 import {
   LOGO_MAX_HEIGHT,
   LOGO_MAX_WIDTH,
@@ -119,7 +128,11 @@ describe('Kopfzeile: Logo der Organisation (TASK-56)', () => {
 
   it('lässt ohne Logo jedes Bild ausser dem QR-Code weg', async () => {
     const html = await render(
-      createElement(ConfirmationMail, { ...props, logo: null })
+      createElement(ConfirmationMail, {
+        ...props,
+        logo: null,
+        organization: { ...props.organization!, ...noContact },
+      })
     );
     expect(html.match(/<img/g)).toHaveLength(1);
     expect(html).toContain(`src="cid:${TICKET_CID}"`);
@@ -202,8 +215,8 @@ describe('Fusszeile: Kontaktdaten der Organisation (TASK-56)', () => {
     expect(html!.match(/ \| /g)).toHaveLength(3);
     expect(html).toContain('href="tel:+41719112233"');
     expect(html).toContain('href="mailto:info@hev-wil.ch"');
-    expect(html).toContain('\u260E\uFE0E');
-    expect(html).toContain('\u2709\uFE0E');
+    expect(html).toContain(`src="cid:${FOOTER_ICON_CID.phone}"`);
+    expect(html).toContain(`src="cid:${FOOTER_ICON_CID.email}"`);
     // PLZ und Ort brechen nicht auseinander.
     expect(html).toMatch(/white-space:nowrap[^>]*>9500 Wil</);
   });
@@ -260,6 +273,78 @@ describe('Fusszeile: Kontaktdaten der Organisation (TASK-56)', () => {
     });
     expect(html).not.toContain('<i>x</i>');
     expect(html).toContain('&lt;i&gt;x&lt;/i&gt;');
+  });
+});
+
+describe('Footer-Icons: einheitlich als Bild statt Textzeichen (TASK-56)', () => {
+  it('verwendet keine Unicode-Symbole mehr', async () => {
+    const html = await render(createElement(ConfirmationMail, props));
+    expect(html).not.toMatch(/[\u260E\u2709\uFE0E]/);
+  });
+
+  it('beide Icons: gleiche feste Grösse, mittig zur Schrift', async () => {
+    const html = await render(createElement(ConfirmationMail, props));
+    for (const cid of Object.values(FOOTER_ICON_CID)) {
+      const img = html.match(new RegExp(`<img[^>]*cid:${cid}[^>]*>`))?.[0];
+      expect(img).toContain(`width="${FOOTER_ICON_SIZE}"`);
+      expect(img).toContain(`height="${FOOTER_ICON_SIZE}"`);
+      expect(img).toContain('vertical-align:middle');
+    }
+  });
+
+  it('erzeugt beide als quadratische PNGs gleicher Grösse', async () => {
+    const [phone, mail] = await Promise.all([
+      footerIconPng('phone'),
+      footerIconPng('email'),
+    ]);
+    const a = await sharp(phone).metadata();
+    const b = await sharp(mail).metadata();
+    expect(a.format).toBe('png');
+    expect({ w: a.width, h: a.height }).toEqual({ w: b.width, h: b.height });
+    expect(a.width).toBe(a.height);
+    expect(a.width! % FOOTER_ICON_SIZE).toBe(0);
+  });
+
+  it('Pfade stimmen mit Lucide überein (wie die App-Icons)', async () => {
+    // @ts-expect-error -- interne Datei ohne Typen, nur im Test gelesen
+    const phone = await import('lucide-react/dist/esm/icons/phone.js');
+    // @ts-expect-error -- dito
+    const mail = await import('lucide-react/dist/esm/icons/mail.js');
+    const nodes = (node: [string, Record<string, string>][]) =>
+      node.map(([, { d, x, y, width, height }]) => d ?? [x, y, width, height]);
+
+    for (const value of nodes(phone.__iconNode).flat()) {
+      expect(footerIconSvg('phone')).toContain(`"${value}"`);
+    }
+    for (const value of nodes(mail.__iconNode).flat()) {
+      expect(footerIconSvg('email')).toContain(`"${value}"`);
+    }
+  });
+
+  it('kein react-dom/server in den Mail-Modulen (bricht den Next-Build)', () => {
+    // Die Module haengen ueber addParticipant an einer Server Action; Next.js
+    // verbietet dort react-dom/server. Vitest merkt das nicht, nur `next build`.
+    const dir = resolve(import.meta.dirname, '../features/email');
+    for (const file of readdirSync(dir)) {
+      expect(readFileSync(resolve(dir, file), 'utf8')).not.toMatch(
+        /from ['"]react-dom\/server['"]/
+      );
+    }
+  });
+
+  it('hängt nur die Icons an, die die Fusszeile zeigt', async () => {
+    const all = await footerIconAttachments(footerParts(props.organization));
+    expect(all.map((a) => a.contentId)).toEqual([
+      FOOTER_ICON_CID.phone,
+      FOOTER_ICON_CID.email,
+    ]);
+
+    const onlyMail = await footerIconAttachments(
+      footerParts({ ...props.organization!, phone: null })
+    );
+    expect(onlyMail.map((a) => a.contentId)).toEqual([FOOTER_ICON_CID.email]);
+
+    expect(await footerIconAttachments([])).toEqual([]);
   });
 });
 

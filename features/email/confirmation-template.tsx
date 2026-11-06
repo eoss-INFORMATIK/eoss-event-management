@@ -3,7 +3,7 @@
  * der Organisation (TASK-56).
  *
  * Inline-Styles, weil Mailprogramme `<style>` und Klassen nur teilweise
- * kennen. Keine Bilder von aussen: QR-Code und Logo kommen als Anhang mit
+ * kennen. Keine Bilder von aussen: QR-Code, Logo und Footer-Icons kommen als Anhang mit
  * `contentId` und werden ueber `cid:` eingebunden -- Gmail zeigt `data:`-Bilder
  * nicht an, Outlook blockiert externe Bilder, bis man sie freigibt.
  */
@@ -129,11 +129,34 @@ export const footerParts = (
 };
 
 /**
- * Icons als Textzeichen statt Bilder: keine weiteren Anhaenge, nichts, was ein
- * Client blockiert. U+FE0E erzwingt die Textform -- ohne macht iOS daraus ein
- * buntes Emoji.
+ * Icons fuer Telefon und E-Mail als kleine PNG-Anhaenge (`cid:`), erzeugt in
+ * `features/email/footer-icons.ts`.
+ *
+ * Nicht als Textzeichen (☎ / ✉): die holt jedes Mailprogramm aus einer
+ * anderen Ersatzschrift, mit anderer Groesse und Grundlinie -- in Outlook und
+ * Gmail sahen die beiden Icons nie gleich aus. Ein Bild mit festen Massen ist
+ * ueberall gleich gross. `vertical-align: middle` setzt es auf die Mitte der
+ * Kleinbuchstaben, das verstehen auch Outlook und Gmail.
  */
-const ICON = { phone: '☎︎', email: '✉︎' } as const;
+export const FOOTER_ICON_CID = {
+  phone: 'footer-icon-phone',
+  email: 'footer-icon-email',
+} as const;
+
+/** Anzeigegroesse in px, passend zur Fusszeile (13px Schrift). */
+export const FOOTER_ICON_SIZE = 14;
+
+const ICON_ALT = { phone: 'Telefon', email: 'E-Mail' } as const;
+
+const iconStyle = {
+  display: 'inline',
+  width: `${FOOTER_ICON_SIZE}px`,
+  height: `${FOOTER_ICON_SIZE}px`,
+  verticalAlign: 'middle',
+  border: 0,
+  outline: 'none',
+  textDecoration: 'none',
+} as const;
 
 const nowrap = { whiteSpace: 'nowrap' } as const;
 const link = { color: '#555555', textDecoration: 'none' } as const;
@@ -162,7 +185,15 @@ function FooterPartView({ part }: { part: FooterPart }) {
     case 'email':
       return (
         <span style={nowrap}>
-          {ICON[part.kind]}&nbsp;
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img
+            src={`cid:${FOOTER_ICON_CID[part.kind]}`}
+            alt={ICON_ALT[part.kind]}
+            width={FOOTER_ICON_SIZE}
+            height={FOOTER_ICON_SIZE}
+            style={iconStyle}
+          />
+          &nbsp;
           <a href={part.href} style={link}>
             {part.value}
           </a>
