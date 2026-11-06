@@ -22,7 +22,11 @@ die auf die alte verweist.
   ungleich gross. Jetzt Lucide `Phone` und `Mail` (wie in der App), beim Versand
   per `sharp` als PNG (3×) gerendert und als `cid:`-Anhang eingebunden, 14 × 14 px
   mit `vertical-align: middle`. Nur angehängt, was der Footer zeigt; schlägt das
-  Rendern fehl, steht der Alt-Text da. Footer-Struktur unverändert.
+  Rendern fehl, steht der Alt-Text da. Footer-Struktur unverändert. Die
+  SVG-Pfade stehen als Text im Modul, **nicht** über `lucide-react` und
+  `react-dom/server`: Next.js verbietet `react-dom/server` im Graphen von Server
+  Actions, der Build bricht ab. Vitest und Typecheck merken das nicht — Beweis
+  ist `npm run build`; ein Test hält den Import draussen.
 
 - **Logo und Kontaktzeile in der Bestätigungsmail (TASK-56).** Die Mail liest
   die Organisation über `event_organization()`, wie die Landingpage. Das Logo

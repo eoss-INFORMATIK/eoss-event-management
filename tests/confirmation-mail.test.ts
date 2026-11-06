@@ -2,6 +2,8 @@ import { createElement } from 'react';
 
 import { render } from '@react-email/render';
 import jsQR from 'jsqr';
+import { readFileSync, readdirSync } from 'node:fs';
+import { resolve } from 'node:path';
 import { PNG } from 'pngjs';
 import sharp from 'sharp';
 import { describe, expect, it } from 'vitest';
@@ -17,6 +19,7 @@ import {
 import {
   footerIconAttachments,
   footerIconPng,
+  footerIconSvg,
 } from '@/features/email/footer-icons';
 import {
   LOGO_MAX_HEIGHT,
@@ -300,6 +303,33 @@ describe('Footer-Icons: einheitlich als Bild statt Textzeichen (TASK-56)', () =>
     expect({ w: a.width, h: a.height }).toEqual({ w: b.width, h: b.height });
     expect(a.width).toBe(a.height);
     expect(a.width! % FOOTER_ICON_SIZE).toBe(0);
+  });
+
+  it('Pfade stimmen mit Lucide überein (wie die App-Icons)', async () => {
+    // @ts-expect-error -- interne Datei ohne Typen, nur im Test gelesen
+    const phone = await import('lucide-react/dist/esm/icons/phone.js');
+    // @ts-expect-error -- dito
+    const mail = await import('lucide-react/dist/esm/icons/mail.js');
+    const nodes = (node: [string, Record<string, string>][]) =>
+      node.map(([, { d, x, y, width, height }]) => d ?? [x, y, width, height]);
+
+    for (const value of nodes(phone.__iconNode).flat()) {
+      expect(footerIconSvg('phone')).toContain(`"${value}"`);
+    }
+    for (const value of nodes(mail.__iconNode).flat()) {
+      expect(footerIconSvg('email')).toContain(`"${value}"`);
+    }
+  });
+
+  it('kein react-dom/server in den Mail-Modulen (bricht den Next-Build)', () => {
+    // Die Module haengen ueber addParticipant an einer Server Action; Next.js
+    // verbietet dort react-dom/server. Vitest merkt das nicht, nur `next build`.
+    const dir = resolve(import.meta.dirname, '../features/email');
+    for (const file of readdirSync(dir)) {
+      expect(readFileSync(resolve(dir, file), 'utf8')).not.toMatch(
+        /from ['"]react-dom\/server['"]/
+      );
+    }
   });
 
   it('hängt nur die Icons an, die die Fusszeile zeigt', async () => {
