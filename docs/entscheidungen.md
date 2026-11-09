@@ -16,8 +16,23 @@ die auf die alte verweist.
 
 ## 2026-11
 
+- **Logo und Kontaktzeile in der Bestätigungsmail (TASK-56).** Die Mail liest
+  die Organisation über `event_organization()`, wie die Landingpage. Das Logo
+  kommt als `cid:`-Anhang, nicht als externe URL: Outlook blockiert externe
+  Bilder, WebP und AVIF zeigen Outlook und Teile von Gmail nicht an. Beim
+  Versand wird es mit `sharp` auf höchstens 200 × 80 (doppelte Auflösung) als
+  PNG umgerechnet; Breite und Höhe stehen als Attribute im `<img>`, damit auch
+  Outlook nicht verzerrt. Im CSS `height: auto` statt fester Höhe: bei einer
+  Ansicht schmaler als das Logo kürzt `max-width` sonst nur die Breite und
+  staucht es (Nachtrag 2026-11-09). Geladen werden nur URLs aus dem eigenen Bucket
+  `event-images`, weil `logo_url` beliebige URLs zulässt (sonst SSRF). Jeder
+  Fehler beim Logo heisst: Mail ohne Logo. `sharp` ist jetzt direkte
+  Abhängigkeit (vorher nur über `next`). **`event_organization_name()` bleibt
+  bestehen**, obwohl kein Code sie mehr aufruft. So entschieden von Sh,
+  überholt die Ankündigung bei TASK-55, Scheibe 4.
+
 - **Kurztext umgesetzt (TASK-53, Scheibe 2).** Spalte `events.excerpt
-  varchar(160)` — die Grenze hält die Datenbank, das Schema liefert nur die
+varchar(160)` — die Grenze hält die Datenbank, das Schema liefert nur die
   Meldung. Rückfall und Kürzung an genau einer Stelle, `eventExcerpt` in
   `features/events/excerpt.ts`: an einer Wortgrenze, mit „…“, insgesamt
   höchstens 160 Zeichen. Der Klartext-Helfer ist dafür aus `description.tsx`
