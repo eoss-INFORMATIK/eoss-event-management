@@ -58,6 +58,15 @@ Namen wie `=1+1` als Text, nicht als Formel. Geprüft wird die echte Datei,
 entpackt, ohne `<f>`-Element im Sheet. Gegenprobe gemacht: mit `type: 'Formula'`
 auf der Namensspalte wird der Test rot.
 
+`tests/event-description.test.ts` hält fest, dass die öffentlich angezeigte
+Beschreibung aus Markdown nie HTML, Links oder Bilder macht. Gegenprobe
+gemacht: ohne `allowedElements` werden die Tests für Links und Titelstufen rot.
+
+`tests/event-excerpt.test.ts` hält den Rückfall des Kurztexts fest und die
+Grenze von 160 Zeichen in Schema und Spalte. Der Datenbankteil braucht den
+Stack. Gegenprobe gemacht: mit `excerpt` als `text` wird „lehnt 161 Zeichen
+ab“ rot.
+
 `tests/participants-filter.test.ts` hält fest, dass der Export die ganze
 gefilterte Auswahl nimmt, nicht die angezeigte Seite — mit derselben
 Tabellenkonfiguration wie die Seite. Gegenprobe: mit `getRowModel()` statt

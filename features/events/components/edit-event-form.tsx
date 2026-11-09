@@ -12,8 +12,10 @@ import { toast } from 'sonner';
 import { editEvent } from '@/features/events/actions';
 import type { EventCategory } from '@/features/events/categories';
 import { CategoryFields } from '@/features/events/components/category-fields';
+import { DescriptionEditor } from '@/features/events/components/description-editor';
 import { SponsorFields } from '@/features/events/components/sponsor-fields';
 import {
+  EXCERPT_LENGTH,
   type EventFormValues,
   eventFormSchema,
 } from '@/features/events/schema';
@@ -24,6 +26,7 @@ import { Button } from '@/components/ui/button';
 import {
   Form,
   FormControl,
+  FormDescription,
   FormField,
   FormItem,
   FormLabel,
@@ -52,6 +55,7 @@ export function EditEventForm({ event, categories }: EditEventFormProps) {
     defaultValues: {
       title: event.title,
       description: event.description ?? '',
+      excerpt: event.excerpt ?? '',
       date: new Date(event.date),
       // Gesetzter Name = der Block ist an. Es gibt keine eigene Spalte dafuer,
       // und genau deshalb kann hier nichts auseinanderlaufen.
@@ -134,16 +138,39 @@ export function EditEventForm({ event, categories }: EditEventFormProps) {
         />
         <FormField
           control={form.control}
+          name="excerpt"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>Kurztext</FormLabel>
+              <FormControl>
+                <Textarea
+                  placeholder="Ein, zwei Sätze für die Event-Übersicht"
+                  className="resize-none"
+                  maxLength={EXCERPT_LENGTH}
+                  {...field}
+                  value={field.value ?? ''}
+                />
+              </FormControl>
+              <FormDescription>
+                Höchstens {EXCERPT_LENGTH} Zeichen. Leer gelassen, erscheint der
+                Anfang der Beschreibung.
+              </FormDescription>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+        <FormField
+          control={form.control}
           name="description"
           render={({ field }) => (
             <FormItem>
               <FormLabel>Beschreibung</FormLabel>
               <FormControl>
-                <Textarea
+                <DescriptionEditor
                   placeholder="Beschreibung des Events"
-                  className="resize-none"
-                  {...field}
                   value={field.value ?? ''}
+                  onChange={field.onChange}
+                  onBlur={field.onBlur}
                 />
               </FormControl>
               <FormMessage />

@@ -2,6 +2,8 @@
 
 import Image from 'next/image';
 
+import { EventDescription } from '@/features/events/description';
+
 import { Surface } from '@/components/surface';
 
 import { formatDate } from '@/lib/format';
@@ -41,9 +43,14 @@ export function SingleEventMetaClient({
 
       <div>
         <h3 className="mb-2 font-semibold">Beschreibung</h3>
-        <p className="text-muted-foreground">
-          {event.description || 'Keine Beschreibung vorhanden'}
-        </p>
+        {event.description ? (
+          <EventDescription
+            markdown={event.description}
+            className="text-muted-foreground"
+          />
+        ) : (
+          <p className="text-muted-foreground">Keine Beschreibung vorhanden</p>
+        )}
       </div>
 
       {/*

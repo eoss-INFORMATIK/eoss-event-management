@@ -2,6 +2,7 @@ import Image from 'next/image';
 import Link from 'next/link';
 import type { ReactNode } from 'react';
 
+import { EventDescription } from '@/features/events/description';
 import type { EventOrganization } from '@/features/organizations/queries';
 
 import { formatDate } from '@/lib/format';
@@ -163,13 +164,16 @@ function EventContent({
         </header>
 
         <div className="grid gap-12 lg:grid-cols-[minmax(0,1fr)_26rem] lg:gap-24">
-          <div className="text-lg whitespace-pre-line">
-            {event.description || (
-              <span className="text-muted-foreground">
-                Keine Beschreibung vorhanden
-              </span>
-            )}
-          </div>
+          {event.description ? (
+            <EventDescription
+              markdown={event.description}
+              className="text-lg"
+            />
+          ) : (
+            <p className="text-muted-foreground text-lg">
+              Keine Beschreibung vorhanden
+            </p>
+          )}
 
           <section className="flex flex-col gap-6" aria-labelledby="anmeldung">
             <h2 id="anmeldung" className="text-2xl font-bold">
