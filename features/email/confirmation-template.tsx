@@ -222,7 +222,10 @@ export function ConfirmationMail({
     <div style={{ ...text, maxWidth: '560px' }}>
       {logo && (
         // next/image gibt es in einer Mail nicht -- Mailprogramme brauchen <img>.
-        // width/height als Attribute fuer Outlook, als CSS fuer alle anderen.
+        // width/height als Attribute fuer Outlook (das `max-width` ignoriert und
+        // daher nie verkleinert). Im CSS `height: auto`, nicht die feste Hoehe:
+        // wird es schmaler als das Logo, verkleinert `max-width` nur die Breite,
+        // und eine feste Hoehe wuerde das Logo stauchen.
         // eslint-disable-next-line @next/next/no-img-element
         <img
           src={logo.src}
@@ -232,7 +235,7 @@ export function ConfirmationMail({
           style={{
             display: 'block',
             width: `${logo.width}px`,
-            height: `${logo.height}px`,
+            height: 'auto',
             maxWidth: '100%',
             border: 0,
             outline: 'none',

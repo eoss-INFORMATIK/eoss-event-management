@@ -117,6 +117,16 @@ describe('Kopfzeile: Logo der Organisation (TASK-56)', () => {
     );
   });
 
+  it('bleibt proportional, wenn die Ansicht schmaler ist als das Logo', async () => {
+    // max-width verkleinert nur die Breite; eine feste CSS-Hoehe wuerde das
+    // Logo stauchen. Die Attribute bleiben fuer Outlook.
+    const html = await render(createElement(ConfirmationMail, props));
+    const img = html.match(/<img[^>]*cid:organization-logo[^>]*>/)?.[0];
+    expect(img).toContain('height:auto');
+    expect(img).toContain('max-width:100%');
+    expect(img).not.toMatch(/height:\d+px/);
+  });
+
   it('lässt ohne Logo jedes Bild ausser dem QR-Code weg', async () => {
     const html = await render(
       createElement(ConfirmationMail, { ...props, logo: null })
