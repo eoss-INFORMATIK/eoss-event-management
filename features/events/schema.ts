@@ -1,5 +1,8 @@
 import { z } from 'zod';
 
+/** Laenge des Kurztexts -- dieselbe Zahl steht in der Spalte, varchar(160). */
+export const EXCERPT_LENGTH = 160;
+
 /**
  * Fields the event form collects and validates.
  *
@@ -18,6 +21,16 @@ const eventFieldsSchema = z.object({
     .string()
     .trim()
     .max(5000, 'Beschreibung darf höchstens 5000 Zeichen lang sein')
+    .optional(),
+  // Kurztext fuer die Event-Karte. Leer heisst: die Karte nimmt den Anfang der
+  // Beschreibung (`eventExcerpt`). Die 160 haelt auch die Spalte, varchar(160).
+  excerpt: z
+    .string()
+    .trim()
+    .max(
+      EXCERPT_LENGTH,
+      `Kurztext darf höchstens ${EXCERPT_LENGTH} Zeichen lang sein`
+    )
     .optional(),
   // z.date(), not z.coerce.date(): the date input already hands over a Date,
   // and coercion would type the resolver input as `unknown`.
